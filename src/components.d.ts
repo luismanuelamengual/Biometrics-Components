@@ -10,6 +10,10 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
+  interface BiometricsLiveness {
+    'autoStart': boolean;
+    'serverUrl': string;
+  }
   interface MyComponent {
     /**
     * The first name
@@ -29,17 +33,28 @@ export namespace Components {
 declare global {
 
 
+  interface HTMLBiometricsLivenessElement extends Components.BiometricsLiveness, HTMLStencilElement {}
+  var HTMLBiometricsLivenessElement: {
+    prototype: HTMLBiometricsLivenessElement;
+    new (): HTMLBiometricsLivenessElement;
+  };
+
   interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {}
   var HTMLMyComponentElement: {
     prototype: HTMLMyComponentElement;
     new (): HTMLMyComponentElement;
   };
   interface HTMLElementTagNameMap {
+    'biometrics-liveness': HTMLBiometricsLivenessElement;
     'my-component': HTMLMyComponentElement;
   }
 }
 
 declare namespace LocalJSX {
+  interface BiometricsLiveness {
+    'autoStart'?: boolean;
+    'serverUrl'?: string;
+  }
   interface MyComponent {
     /**
     * The first name
@@ -56,6 +71,7 @@ declare namespace LocalJSX {
   }
 
   interface IntrinsicElements {
+    'biometrics-liveness': BiometricsLiveness;
     'my-component': MyComponent;
   }
 }
@@ -66,6 +82,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
   export namespace JSX {
     interface IntrinsicElements {
+      'biometrics-liveness': LocalJSX.BiometricsLiveness & JSXBase.HTMLAttributes<HTMLBiometricsLivenessElement>;
       'my-component': LocalJSX.MyComponent & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
     }
   }

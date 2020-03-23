@@ -1,18 +1,22 @@
-import { Config } from '@stencil/core';
+import {Config} from '@stencil/core';
+import {sass} from "@stencil/sass";
 
 export const config: Config = {
-  namespace: 'biometrics-components',
-  outputTargets: [
-    {
-      type: 'dist',
-      esmLoaderPath: '../loader'
-    },
-    {
-      type: 'docs-readme'
-    },
-    {
-      type: 'www',
-      serviceWorker: null // disable service workers
-    }
-  ]
+    namespace: 'biometrics-components',
+    plugins: [
+        sass()
+    ],
+    outputTargets: [
+        {
+            type: 'dist',
+            esmLoaderPath: '../loader'
+        },
+        {
+            type: 'docs-readme'
+        },
+        {
+            type: 'www',
+            serviceWorker: null // disable service workers
+        }
+    ]
 };
