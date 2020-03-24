@@ -393,6 +393,9 @@ export class BiometricsLiveness {
             </div>
             <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>
             <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
+            {this.message && <div class="liveness-instructions-container">
+                <p class="liveness-instructions">{ this.message }</p>
+            </div>}
         </div>;
     }
 }
