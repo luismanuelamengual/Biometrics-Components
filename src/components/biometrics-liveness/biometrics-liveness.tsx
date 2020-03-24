@@ -1,4 +1,12 @@
-import {Component, h, Prop, Element} from '@stencil/core';
+import {Component, h, Prop, Element, Listen} from '@stencil/core';
+import bodymovin from 'bodymovin';
+
+// @ts-ignore
+import checkAnimationData from './animations/check.animation.json';
+// @ts-ignore
+import pointAnimationData from './animations/point.animation.json';
+// @ts-ignore
+import maskAnimationData from './animations/mask.animation.json';
 
 @Component({
   tag: 'biometrics-liveness',
@@ -6,6 +14,8 @@ import {Component, h, Prop, Element} from '@stencil/core';
   shadow: true
 })
 export class BiometricsLiveness {
+
+    readonly MASK_ANIMATION_MAX_FRAMES = 60;
 
     @Element() host: HTMLElement;
 
@@ -15,13 +25,61 @@ export class BiometricsLiveness {
 
     videoElement!: HTMLVideoElement;
     videoOverlayElement!: HTMLDivElement;
+    maskAnimationElement: HTMLDivElement;
+    maskAnimation = null;
+    maskAnimationInProgress = false;
+    maskAnimationTargetFrame = 0;
+    maskAnimationRequestedFrame = 0;
 
     componentDidLoad() {
         this.initVideo();
+        this.initAnimations();
     }
 
     componentDidUnload() {
         this.finalizeVideo();
+    }
+
+    @Listen('resize', { target: 'window' })
+    handleResize() {
+        this.adjustVideoOverlay();
+    }
+
+
+    initAnimations() {
+        /*this.pointAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: true,
+            loop: true,
+            animationData: pointAnimationData,
+            container: this.livenessPointAnimationElement.nativeElement
+        });
+        this.checkAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: false,
+            loop: false,
+            animationData: checkAnimationData,
+            container: this.livenessCheckAnimationElement.nativeElement
+        });
+        this.checkAnimation.addEventListener('complete', () => {
+            this.onLivenessSessionCompleted();
+        });*/
+        this.maskAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: false,
+            loop: false,
+            animationData: maskAnimationData,
+            container: this.maskAnimationElement
+        });
+        /*this.maskAnimation.addEventListener('complete', () => {
+            if (this.maskAnimationTargetFrame != null && this.maskAnimationTargetFrame !== this.maskAnimationRequestedFrame) {
+                this.animateMask(this.maskAnimationRequestedFrame, this.maskAnimationTargetFrame);
+                this.maskAnimationRequestedFrame = this.maskAnimationTargetFrame;
+            } else {
+                this.maskAnimationInProgress = false;
+            }
+        });*/
+        this.maskAnimation.setSpeed(2);
     }
 
     async initVideo() {
@@ -46,8 +104,27 @@ export class BiometricsLiveness {
         }
     }
 
+    requestMaskAnimation(frame) {
+        if (frame !== this.maskAnimationRequestedFrame) {
+            if (!this.maskAnimationInProgress) {
+                this.maskAnimationTargetFrame = null;
+                this.maskAnimationInProgress = true;
+                this.animateMask(this.maskAnimationRequestedFrame, frame);
+                this.maskAnimationRequestedFrame = frame;
+            } else {
+                this.maskAnimationTargetFrame = frame;
+            }
+        }
+    }
+
+    animateMask(fromFrame, toFrame) {
+        if (fromFrame !== toFrame) {
+            this.maskAnimation.setDirection(toFrame >= fromFrame ? 1 : -1);
+            this.maskAnimation.playSegments([fromFrame, toFrame], true);
+        }
+    }
+
     adjustVideoOverlay() {
-        console.log(12);
         const el = this.host;
         const video = this.videoElement;
         const videoAspectRatio = video.videoWidth / video.videoHeight;
@@ -94,8 +171,14 @@ export class BiometricsLiveness {
 
             <div ref={(el) => this.videoOverlayElement = el as HTMLDivElement} class="liveness-video-overlay">
                 <div class="liveness-video-overlay-content">
-                    {/*<div #livenessPointAnimation [ngClass]="{'liveness-point-animation': true, 'liveness-hidden': livenessMode=='mask' || !livenessSessionRunning, 'liveness-point-animation-left': livenessInstruction == 'left_profile_face', 'liveness-point-animation-right': livenessInstruction == 'right_profile_face'}"></div>
-                    <div #livenessMaskAnimation [ngClass]="{'liveness-mask-animation': true, 'liveness-hidden': livenessMode=='point' || !livenessSessionRunning || livenessStatus < 0}"></div>
+                    <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{
+                        'liveness-mask-animation': true,
+                        'liveness-hidden': false/*livenessMode=='point' || !livenessSessionRunning || livenessStatus < 0*/
+                    }}></div>
+
+
+                    {/*
+                    <div #livenessPointAnimation [ngClass]="{'liveness-point-animation': true, 'liveness-hidden': livenessMode=='mask' || !livenessSessionRunning, 'liveness-point-animation-left': livenessInstruction == 'left_profile_face', 'liveness-point-animation-right': livenessInstruction == 'right_profile_face'}"></div>
                     <ng-container *ngIf="livenessSessionRunning">
                         <app-liveness-marquee [ngClass]="{'liveness-hidden': livenessMode=='mask' && livenessStatus >= 0}"></app-liveness-marquee>
                     </ng-container>*/}
