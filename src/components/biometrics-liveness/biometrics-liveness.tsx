@@ -13,25 +13,54 @@ import maskAnimationData from './animations/mask.animation.json';
 })
 export class BiometricsLiveness {
 
+    readonly FRONTAL_FACE_INSTRUCTION = 'frontal_face';
+    readonly LEFT_PROFILE_FACE_INSTRUCTION = 'left_profile_face';
+    readonly RIGHT_PROFILE_FACE_INSTRUCTION = 'right_profile_face';
+
+    readonly FACE_MATCH_SUCCESS_STATUS_CODE = 0;
+    readonly FACE_WITH_INCORRECT_GESTURE_STATUS_CODE = 1;
+    readonly FACE_NOT_FOUND_STATUS_CODE = -1;
+    readonly FACE_NOT_CENTERED_STATUS_CODE = -2;
+    readonly FACE_TOO_CLOSE_STATUS_CODE = -3;
+    readonly FACE_TOO_FAR_AWAY_STATUS_CODE = -4;
+
     readonly MASK_ANIMATION_MAX_FRAMES = 60;
 
     @Element() host: HTMLElement;
 
     @Prop() serverUrl: string = 'https://dev-bmc322.globant.com/biometrics/';
 
-    @Prop() autoStart = false;
+    @Prop() apiKey: string = '';
+
+    @Prop() autoStart = true;
+
+    @Prop() maxInstructions = 5;
+
+    @Prop() timeout = 10;
+
+    @Prop() maxPictureWidth = 720;
+
+    @Prop() maxPictureHeight = 600;
 
     running: boolean;
     status: number;
+    message: string;
     videoElement!: HTMLVideoElement;
     videoOverlayElement!: HTMLDivElement;
     maskAnimationElement!: HTMLDivElement;
     checkAnimationElement!: HTMLDivElement;
+    canvasElement!: HTMLCanvasElement;
+    pictureCanvasElement!: HTMLCanvasElement;
     checkAnimation = null;
     maskAnimation = null;
     maskAnimationInProgress = false;
     maskAnimationTargetFrame = 0;
     maskAnimationRequestedFrame = 0;
+    pictures = [];
+    instruction = null;
+    instructionsRemaining: number;
+    instructionTimeoutTask: any;
+    debug = false;
 
     componentDidLoad() {
         this.initVideo();
@@ -80,7 +109,7 @@ export class BiometricsLiveness {
         this.videoElement.addEventListener('loadeddata', () => {
             this.adjustVideoOverlay();
             if (this.autoStart) {
-                /*this.startLivenessSession();*/
+                this.startLivenessSession();
             }
         }, false);
         this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
@@ -93,6 +122,202 @@ export class BiometricsLiveness {
                 track.stop();
             });
         }
+    }
+
+    startLivenessSession() {
+        this.checkAnimation.goToAndStop(0);
+        this.running = true;
+        this.message = null;
+        this.status = 0;
+        this.pictures = [];
+        this.instructionsRemaining = this.maxInstructions;
+        this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
+    }
+
+    stopLivenessSession() {
+        this.running = false;
+    }
+
+    completeLivenessSession() {
+        this.checkAnimation.goToAndPlay(0, true);
+    }
+
+    onLivenessSessionCompleted() {
+        this.stopLivenessSession();
+    }
+
+    getNextInstruction(instruction) {
+        const instructions = [
+            this.FRONTAL_FACE_INSTRUCTION,
+            this.LEFT_PROFILE_FACE_INSTRUCTION,
+            this.RIGHT_PROFILE_FACE_INSTRUCTION
+        ];
+        const possibleInstructions = instructions.filter(item => item !== instruction);
+        const minInstructionIndex = 0;
+        const maxInstructionIndex = possibleInstructions.length - 1;
+        const nextInstructionIndex = Math.floor(Math.random() * (maxInstructionIndex - minInstructionIndex + 1)) + minInstructionIndex;
+        return possibleInstructions[nextInstructionIndex];
+    }
+
+    startLivenessInstruction(instruction) {
+        if (!this.debug) {
+            if (this.instructionTimeoutTask) {
+                clearTimeout(this.instructionTimeoutTask);
+                this.instructionTimeoutTask = null;
+            }
+            this.instructionTimeoutTask = setTimeout(() => {
+                if (this.running) {
+                    this.message = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
+                    this.stopLivenessSession();
+                }
+            }, this.timeout * 1000);
+        }
+        this.setLivenessInstruction(instruction);
+        this.checkDiferredImage();
+    }
+
+    setLivenessInstruction(livenessInstruction) {
+        this.instruction = livenessInstruction;
+        switch (livenessInstruction) {
+            case this.FRONTAL_FACE_INSTRUCTION:
+                this.requestMaskAnimation(this.MASK_ANIMATION_MAX_FRAMES / 2);
+                break;
+            case this.RIGHT_PROFILE_FACE_INSTRUCTION:
+                this.requestMaskAnimation(this.MASK_ANIMATION_MAX_FRAMES);
+                break;
+            case this.LEFT_PROFILE_FACE_INSTRUCTION:
+                this.requestMaskAnimation(0);
+                break;
+        }
+    }
+
+    checkDiferredImage() {
+        if (this.running) {
+            setTimeout(() => { if (this.running) { this.checkImage(); } }, 50);
+        }
+    }
+
+    checkImage() {
+        try {
+            if (this.running) {
+                const video = this.videoElement;
+                const videoWidth = video.videoWidth;
+                const videoHeight = video.videoHeight;
+                const videoAspectRatio = videoHeight / videoWidth;
+                const canvas = this.canvasElement;
+                const context = canvas.getContext('2d');
+                if (videoWidth >= 320) {
+                    canvas.width = 320;
+                    canvas.height = 320 * videoAspectRatio;
+                    context.drawImage(video, 0, 0, 320, 320 * videoAspectRatio);
+                } else {
+                    canvas.width = videoWidth;
+                    canvas.height = videoHeight;
+                    context.drawImage(video, 0, 0, videoWidth, videoHeight);
+                }
+                const imageUrl = canvas.toDataURL('image/jpeg', 0.7);
+                const formData = new FormData();
+                formData.append('instruction', this.instruction);
+                formData.append('selfie', this.convertImageToBlob(imageUrl));
+                fetch (this.serverUrl + 'v1/check_liveness_instruction', {
+                    method: 'post',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + this.apiKey
+                    }
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (this.running) {
+                        this.status = data.status;
+                        this.message = this.getStatusMessage(this.status);
+                        if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                            this.instructionsRemaining = this.maxInstructions;
+                            this.pictures = [];
+                            if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
+                                this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                            } else {
+                                this.checkDiferredImage();
+                            }
+                        } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                            if (!this.debug) {
+                                this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
+                                this.instructionsRemaining--;
+                                if (!this.instructionsRemaining) {
+                                    this.completeLivenessSession();
+                                } else {
+                                    this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                                }
+                            } else {
+                                this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                            }
+                        } else {
+                            this.checkDiferredImage();
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (this.running) {
+                        this.checkDiferredImage();
+                    }
+                });
+            }
+        } catch (e) {
+            this.message = e.message;
+            this.checkDiferredImage();
+        }
+    }
+
+    getPicture(maxWidth: number, maxHeight: number) {
+        const livenessPictureCanvas = this.pictureCanvasElement;
+        const video = this.videoElement;
+        const scale = Math.min((maxWidth / video.videoWidth), (maxHeight / video.videoHeight));
+        const canvasWidth = video.videoWidth * scale;
+        const canvasHeight = video.videoHeight * scale;
+        livenessPictureCanvas.width = canvasWidth;
+        livenessPictureCanvas.height = canvasHeight;
+        const context = livenessPictureCanvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvasWidth, canvasHeight);
+        return livenessPictureCanvas.toDataURL('image/jpeg');
+    }
+
+    getStatusMessage(statusCode) {
+        let message = null;
+        switch (statusCode) {
+            case this.FACE_MATCH_SUCCESS_STATUS_CODE:
+                break;
+            case this.FACE_NOT_FOUND_STATUS_CODE:
+                message = 'Rostro no encontrado';
+                break;
+            case this.FACE_NOT_CENTERED_STATUS_CODE:
+                message = 'Rostro no centrado';
+                break;
+            case this.FACE_TOO_CLOSE_STATUS_CODE:
+                message = 'Rostro demasiado cerca';
+                break;
+            case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
+                message = 'Rostro demasiado lejos. Acerque su rostro';
+                break;
+            case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
+                message = 'Posiciones su nariz para que coincida con el punto rojo';
+                break;
+        }
+        return message;
+    }
+
+    convertImageToBlob(dataURI): Blob {
+        let byteString;
+        const dataURITokens = dataURI.split(',');
+        if (dataURITokens[0].indexOf('base64') >= 0) {
+            byteString = atob(dataURITokens[1]);
+        } else {
+            byteString = this.convertImageToBlob(dataURITokens[1]);
+        }
+        const ia = new Uint8Array(byteString.length);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ia], {type: 'image/jpeg'});
     }
 
     requestMaskAnimation(frame) {
@@ -166,6 +391,8 @@ export class BiometricsLiveness {
                     {/*{this.running && <app-liveness-marquee [ngClass]="{'liveness-hidden': livenessMode=='mask' && livenessStatus >= 0}"></app-liveness-marquee>}*/}
                 </div>
             </div>
+            <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>
+            <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
         </div>;
     }
 }

@@ -11,8 +11,13 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 export namespace Components {
   interface BiometricsLiveness {
+    'apiKey': string;
     'autoStart': boolean;
+    'maxInstructions': number;
+    'maxPictureHeight': number;
+    'maxPictureWidth': number;
     'serverUrl': string;
+    'timeout': number;
   }
   interface MyComponent {
     /**
@@ -52,8 +57,13 @@ declare global {
 
 declare namespace LocalJSX {
   interface BiometricsLiveness {
+    'apiKey'?: string;
     'autoStart'?: boolean;
+    'maxInstructions'?: number;
+    'maxPictureHeight'?: number;
+    'maxPictureWidth'?: number;
     'serverUrl'?: string;
+    'timeout'?: number;
   }
   interface MyComponent {
     /**
