@@ -19,20 +19,6 @@ export namespace Components {
     'serverUrl': string;
     'timeout': number;
   }
-  interface MyComponent {
-    /**
-    * The first name
-    */
-    'first': string;
-    /**
-    * The last name
-    */
-    'last': string;
-    /**
-    * The middle name
-    */
-    'middle': string;
-  }
 }
 
 declare global {
@@ -43,15 +29,8 @@ declare global {
     prototype: HTMLBiometricsLivenessElement;
     new (): HTMLBiometricsLivenessElement;
   };
-
-  interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {}
-  var HTMLMyComponentElement: {
-    prototype: HTMLMyComponentElement;
-    new (): HTMLMyComponentElement;
-  };
   interface HTMLElementTagNameMap {
     'biometrics-liveness': HTMLBiometricsLivenessElement;
-    'my-component': HTMLMyComponentElement;
   }
 }
 
@@ -65,24 +44,9 @@ declare namespace LocalJSX {
     'serverUrl'?: string;
     'timeout'?: number;
   }
-  interface MyComponent {
-    /**
-    * The first name
-    */
-    'first'?: string;
-    /**
-    * The last name
-    */
-    'last'?: string;
-    /**
-    * The middle name
-    */
-    'middle'?: string;
-  }
 
   interface IntrinsicElements {
     'biometrics-liveness': BiometricsLiveness;
-    'my-component': MyComponent;
   }
 }
 
@@ -93,7 +57,6 @@ declare module "@stencil/core" {
   export namespace JSX {
     interface IntrinsicElements {
       'biometrics-liveness': LocalJSX.BiometricsLiveness & JSXBase.HTMLAttributes<HTMLBiometricsLivenessElement>;
-      'my-component': LocalJSX.MyComponent & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
     }
   }
 }

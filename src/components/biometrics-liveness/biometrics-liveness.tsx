@@ -28,9 +28,9 @@ export class BiometricsLiveness {
 
     @Element() host: HTMLElement;
 
-    @Prop() serverUrl: string = 'https://dev-bmc322.globant.com/biometrics/';
+    @Prop() serverUrl: string = 'https://localhost:8080/';
 
-    @Prop() apiKey: string = '';
+    @Prop() apiKey: string = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImNsaWVudCI6InRlc3QifQ.5SY_UQaaILYpryU0qNBuPrPTPkF79UhTCNFElXjzUyY';
 
     @Prop() autoStart = true;
 
@@ -227,32 +227,34 @@ export class BiometricsLiveness {
                     }
                 })
                 .then((response) => response.json())
-                .then((data) => {
-                    if (this.running) {
-                        this.status = data.status;
-                        this.message = this.getStatusMessage(this.status);
-                        if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                            this.instructionsRemaining = this.maxInstructions;
-                            this.pictures = [];
-                            if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
-                                this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
-                            } else {
-                                this.checkDiferredImage();
-                            }
-                        } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                            if (!this.debug) {
-                                this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
-                                this.instructionsRemaining--;
-                                if (!this.instructionsRemaining) {
-                                    this.completeLivenessSession();
+                .then((response) => {
+                    if (response.success) {
+                        if (this.running) {
+                            this.status = response.data.status;
+                            this.message = this.getStatusMessage(this.status);
+                            if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                                this.instructionsRemaining = this.maxInstructions;
+                                this.pictures = [];
+                                if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
+                                    this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                                } else {
+                                    this.checkDiferredImage();
+                                }
+                            } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                                if (!this.debug) {
+                                    this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
+                                    this.instructionsRemaining--;
+                                    if (!this.instructionsRemaining) {
+                                        this.completeLivenessSession();
+                                    } else {
+                                        this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                                    }
                                 } else {
                                     this.startLivenessInstruction(this.getNextInstruction(this.instruction));
                                 }
                             } else {
-                                this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                                this.checkDiferredImage();
                             }
-                        } else {
-                            this.checkDiferredImage();
                         }
                     }
                 })
