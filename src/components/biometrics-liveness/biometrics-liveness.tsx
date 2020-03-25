@@ -68,7 +68,7 @@ export class BiometricsLiveness {
     debug = false;
 
     componentDidLoad() {
-        this.initVideo();
+        this.initializeVideo();
         this.initAnimations();
     }
 
@@ -90,7 +90,7 @@ export class BiometricsLiveness {
             container: this.checkAnimationElement
         });
         this.checkAnimation.addEventListener('complete', () => {
-            /*this.onLivenessSessionCompleted();*/
+            this.onLivenessSessionCompleted();
         });
         this.maskAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
@@ -110,7 +110,7 @@ export class BiometricsLiveness {
         this.maskAnimation.setSpeed(2);
     }
 
-    async initVideo() {
+    async initializeVideo() {
         this.videoElement.addEventListener('loadeddata', () => {
             this.adjustVideoOverlay();
             if (this.autoStart) {
@@ -412,11 +412,9 @@ export class BiometricsLiveness {
             </div>
             <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>
             <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
-            { this.message != null &&
-                <div class="liveness-instructions-container">
-                    <p class="liveness-instructions">{ this.message }</p>
-                </div>
-            }
+            {this.message != null && <div class="liveness-instructions-container">
+                <p class="liveness-instructions">{ this.message }</p>
+            </div>}
         </div>;
     }
 }
