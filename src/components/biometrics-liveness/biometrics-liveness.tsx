@@ -1,4 +1,4 @@
-import {Component, h, Prop, Element, Listen} from '@stencil/core';
+import {Component, h, Prop, Element, Listen, State} from '@stencil/core';
 import bodymovin from 'bodymovin';
 
 // @ts-ignore
@@ -42,9 +42,14 @@ export class BiometricsLiveness {
 
     @Prop() maxPictureHeight = 600;
 
-    running: boolean;
-    status: number;
-    message: string;
+    @State() running: boolean;
+
+    @State() completed: boolean;
+
+    @State() status: number;
+
+    @State() message: string;
+
     videoElement!: HTMLVideoElement;
     videoOverlayElement!: HTMLDivElement;
     maskAnimationElement!: HTMLDivElement;
@@ -127,6 +132,7 @@ export class BiometricsLiveness {
     startLivenessSession() {
         this.checkAnimation.goToAndStop(0);
         this.running = true;
+        this.completed = false;
         this.message = null;
         this.status = 0;
         this.pictures = [];
@@ -136,9 +142,12 @@ export class BiometricsLiveness {
 
     stopLivenessSession() {
         this.running = false;
+        this.stopLivenessInstructionTimer();
     }
 
     completeLivenessSession() {
+        this.stopLivenessInstructionTimer();
+        this.completed = true;
         this.checkAnimation.goToAndPlay(0, true);
     }
 
@@ -159,18 +168,26 @@ export class BiometricsLiveness {
         return possibleInstructions[nextInstructionIndex];
     }
 
+    stopLivenessInstructionTimer() {
+        if (this.instructionTimeoutTask) {
+            clearTimeout(this.instructionTimeoutTask);
+            this.instructionTimeoutTask = null;
+        }
+    }
+
+    startLivenessInstructionTimer() {
+        this.stopLivenessInstructionTimer();
+        this.instructionTimeoutTask = setTimeout(() => {
+            if (this.running) {
+                this.message = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
+                this.stopLivenessSession();
+            }
+        }, this.timeout * 1000);
+    }
+
     startLivenessInstruction(instruction) {
         if (!this.debug) {
-            if (this.instructionTimeoutTask) {
-                clearTimeout(this.instructionTimeoutTask);
-                this.instructionTimeoutTask = null;
-            }
-            this.instructionTimeoutTask = setTimeout(() => {
-                if (this.running) {
-                    this.message = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
-                    this.stopLivenessSession();
-                }
-            }, this.timeout * 1000);
+            this.startLivenessInstructionTimer();
         }
         this.setLivenessInstruction(instruction);
         this.checkDiferredImage();
@@ -301,7 +318,7 @@ export class BiometricsLiveness {
                 message = 'Rostro demasiado lejos. Acerque su rostro';
                 break;
             case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-                message = 'Posiciones su nariz para que coincida con el punto rojo';
+                message = 'Posiciones su rostro para que coincida con la máscara';
                 break;
         }
         return message;
@@ -385,19 +402,21 @@ export class BiometricsLiveness {
 
     render() {
         return <div class="liveness-panel">
-            <div ref={(el) => this.checkAnimationElement = el as HTMLDivElement} class={{ 'liveness-check-animation': true, 'liveness-hidden': !this.running }}></div>
+            <div ref={(el) => this.checkAnimationElement = el as HTMLDivElement} class={{ 'liveness-check-animation': true, 'liveness-hidden': !this.completed }}></div>
             <video ref={(el) => this.videoElement = el as HTMLVideoElement} class="liveness-video" autoplay playsinline></video>
             <div ref={(el) => this.videoOverlayElement = el as HTMLDivElement} class="liveness-video-overlay">
                 <div class="liveness-video-overlay-content">
-                    <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{ 'liveness-mask-animation': true, 'liveness-hidden': !this.running || this.status < 0}}></div>
+                    <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{ 'liveness-mask-animation': true, 'liveness-hidden': !this.running || this.status < 0 || this.completed}}></div>
                     {/*{this.running && <app-liveness-marquee [ngClass]="{'liveness-hidden': livenessMode=='mask' && livenessStatus >= 0}"></app-liveness-marquee>}*/}
                 </div>
             </div>
             <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>
             <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
-            {this.message && <div class="liveness-instructions-container">
-                <p class="liveness-instructions">{ this.message }</p>
-            </div>}
+            { this.message != null &&
+                <div class="liveness-instructions-container">
+                    <p class="liveness-instructions">{ this.message }</p>
+                </div>
+            }
         </div>;
     }
 }

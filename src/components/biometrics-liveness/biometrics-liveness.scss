@@ -18,6 +18,19 @@
             display: none;
         }
 
+        .liveness-hidden {
+            display: none !important;
+        }
+
+        .liveness-check-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+        }
+
         .liveness-video {
             position: absolute;
             top: 0;
