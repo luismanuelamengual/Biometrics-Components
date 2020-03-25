@@ -46,6 +46,8 @@ export class BiometricsLiveness {
 
     @State() completed: boolean;
 
+    @State() initialized: boolean = false;
+
     @State() status: number;
 
     @State() message: string;
@@ -67,9 +69,13 @@ export class BiometricsLiveness {
     instructionTimeoutTask: any;
     debug = false;
 
+    constructor() {
+        this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
+    }
+
     componentDidLoad() {
+        this.initializeAnimations();
         this.initializeVideo();
-        this.initAnimations();
     }
 
     componentDidUnload() {
@@ -81,7 +87,7 @@ export class BiometricsLiveness {
         this.adjustVideoOverlay();
     }
 
-    initAnimations() {
+    initializeAnimations() {
         this.checkAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
             autoplay: false,
@@ -113,6 +119,7 @@ export class BiometricsLiveness {
     async initializeVideo() {
         this.videoElement.addEventListener('loadeddata', () => {
             this.adjustVideoOverlay();
+            this.initialized = true;
             if (this.autoStart) {
                 this.startLivenessSession();
             }
@@ -324,6 +331,10 @@ export class BiometricsLiveness {
         return message;
     }
 
+    handleSessionStartButtonClick () {
+        this.startLivenessSession();
+    }
+
     convertImageToBlob(dataURI): Blob {
         let byteString;
         const dataURITokens = dataURI.split(',');
@@ -414,6 +425,9 @@ export class BiometricsLiveness {
             <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
+            </div>}
+            {this.initialized && !this.running && !this.completed && <div class="liveness-buttons-wrapper">
+                <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >INICIAR</button>
             </div>}
         </div>;
     }
