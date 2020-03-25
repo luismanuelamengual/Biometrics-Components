@@ -413,7 +413,7 @@ export class BiometricsLiveness {
 
     render() {
         return <div class="liveness-panel">
-            <div ref={(el) => this.checkAnimationElement = el as HTMLDivElement} class={{ 'liveness-check-animation': true, 'liveness-hidden': !this.completed }}></div>
+            <div ref={(el) => this.checkAnimationElement = el as HTMLDivElement} class={{ 'liveness-check-animation': true, 'liveness-hidden': !this.running || !this.completed }}></div>
             <video ref={(el) => this.videoElement = el as HTMLVideoElement} class="liveness-video" autoplay playsinline></video>
             <div ref={(el) => this.videoOverlayElement = el as HTMLDivElement} class="liveness-video-overlay">
                 <div class="liveness-video-overlay-content">
@@ -426,7 +426,7 @@ export class BiometricsLiveness {
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
-            {this.initialized && !this.running && !this.completed && <div class="liveness-buttons-wrapper">
+            {this.initialized && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >INICIAR</button>
             </div>}
         </div>;
