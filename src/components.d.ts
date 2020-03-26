@@ -17,6 +17,7 @@ export namespace Components {
     'maxPictureHeight': number;
     'maxPictureWidth': number;
     'serverUrl': string;
+    'showInitButton': boolean;
     'timeout': number;
   }
 }
@@ -42,6 +43,7 @@ declare namespace LocalJSX {
     'maxPictureHeight'?: number;
     'maxPictureWidth'?: number;
     'serverUrl'?: string;
+    'showInitButton'?: boolean;
     'timeout'?: number;
   }
 

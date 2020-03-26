@@ -42,6 +42,8 @@ export class BiometricsLiveness {
 
     @Prop() maxPictureHeight = 600;
 
+    @Prop() showInitButton = true;
+
     @State() running: boolean;
 
     @State() completed: boolean;
@@ -431,7 +433,7 @@ export class BiometricsLiveness {
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
-            {this.initialized && !this.running && <div class="liveness-buttons-wrapper">
+            {this.showInitButton && this.initialized && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >INICIAR</button>
             </div>}
         </div>;
