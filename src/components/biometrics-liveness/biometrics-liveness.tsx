@@ -28,9 +28,9 @@ export class BiometricsLiveness {
 
     @Element() host: HTMLElement;
 
-    @Prop() serverUrl: string = 'https://localhost:8080/';
+    @Prop() serverUrl: string;
 
-    @Prop() apiKey: string = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImNsaWVudCI6InRlc3QifQ.5SY_UQaaILYpryU0qNBuPrPTPkF79UhTCNFElXjzUyY';
+    @Prop() apiKey: string;
 
     @Prop() autoStart = true;
 
@@ -421,15 +421,15 @@ export class BiometricsLiveness {
                 <div class="liveness-video-overlay-content">
                     <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{ 'liveness-mask-animation': true, 'liveness-hidden': !this.running || this.status < 0 || this.completed}}></div>
                     {this.running && <div class={{ 'marquee': true, 'liveness-hidden': this.status >= 0 }}>
-                        <div class='marquee-corner marquee-corner-nw'></div>
-                        <div class='marquee-corner marquee-corner-ne'></div>
-                        <div class='marquee-corner marquee-corner-sw'></div>
-                        <div class='marquee-corner marquee-corner-se'></div>
+                        <div class='marquee-corner marquee-corner-nw'/>
+                        <div class='marquee-corner marquee-corner-ne'/>
+                        <div class='marquee-corner marquee-corner-sw'/>
+                        <div class='marquee-corner marquee-corner-se'/>
                     </div>}
                 </div>
             </div>
-            <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>
-            <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}></canvas>
+            <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}/>
+            <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}/>
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
