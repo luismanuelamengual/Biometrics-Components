@@ -418,7 +418,12 @@ export class BiometricsLiveness {
             <div ref={(el) => this.videoOverlayElement = el as HTMLDivElement} class="liveness-video-overlay">
                 <div class="liveness-video-overlay-content">
                     <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{ 'liveness-mask-animation': true, 'liveness-hidden': !this.running || this.status < 0 || this.completed}}></div>
-                    {/*{this.running && <app-liveness-marquee [ngClass]="{'liveness-hidden': livenessMode=='mask' && livenessStatus >= 0}"></app-liveness-marquee>}*/}
+                    {this.running && <div class={{ 'marquee': true, 'liveness-hidden': this.status >= 0 }}>
+                        <div class='marquee-corner marquee-corner-nw'></div>
+                        <div class='marquee-corner marquee-corner-ne'></div>
+                        <div class='marquee-corner marquee-corner-sw'></div>
+                        <div class='marquee-corner marquee-corner-se'></div>
+                    </div>}
                 </div>
             </div>
             <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}></canvas>

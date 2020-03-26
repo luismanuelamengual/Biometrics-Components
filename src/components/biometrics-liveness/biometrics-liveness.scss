@@ -1,4 +1,8 @@
 
+$cornerSize: 20%;
+$borderWidth: 6px;
+$borderRadius: 30px;
+
 :host {
     box-sizing: border-box;
 
@@ -102,14 +106,67 @@
                     right: 0;
                 }
 
-                /*app-liveness-marquee {
+                .marquee {
                     position: absolute;
                     z-index: 1500;
                     left: 18%;
                     top: 5%;
                     right: 18%;
                     bottom: 5%;
-                }*/
+                    display: block;
+
+                    .marquee-corner {
+                        border-style: solid;
+                        border-color: black;
+                        position: absolute;
+                        width: $cornerSize;
+                        height: $cornerSize;
+
+                        &.marquee-corner-nw {
+                            top: 0;
+                            left: 0;
+                            border-width: $borderWidth 0 0 $borderWidth;
+                        }
+
+                        &.marquee-corner-ne {
+                            top: 0;
+                            right: 0;
+                            border-width: $borderWidth $borderWidth 0 0;
+                        }
+
+                        &.marquee-corner-sw {
+                            bottom: 0;
+                            left: 0;
+                            border-width: 0 0 $borderWidth $borderWidth;
+                        }
+
+                        &.marquee-corner-se {
+                            bottom: 0;
+                            right: 0;
+                            border-width: 0 $borderWidth $borderWidth 0;
+                        }
+
+                        &.marquee-corner-active {
+                            border-color: green;
+
+                            &.marquee-corner-nw {
+                                border-radius: $borderRadius 0 0 0;
+                            }
+
+                            &.marquee-corner-ne {
+                                border-radius: 0 $borderRadius 0 0;
+                            }
+
+                            &.marquee-corner-sw {
+                                border-radius: 0 0 0 $borderRadius;
+                            }
+
+                            &.marquee-corner-se {
+                                border-radius: 0 0 $borderRadius 0;
+                            }
+                        }
+                    }
+                }
             }
         }
 
