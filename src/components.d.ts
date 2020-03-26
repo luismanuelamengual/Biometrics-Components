@@ -44,6 +44,9 @@ declare namespace LocalJSX {
     'maxInstructions'?: number;
     'maxPictureHeight'?: number;
     'maxPictureWidth'?: number;
+    'onSessionCompleted'?: (event: CustomEvent<any>) => void;
+    'onSessionEnded'?: (event: CustomEvent<any>) => void;
+    'onSessionStarted'?: (event: CustomEvent<any>) => void;
     'serverUrl'?: string;
     'showInitButton'?: boolean;
     'timeout'?: number;

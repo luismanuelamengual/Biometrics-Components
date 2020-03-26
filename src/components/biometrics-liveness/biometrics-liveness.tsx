@@ -1,4 +1,4 @@
-import {Component, h, Prop, Element, Listen, State, Method} from '@stencil/core';
+import {Component, h, Prop, Element, Listen, State, Method, Event, EventEmitter} from '@stencil/core';
 import bodymovin from 'bodymovin';
 
 // @ts-ignore
@@ -53,6 +53,12 @@ export class BiometricsLiveness {
     @State() status: number;
 
     @State() message: string;
+
+    @Event() sessionStarted: EventEmitter;
+
+    @Event() sessionEnded: EventEmitter;
+
+    @Event() sessionCompleted: EventEmitter;
 
     videoElement!: HTMLVideoElement;
     videoOverlayElement!: HTMLDivElement;
@@ -148,12 +154,14 @@ export class BiometricsLiveness {
         this.pictures = [];
         this.instructionsRemaining = this.maxInstructions;
         this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+        this.sessionStarted.emit();
     }
 
     @Method()
     async stopSession() {
         this.stopSessionInstructionTimer();
         this.running = false;
+        this.sessionEnded.emit();
     }
 
     completeSession() {
@@ -164,6 +172,9 @@ export class BiometricsLiveness {
 
     onSessionCompleted() {
         this.stopSession();
+        this.sessionCompleted.emit({
+            pictures: this.pictures
+        });
     }
 
     getNextSessionInstruction(instruction) {
