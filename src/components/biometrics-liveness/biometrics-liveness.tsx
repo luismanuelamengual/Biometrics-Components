@@ -1,4 +1,4 @@
-import {Component, h, Prop, Element, Listen, State} from '@stencil/core';
+import {Component, h, Prop, Element, Listen, State, Method} from '@stencil/core';
 import bodymovin from 'bodymovin';
 
 // @ts-ignore
@@ -138,7 +138,8 @@ export class BiometricsLiveness {
         }
     }
 
-    startSession() {
+    @Method()
+    async startSession() {
         this.checkAnimation.goToAndStop(0);
         this.running = true;
         this.completed = false;
@@ -149,7 +150,8 @@ export class BiometricsLiveness {
         this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
     }
 
-    stopSession() {
+    @Method()
+    async stopSession() {
         this.stopSessionInstructionTimer();
         this.running = false;
     }

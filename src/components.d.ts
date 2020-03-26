@@ -18,6 +18,8 @@ export namespace Components {
     'maxPictureWidth': number;
     'serverUrl': string;
     'showInitButton': boolean;
+    'startSession': () => Promise<void>;
+    'stopSession': () => Promise<void>;
     'timeout': number;
   }
 }
