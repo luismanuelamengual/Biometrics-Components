@@ -245,7 +245,12 @@ export class BiometricsLiveness {
                 const formData = new FormData();
                 formData.append('instruction', this.instruction);
                 formData.append('selfie', this.convertImageToBlob(imageUrl));
-                fetch (this.serverUrl + 'v1/check_liveness_instruction', {
+                let url = this.serverUrl;
+                if (!url.endsWith('/')) {
+                    url += '/';
+                }
+                url += 'v1/check_liveness_instruction';
+                fetch (url, {
                     method: 'post',
                     body: formData,
                     headers: {
