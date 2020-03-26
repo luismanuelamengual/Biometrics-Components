@@ -46,6 +46,15 @@ export class BiometricsLiveness {
 
     @Prop() showInitButton = true;
 
+    @Prop() messages = {
+        timeout: 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente',
+        status_face_not_found: 'Rostro no encontrado',
+        status_face_not_centered: 'Rostro no centrado',
+        status_face_too_close: 'Rostro demasiado cerca',
+        status_face_too_far: 'Rostro demasiado lejos. Acerque el rostro',
+        status_face_not_matching_gesture: 'Siga las instrucciones y posiciones su rostro para que coincida con la máscara'
+    };
+
     @State() running: boolean;
 
     @State() completed: boolean;
@@ -199,7 +208,7 @@ export class BiometricsLiveness {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
             if (this.running) {
-                this.message = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
+                this.message = this.messages.timeout;
                 this.stopSession();
             }
         }, this.timeout * 1000);
@@ -331,19 +340,19 @@ export class BiometricsLiveness {
             case this.FACE_MATCH_SUCCESS_STATUS_CODE:
                 break;
             case this.FACE_NOT_FOUND_STATUS_CODE:
-                message = 'Rostro no encontrado';
+                message = this.messages.status_face_not_found;
                 break;
             case this.FACE_NOT_CENTERED_STATUS_CODE:
-                message = 'Rostro no centrado';
+                message = this.messages.status_face_not_centered;
                 break;
             case this.FACE_TOO_CLOSE_STATUS_CODE:
-                message = 'Rostro demasiado cerca';
+                message = this.messages.status_face_too_close;
                 break;
             case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
-                message = 'Rostro demasiado lejos. Acerque su rostro';
+                message = this.messages.status_face_too_far;
                 break;
             case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-                message = 'Posiciones su rostro para que coincida con la máscara';
+                message = this.messages.status_face_not_matching_gesture;
                 break;
         }
         return message;
