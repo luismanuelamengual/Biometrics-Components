@@ -36,6 +36,8 @@ export class BiometricsLiveness {
 
     @Prop() maxInstructions = 5;
 
+    @Prop() instructions = [ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ];
+
     @Prop() timeout = 10;
 
     @Prop() maxPictureWidth = 720;
@@ -178,11 +180,7 @@ export class BiometricsLiveness {
     }
 
     getNextSessionInstruction(instruction) {
-        const instructions = [
-            this.FRONTAL_FACE_INSTRUCTION,
-            this.LEFT_PROFILE_FACE_INSTRUCTION,
-            this.RIGHT_PROFILE_FACE_INSTRUCTION
-        ];
+        const instructions = this.instructions;
         const possibleInstructions = instructions.filter(item => item !== instruction);
         const minInstructionIndex = 0;
         const maxInstructionIndex = possibleInstructions.length - 1;

@@ -13,6 +13,7 @@ export namespace Components {
   interface BiometricsLiveness {
     'apiKey': string;
     'autoStart': boolean;
+    'instructions': string[];
     'maxInstructions': number;
     'maxPictureHeight': number;
     'maxPictureWidth': number;
@@ -41,6 +42,7 @@ declare namespace LocalJSX {
   interface BiometricsLiveness {
     'apiKey'?: string;
     'autoStart'?: boolean;
+    'instructions'?: string[];
     'maxInstructions'?: number;
     'maxPictureHeight'?: number;
     'maxPictureWidth'?: number;
