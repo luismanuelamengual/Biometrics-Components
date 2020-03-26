@@ -98,7 +98,7 @@ export class BiometricsLiveness {
             container: this.checkAnimationElement
         });
         this.checkAnimation.addEventListener('complete', () => {
-            this.onLivenessSessionCompleted();
+            this.onSessionCompleted();
         });
         this.maskAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
@@ -123,7 +123,7 @@ export class BiometricsLiveness {
             this.adjustVideoOverlay();
             this.initialized = true;
             if (this.autoStart) {
-                this.startLivenessSession();
+                this.startSession();
             }
         }, false);
         this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
@@ -138,7 +138,7 @@ export class BiometricsLiveness {
         }
     }
 
-    startLivenessSession() {
+    startSession() {
         this.checkAnimation.goToAndStop(0);
         this.running = true;
         this.completed = false;
@@ -146,25 +146,25 @@ export class BiometricsLiveness {
         this.status = 0;
         this.pictures = [];
         this.instructionsRemaining = this.maxInstructions;
-        this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
+        this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
     }
 
-    stopLivenessSession() {
+    stopSession() {
+        this.stopSessionInstructionTimer();
         this.running = false;
-        this.stopLivenessInstructionTimer();
     }
 
-    completeLivenessSession() {
-        this.stopLivenessInstructionTimer();
+    completeSession() {
+        this.stopSessionInstructionTimer();
         this.completed = true;
         this.checkAnimation.goToAndPlay(0, true);
     }
 
-    onLivenessSessionCompleted() {
-        this.stopLivenessSession();
+    onSessionCompleted() {
+        this.stopSession();
     }
 
-    getNextInstruction(instruction) {
+    getNextSessionInstruction(instruction) {
         const instructions = [
             this.FRONTAL_FACE_INSTRUCTION,
             this.LEFT_PROFILE_FACE_INSTRUCTION,
@@ -177,32 +177,32 @@ export class BiometricsLiveness {
         return possibleInstructions[nextInstructionIndex];
     }
 
-    stopLivenessInstructionTimer() {
+    stopSessionInstructionTimer() {
         if (this.instructionTimeoutTask) {
             clearTimeout(this.instructionTimeoutTask);
             this.instructionTimeoutTask = null;
         }
     }
 
-    startLivenessInstructionTimer() {
-        this.stopLivenessInstructionTimer();
+    startSessionInstructionTimer() {
+        this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
             if (this.running) {
                 this.message = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
-                this.stopLivenessSession();
+                this.stopSession();
             }
         }, this.timeout * 1000);
     }
 
-    startLivenessInstruction(instruction) {
+    startSessionInstruction(instruction) {
         if (!this.debug) {
-            this.startLivenessInstructionTimer();
+            this.startSessionInstructionTimer();
         }
-        this.setLivenessInstruction(instruction);
+        this.setSessionInstruction(instruction);
         this.checkDiferredImage();
     }
 
-    setLivenessInstruction(livenessInstruction) {
+    setSessionInstruction(livenessInstruction) {
         this.instruction = livenessInstruction;
         switch (livenessInstruction) {
             case this.FRONTAL_FACE_INSTRUCTION:
@@ -267,7 +267,7 @@ export class BiometricsLiveness {
                                 this.instructionsRemaining = this.maxInstructions;
                                 this.pictures = [];
                                 if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
-                                    this.startLivenessInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                                    this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
                                 } else {
                                     this.checkDiferredImage();
                                 }
@@ -276,12 +276,12 @@ export class BiometricsLiveness {
                                     this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
                                     this.instructionsRemaining--;
                                     if (!this.instructionsRemaining) {
-                                        this.completeLivenessSession();
+                                        this.completeSession();
                                     } else {
-                                        this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                                        this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
                                     }
                                 } else {
-                                    this.startLivenessInstruction(this.getNextInstruction(this.instruction));
+                                    this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
                                 }
                             } else {
                                 this.checkDiferredImage();
@@ -339,7 +339,7 @@ export class BiometricsLiveness {
     }
 
     handleSessionStartButtonClick () {
-        this.startLivenessSession();
+        this.startSession();
     }
 
     convertImageToBlob(dataURI): Blob {
