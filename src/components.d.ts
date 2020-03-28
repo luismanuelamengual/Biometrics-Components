@@ -17,7 +17,7 @@ export namespace Components {
     'maxInstructions': number;
     'maxPictureHeight': number;
     'maxPictureWidth': number;
-    'messages': { timeout: string; status_face_not_found: string; status_face_not_centered: string; status_face_too_close: string; status_face_too_far: string; status_face_not_matching_gesture: string; };
+    'messages': any;
     'serverUrl': string;
     'showInitButton': boolean;
     'startSession': () => Promise<void>;
@@ -47,7 +47,7 @@ declare namespace LocalJSX {
     'maxInstructions'?: number;
     'maxPictureHeight'?: number;
     'maxPictureWidth'?: number;
-    'messages'?: { timeout: string; status_face_not_found: string; status_face_not_centered: string; status_face_too_close: string; status_face_too_far: string; status_face_not_matching_gesture: string; };
+    'messages'?: any;
     'onSessionCompleted'?: (event: CustomEvent<any>) => void;
     'onSessionEnded'?: (event: CustomEvent<any>) => void;
     'onSessionStarted'?: (event: CustomEvent<any>) => void;

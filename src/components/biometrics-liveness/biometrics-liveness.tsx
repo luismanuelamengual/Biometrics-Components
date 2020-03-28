@@ -46,14 +46,7 @@ export class BiometricsLiveness {
 
     @Prop() showInitButton = true;
 
-    @Prop() messages = {
-        timeout: 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente',
-        status_face_not_found: 'Rostro no encontrado',
-        status_face_not_centered: 'Rostro no centrado',
-        status_face_too_close: 'Rostro demasiado cerca',
-        status_face_too_far: 'Rostro demasiado lejos. Acerque el rostro',
-        status_face_not_matching_gesture: 'Siga las instrucciones y posiciones su rostro para que coincida con la máscara'
-    };
+    @Prop() messages: any = {};
 
     @State() running: boolean;
 
@@ -90,6 +83,15 @@ export class BiometricsLiveness {
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
+        this.messages.timeout = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
+        this.messages.face_not_found = 'Rostro no encontrado';
+        this.messages.face_not_centered = 'Rostro no centrado';
+        this.messages.face_too_close = 'Rostro demasiado cerca';
+        this.messages.face_too_far = 'Rostro demasiado lejos. Acerque el rostro';
+        this.messages.face_instructions = {} as any;
+        this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el centro';
+        this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la izquierda';
+        this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la derecha';
     }
 
     componentDidLoad() {
@@ -282,7 +284,7 @@ export class BiometricsLiveness {
                     if (response.success) {
                         if (this.running) {
                             this.status = response.data.status;
-                            this.message = this.getStatusMessage(this.status);
+                            this.message = this.getStatusMessage(this.status, this.instruction);
                             if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                                 this.instructionsRemaining = this.maxInstructions;
                                 this.pictures = [];
@@ -334,25 +336,25 @@ export class BiometricsLiveness {
         return livenessPictureCanvas.toDataURL('image/jpeg');
     }
 
-    getStatusMessage(statusCode) {
+    getStatusMessage(statusCode, instruction) {
         let message = null;
         switch (statusCode) {
             case this.FACE_MATCH_SUCCESS_STATUS_CODE:
                 break;
             case this.FACE_NOT_FOUND_STATUS_CODE:
-                message = this.messages.status_face_not_found;
+                message = this.messages.face_not_found;
                 break;
             case this.FACE_NOT_CENTERED_STATUS_CODE:
-                message = this.messages.status_face_not_centered;
+                message = this.messages.face_not_centered;
                 break;
             case this.FACE_TOO_CLOSE_STATUS_CODE:
-                message = this.messages.status_face_too_close;
+                message = this.messages.face_too_close;
                 break;
             case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
-                message = this.messages.status_face_too_far;
+                message = this.messages.face_too_far;
                 break;
             case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-                message = this.messages.status_face_not_matching_gesture;
+                message = this.messages.face_instructions[instruction];
                 break;
         }
         return message;
