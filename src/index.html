@@ -31,8 +31,19 @@
         </style>
     </head>
     <body>
+
         <div id="liveness-wrapper">
+            <biometrics-camera id="camera-component"></biometrics-camera>
+            <button onclick="getElementById('camera-component').open();">Sacar foto</button>
+
             <biometrics-liveness id="liveness-component" server-url="https://localhost:8080/" api-key="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImNsaWVudCI6InRlc3QifQ.5SY_UQaaILYpryU0qNBuPrPTPkF79UhTCNFElXjzUyY"></biometrics-liveness>
         </div>
+
+        <script>
+            const todoListElement = document.querySelector('#camera-component');
+            todoListElement.addEventListener('pictureCaptured', event => {
+                console.log(event);
+            });
+        </script>
     </body>
 </html>

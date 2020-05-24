@@ -1,0 +1,118 @@
+$controlsSize: 74px;
+$snapshotButtonSize: 50px;
+
+:host {
+    width: 100%;
+    height: 100%;
+
+    canvas {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+    }
+
+    .camera {
+        display: none;
+
+        &.camera-open {
+            display: block;
+            z-index: 10000;
+        }
+
+        .camera-native {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            visibility: hidden;
+        }
+
+        .camera-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            background-color: #000000;
+            z-index: 5000;
+
+            .camera-video-wrapper {
+                box-sizing: border-box;
+                position: absolute;
+                top: 0;
+                left: 0;
+
+                .camera-video {
+                    box-sizing: border-box;
+                    position: relative;
+                    top: 0;
+                    left: 0;
+                    right: 100%;
+                    height: 100%;
+                    overflow: hidden;
+
+                    video {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        height: 100%;
+                        width: 100%;
+                        object-fit: cover;
+                        pointer-events: none;
+                    }
+                }
+            }
+
+            .camera-controls {
+                box-sizing: border-box;
+                position: absolute;
+                background: black;
+
+                .snapshotButton {
+                    position: absolute;
+                    top: calc(50% - #{$snapshotButtonSize / 2});
+                    left: calc(50% - #{$snapshotButtonSize / 2});
+                    width: $snapshotButtonSize;
+                    height: $snapshotButtonSize;
+                    background: url("data:image/svg+xml,%3Csvg fill='%23FFFFFF' viewBox='0 0 24 24' width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E") center no-repeat;
+                    background-size: 80%;
+                    border-radius: 80%;
+                    background-color: dimgray;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (orientation: portrait) {
+    .camera-video-wrapper {
+        bottom: $controlsSize;
+        width: 100%;
+    }
+
+    .camera-controls {
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: $controlsSize;
+    }
+}
+
+@media screen and (orientation: landscape) {
+    .camera-video-wrapper {
+        right: $controlsSize;
+        height: 100%;
+    }
+
+    .camera-controls {
+        top: 0;
+        right: 0;
+        width: $controlsSize;
+        height: 100%;
+    }
+}

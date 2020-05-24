@@ -10,6 +10,13 @@ import { HTMLStencilElement, JSXBase } from '@stencil/core/internal';
 
 
 export namespace Components {
+  interface BiometricsCamera {
+    'close': () => Promise<void>;
+    'maxPictureHeight': number;
+    'maxPictureWidth': number;
+    'mode': 'auto' | 'native' | 'canvas';
+    'open': () => Promise<void>;
+  }
   interface BiometricsLiveness {
     'apiKey': string;
     'autoStart': boolean;
@@ -29,17 +36,30 @@ export namespace Components {
 declare global {
 
 
+  interface HTMLBiometricsCameraElement extends Components.BiometricsCamera, HTMLStencilElement {}
+  var HTMLBiometricsCameraElement: {
+    prototype: HTMLBiometricsCameraElement;
+    new (): HTMLBiometricsCameraElement;
+  };
+
   interface HTMLBiometricsLivenessElement extends Components.BiometricsLiveness, HTMLStencilElement {}
   var HTMLBiometricsLivenessElement: {
     prototype: HTMLBiometricsLivenessElement;
     new (): HTMLBiometricsLivenessElement;
   };
   interface HTMLElementTagNameMap {
+    'biometrics-camera': HTMLBiometricsCameraElement;
     'biometrics-liveness': HTMLBiometricsLivenessElement;
   }
 }
 
 declare namespace LocalJSX {
+  interface BiometricsCamera {
+    'maxPictureHeight'?: number;
+    'maxPictureWidth'?: number;
+    'mode'?: 'auto' | 'native' | 'canvas';
+    'onPictureCaptured'?: (event: CustomEvent<any>) => void;
+  }
   interface BiometricsLiveness {
     'apiKey'?: string;
     'autoStart'?: boolean;
@@ -58,6 +78,7 @@ declare namespace LocalJSX {
   }
 
   interface IntrinsicElements {
+    'biometrics-camera': BiometricsCamera;
     'biometrics-liveness': BiometricsLiveness;
   }
 }
@@ -68,6 +89,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
   export namespace JSX {
     interface IntrinsicElements {
+      'biometrics-camera': LocalJSX.BiometricsCamera & JSXBase.HTMLAttributes<HTMLBiometricsCameraElement>;
       'biometrics-liveness': LocalJSX.BiometricsLiveness & JSXBase.HTMLAttributes<HTMLBiometricsLivenessElement>;
     }
   }

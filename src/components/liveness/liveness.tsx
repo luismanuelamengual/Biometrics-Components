@@ -8,10 +8,10 @@ import maskAnimationData from './animations/mask.animation.json';
 
 @Component({
   tag: 'biometrics-liveness',
-  styleUrl: 'biometrics-liveness.scss',
+  styleUrl: 'liveness.scss',
   shadow: true
 })
-export class BiometricsLiveness {
+export class Liveness {
 
     readonly FRONTAL_FACE_INSTRUCTION = 'frontal_face';
     readonly LEFT_PROFILE_FACE_INSTRUCTION = 'left_profile_face';
