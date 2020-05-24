@@ -89,6 +89,7 @@ export class BiometricsLiveness {
         this.messages.face_not_centered = 'Rostro no centrado';
         this.messages.face_too_close = 'Rostro demasiado cerca';
         this.messages.face_too_far = 'Rostro demasiado lejos. Acerque el rostro';
+        this.messages.start_button = 'INICIAR';
         this.messages.face_instructions = {} as any;
         this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el centro';
         this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la izquierda';
@@ -461,7 +462,7 @@ export class BiometricsLiveness {
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
             {this.showInitButton && this.videoStarted && !this.running && <div class="liveness-buttons-wrapper">
-                <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >INICIAR</button>
+                <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >{this.messages.start_button}</button>
             </div>}
         </div>;
     }
