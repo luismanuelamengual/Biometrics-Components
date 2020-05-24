@@ -7,7 +7,7 @@ $snapshotButtonSize: 50px;
 
     canvas {
         display: none;
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         height: 100%;
@@ -32,7 +32,7 @@ $snapshotButtonSize: 50px;
         }
 
         .camera-canvas {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
