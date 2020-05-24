@@ -17,7 +17,7 @@
                 background: tan;
             }
 
-            #liveness-component {
+            #liveness-wrapper {
                 position: absolute;
                 top: 20px;
                 left: 20px;
@@ -31,6 +31,8 @@
         </style>
     </head>
     <body>
-        <biometrics-liveness id="liveness-component" server-url="https://localhost:8080/" api-key="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImNsaWVudCI6InRlc3QifQ.5SY_UQaaILYpryU0qNBuPrPTPkF79UhTCNFElXjzUyY"></biometrics-liveness>
+        <div id="liveness-wrapper">
+            <biometrics-liveness id="liveness-component" server-url="https://localhost:8080/" api-key="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhdXRoMCIsImNsaWVudCI6InRlc3QifQ.5SY_UQaaILYpryU0qNBuPrPTPkF79UhTCNFElXjzUyY"></biometrics-liveness>
+        </div>
     </body>
 </html>
