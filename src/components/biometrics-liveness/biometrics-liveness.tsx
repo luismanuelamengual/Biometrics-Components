@@ -52,7 +52,7 @@ export class BiometricsLiveness {
 
     @State() completed: boolean;
 
-    @State() initialized: boolean = false;
+    @State() videoStarted: boolean = false;
 
     @State() status: number;
 
@@ -84,6 +84,7 @@ export class BiometricsLiveness {
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
         this.messages.timeout = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
+        this.messages.communication_error = 'Error de comunicación con el servidor';
         this.messages.face_not_found = 'Rostro no encontrado';
         this.messages.face_not_centered = 'Rostro no centrado';
         this.messages.face_too_close = 'Rostro demasiado cerca';
@@ -140,7 +141,7 @@ export class BiometricsLiveness {
     async initializeVideo() {
         this.videoElement.addEventListener('loadeddata', () => {
             this.adjustVideoOverlay();
-            this.initialized = true;
+            this.videoStarted = true;
             if (this.autoStart) {
                 this.startSession();
             }
@@ -312,9 +313,8 @@ export class BiometricsLiveness {
                     }
                 })
                 .catch(() => {
-                    if (this.running) {
-                        this.checkDiferredImage();
-                    }
+                    this.message = this.messages.communication_error;
+                    this.stopSession();
                 });
             }
         } catch (e) {
@@ -460,7 +460,7 @@ export class BiometricsLiveness {
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
-            {this.showInitButton && this.initialized && !this.running && <div class="liveness-buttons-wrapper">
+            {this.showInitButton && this.videoStarted && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >INICIAR</button>
             </div>}
         </div>;
