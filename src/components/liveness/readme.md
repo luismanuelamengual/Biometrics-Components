@@ -25,6 +25,7 @@
 
 | Event              | Description | Type               |
 | ------------------ | ----------- | ------------------ |
+| `initialized`      |             | `CustomEvent<any>` |
 | `sessionCompleted` |             | `CustomEvent<any>` |
 | `sessionEnded`     |             | `CustomEvent<any>` |
 | `sessionStarted`   |             | `CustomEvent<any>` |
