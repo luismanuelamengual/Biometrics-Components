@@ -85,6 +85,7 @@ export class BiometricsLiveness {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
         this.messages.timeout = 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
         this.messages.communication_error = 'Error de comunicación con el servidor';
+        this.messages.camera_permission_denied_error = 'No se ha proporcionado el permiso para el acceso a la cámara web';
         this.messages.face_not_found = 'Rostro no encontrado';
         this.messages.face_not_centered = 'Rostro no centrado';
         this.messages.face_too_close = 'Rostro demasiado cerca';
@@ -147,7 +148,11 @@ export class BiometricsLiveness {
                 this.startSession();
             }
         }, false);
-        this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
+        try {
+            this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
+        } catch (e) {
+            this.message = this.messages.camera_permission_denied_error;
+        }
     }
 
     finalizeVideo() {
