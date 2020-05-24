@@ -58,6 +58,8 @@ export class BiometricsLiveness {
 
     @State() message: string;
 
+    @Event() initialized: EventEmitter;
+
     @Event() sessionStarted: EventEmitter;
 
     @Event() sessionEnded: EventEmitter;
@@ -150,6 +152,7 @@ export class BiometricsLiveness {
         this.videoElement.addEventListener('loadeddata', () => {
             this.adjustVideoOverlay();
             this.videoStarted = true;
+            this.initialized.emit();
             if (this.autoStart) {
                 this.startSession();
             }
