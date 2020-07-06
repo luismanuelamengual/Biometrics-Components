@@ -237,7 +237,8 @@ export class Liveness {
             this.startSessionInstructionTimer();
         }
         this.setSessionInstruction(instruction);
-        this.checkDiferredImage();
+        this.updateMessage();
+        this.checkImage();
     }
 
     setSessionInstruction(livenessInstruction) {
@@ -252,12 +253,6 @@ export class Liveness {
             case this.LEFT_PROFILE_FACE_INSTRUCTION:
                 this.requestMaskAnimation(0);
                 break;
-        }
-    }
-
-    checkDiferredImage() {
-        if (this.running) {
-            setTimeout(() => { if (this.running) { this.checkImage(); } }, 50);
         }
     }
 
@@ -300,30 +295,33 @@ export class Liveness {
                     if (response.success) {
                         if (this.running) {
                             this.status = response.data.status;
-                            this.message = this.getStatusMessage(this.status, this.instruction);
-                            if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                                this.instructionsRemaining = this.maxInstructions;
-                                this.pictures = [];
-                                if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
-                                    this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
-                                } else {
-                                    this.checkDiferredImage();
-                                }
-                            } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                                if (!this.debug) {
-                                    this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
-                                    this.instructionsRemaining--;
-                                    if (!this.instructionsRemaining) {
-                                        this.completeSession();
+                            this.updateMessage();
+                            setTimeout(() => { if (this.running) {
+                                if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                                    this.instructionsRemaining = this.maxInstructions;
+                                    this.pictures = [];
+                                    if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
+                                        this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                                    } else {
+                                        this.checkImage();
+                                    }
+                                } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                                    this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
+                                    if (!this.debug) {
+                                        this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
+                                        this.instructionsRemaining--;
+                                        if (!this.instructionsRemaining) {
+                                            this.completeSession();
+                                        } else {
+                                            this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
+                                        }
                                     } else {
                                         this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
                                     }
                                 } else {
-                                    this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
+                                    this.checkImage();
                                 }
-                            } else {
-                                this.checkDiferredImage();
-                            }
+                            } }, 50);
                         }
                     }
                 })
@@ -334,7 +332,9 @@ export class Liveness {
             }
         } catch (e) {
             this.message = e.message;
-            this.checkDiferredImage();
+            if (this.running) {
+                setTimeout(() => { if (this.running) { this.checkImage(); } }, 50);
+            }
         }
     }
 
@@ -351,28 +351,28 @@ export class Liveness {
         return livenessPictureCanvas.toDataURL('image/jpeg');
     }
 
-    getStatusMessage(statusCode, instruction) {
-        let message = null;
-        switch (statusCode) {
+    updateMessage() {
+        switch (this.status) {
             case this.FACE_MATCH_SUCCESS_STATUS_CODE:
+                this.message = null;
                 break;
             case this.FACE_NOT_FOUND_STATUS_CODE:
-                message = this.messages.face_not_found;
+                this.message = this.messages.face_not_found;
                 break;
             case this.FACE_NOT_CENTERED_STATUS_CODE:
-                message = this.messages.face_not_centered;
+                this.message = this.messages.face_not_centered;
                 break;
             case this.FACE_TOO_CLOSE_STATUS_CODE:
-                message = this.messages.face_too_close;
+                this.message = this.messages.face_too_close;
                 break;
             case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
-                message = this.messages.face_too_far;
+                this.message = this.messages.face_too_far;
                 break;
             case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-                message = this.messages.face_instructions[instruction];
+            default:
+                this.message = this.messages.face_instructions[this.instruction];
                 break;
         }
-        return message;
     }
 
     handleSessionStartButtonClick () {
