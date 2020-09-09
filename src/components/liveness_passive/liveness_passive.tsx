@@ -134,7 +134,7 @@ export class Liveness_passive {
             container: this.successAnimationElement
         });
         this.successAnimation.addEventListener('complete', () => {
-            this.livenessVerificationComplete.emit({livenessVerified: true});
+            this.livenessVerificationComplete.emit({livenessVerified: true, picture: this.picture});
         });
     }
 
