@@ -124,7 +124,7 @@ export class Liveness_passive {
             container: this.failAnimationElement
         });
         this.failAnimation.addEventListener('complete', () => {
-            this.livenessVerificationComplete.emit({livenessVerified: false});
+            this.livenessVerificationComplete.emit({livenessVerified: false, picture: this.picture});
         });
         this.successAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
