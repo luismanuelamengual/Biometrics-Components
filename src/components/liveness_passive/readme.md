@@ -22,12 +22,10 @@
 
 ## Events
 
-| Event              | Description | Type               |
-| ------------------ | ----------- | ------------------ |
-| `initialized`      |             | `CustomEvent<any>` |
-| `sessionCompleted` |             | `CustomEvent<any>` |
-| `sessionEnded`     |             | `CustomEvent<any>` |
-| `sessionStarted`   |             | `CustomEvent<any>` |
+| Event                          | Description | Type               |
+| ------------------------------ | ----------- | ------------------ |
+| `livenessVerificationComplete` |             | `CustomEvent<any>` |
+| `phaseChanged`                 |             | `CustomEvent<any>` |
 
 
 ## Methods
