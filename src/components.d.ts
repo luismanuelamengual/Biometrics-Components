@@ -27,6 +27,19 @@ export namespace Components {
         "stopSession": () => Promise<void>;
         "timeout": number;
     }
+    interface BiometricsLivenessPassive {
+        "apiKey": string;
+        "autoStart": boolean;
+        "livenessTimeout": number;
+        "maxPictureHeight": number;
+        "maxPictureWidth": number;
+        "messages": any;
+        "serverUrl": string;
+        "showInitButton": boolean;
+        "startSession": () => Promise<void>;
+        "stopSession": () => Promise<void>;
+        "timeout": number;
+    }
 }
 declare global {
     interface HTMLBiometricsCameraElement extends Components.BiometricsCamera, HTMLStencilElement {
@@ -41,9 +54,16 @@ declare global {
         prototype: HTMLBiometricsLivenessElement;
         new (): HTMLBiometricsLivenessElement;
     };
+    interface HTMLBiometricsLivenessPassiveElement extends Components.BiometricsLivenessPassive, HTMLStencilElement {
+    }
+    var HTMLBiometricsLivenessPassiveElement: {
+        prototype: HTMLBiometricsLivenessPassiveElement;
+        new (): HTMLBiometricsLivenessPassiveElement;
+    };
     interface HTMLElementTagNameMap {
         "biometrics-camera": HTMLBiometricsCameraElement;
         "biometrics-liveness": HTMLBiometricsLivenessElement;
+        "biometrics-liveness-passive": HTMLBiometricsLivenessPassiveElement;
     }
 }
 declare namespace LocalJSX {
@@ -69,9 +89,23 @@ declare namespace LocalJSX {
         "showInitButton"?: boolean;
         "timeout"?: number;
     }
+    interface BiometricsLivenessPassive {
+        "apiKey"?: string;
+        "autoStart"?: boolean;
+        "livenessTimeout"?: number;
+        "maxPictureHeight"?: number;
+        "maxPictureWidth"?: number;
+        "messages"?: any;
+        "onLivenessVerificationComplete"?: (event: CustomEvent<any>) => void;
+        "onPhaseChanged"?: (event: CustomEvent<any>) => void;
+        "serverUrl"?: string;
+        "showInitButton"?: boolean;
+        "timeout"?: number;
+    }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;
         "biometrics-liveness": BiometricsLiveness;
+        "biometrics-liveness-passive": BiometricsLivenessPassive;
     }
 }
 export { LocalJSX as JSX };
@@ -80,6 +114,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "biometrics-camera": LocalJSX.BiometricsCamera & JSXBase.HTMLAttributes<HTMLBiometricsCameraElement>;
             "biometrics-liveness": LocalJSX.BiometricsLiveness & JSXBase.HTMLAttributes<HTMLBiometricsLivenessElement>;
+            "biometrics-liveness-passive": LocalJSX.BiometricsLivenessPassive & JSXBase.HTMLAttributes<HTMLBiometricsLivenessPassiveElement>;
         }
     }
 }
