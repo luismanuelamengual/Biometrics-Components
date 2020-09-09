@@ -76,6 +76,7 @@ export class Liveness_passive {
     picture = null;
     imageCheckTask: any;
     livenessTask: any;
+    livenessTimeoutTask: any;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -175,6 +176,7 @@ export class Liveness_passive {
         if (phase !== this.phase) {
             this.stopLivenessTimer();
             this.stopImageCheckTimer();
+            this.stopLivenessTimeoutTimer();
             switch(phase) {
                 case this.PHASE_READY:
                     this.resetData();
@@ -202,9 +204,24 @@ export class Liveness_passive {
         this.loadingAnimation.goToAndStop(0);
         this.failAnimation.goToAndStop(0);
         this.successAnimation.goToAndStop(0);
-        this.message = null;
         this.status = 0;
         this.picture = null;
+    }
+
+    stopLivenessTimeoutTimer() {
+        if (this.livenessTimeoutTask) {
+            clearTimeout(this.livenessTimeoutTask);
+            this.livenessTimeoutTask = null;
+        }
+    }
+
+    startLivenessTimeoutTimer() {
+        if (!this.livenessTimeoutTask) {
+            this.livenessTimeoutTask = setTimeout(() => {
+                this.message = this.messages.timeout;
+                this.stopSession();
+            }, this.timeout * 1000);
+        }
     }
 
     stopImageCheckTimer() {
@@ -287,8 +304,10 @@ export class Liveness_passive {
                         this.status = response.data.status;
                         this.updateMessage();
                         if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                            this.startLivenessTimeoutTimer();
                             this.stopLivenessTimer();
                         } else {
+                            this.stopLivenessTimeoutTimer();
                             this.startLivenessTimer();
                         }
                     }
