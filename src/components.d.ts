@@ -7,11 +7,9 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BiometricsCamera {
-        "close": () => Promise<void>;
+        "facingMode": "environment" | "user" | "left" | "right";
         "maxPictureHeight": number;
         "maxPictureWidth": number;
-        "mode": "auto" | "native" | "canvas";
-        "open": () => Promise<void>;
     }
     interface BiometricsLiveness {
         "apiKey": string;
@@ -29,16 +27,9 @@ export namespace Components {
     }
     interface BiometricsLivenessPassive {
         "apiKey": string;
-        "autoStart": boolean;
-        "livenessTimeout": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
-        "messages": any;
         "serverUrl": string;
-        "showInitButton": boolean;
-        "startSession": () => Promise<void>;
-        "stopSession": () => Promise<void>;
-        "timeout": number;
     }
 }
 declare global {
@@ -68,9 +59,9 @@ declare global {
 }
 declare namespace LocalJSX {
     interface BiometricsCamera {
+        "facingMode"?: "environment" | "user" | "left" | "right";
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
-        "mode"?: "auto" | "native" | "canvas";
         "onPictureCaptured"?: (event: CustomEvent<any>) => void;
     }
     interface BiometricsLiveness {
@@ -91,16 +82,10 @@ declare namespace LocalJSX {
     }
     interface BiometricsLivenessPassive {
         "apiKey"?: string;
-        "autoStart"?: boolean;
-        "livenessTimeout"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
-        "messages"?: any;
         "onLivenessVerificationComplete"?: (event: CustomEvent<any>) => void;
-        "onPhaseChanged"?: (event: CustomEvent<any>) => void;
         "serverUrl"?: string;
-        "showInitButton"?: boolean;
-        "timeout"?: number;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;
