@@ -113,38 +113,46 @@ export class Liveness_passive {
             url += '/';
         }
         url += 'v1/check_liveness_image';
-        let response: any = await fetch (url, {
-            method: 'post',
-            body: await this.convertImageToBlob(this.picture),
-            headers: {
-                'Authorization': 'Bearer ' + this.apiKey
+        try {
+            let response: any = await fetch(url, {
+                method: 'post',
+                body: await this.convertImageToBlob(this.picture),
+                headers: {
+                    'Authorization': 'Bearer ' + this.apiKey
+                }
+            });
+
+            response = await response.json();
+            if (response.data.status === 0 && response.data.liveness) {
+                this.livenessVerified = true;
+                this.successAnimation.goToAndPlay(0, true);
+            } else {
+                switch (response.data.status) {
+                    case 0:
+                        this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
+                        break;
+                    case -1:
+                        this.setCaption('No se ha encontrado el rostro en la imagen', 'danger');
+                        break;
+                    case -2:
+                        this.setCaption('El rostro no esta centrado. Vuelva a intentarlo con el rostro dentro del recuadro', 'danger');
+                        break;
+                    case -3:
+                        this.setCaption('El rostro se ha encontrado demasiado cerca en la imagen', 'danger');
+                        break;
+                    case -4:
+                        this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
+                        break;
+                }
+                this.livenessVerified = false;
+                this.failAnimation.goToAndPlay(0, true);
             }
-        });
-        this.verifying = false;
-        response = await response.json();
-        if (response.data.status === 0 && response.data.liveness) {
-            this.livenessVerified = true;
-            this.successAnimation.goToAndPlay(0, true);
-        } else {
-            switch (response.data.status) {
-                case 0:
-                    this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
-                    break;
-                case -1:
-                    this.setCaption('No se ha encontrado el rostro en la imagen', 'danger');
-                    break;
-                case -2:
-                    this.setCaption('El rostro no esta centrado. Vuelva a intentarlo con el rostro dentro del recuadro', 'danger');
-                    break;
-                case -3:
-                    this.setCaption('El rostro se ha encontrado demasiado cerca en la imagen', 'danger');
-                    break;
-                case -4:
-                    this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
-                    break;
-            }
+        } catch (e) {
+            this.setCaption('Error de comunicación', 'danger');
             this.livenessVerified = false;
             this.failAnimation.goToAndPlay(0, true);
+        } finally {
+            this.verifying = false;
         }
     }
 
