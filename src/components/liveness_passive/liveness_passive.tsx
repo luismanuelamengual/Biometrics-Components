@@ -48,6 +48,7 @@ export class Liveness_passive {
 
     constructor() {
         this.onPictureCaptured = this.onPictureCaptured.bind(this);
+        this.onRestartButtonClick = this.onRestartButtonClick.bind(this);
     }
 
     componentWillLoad() {
@@ -156,6 +157,10 @@ export class Liveness_passive {
         }
     }
 
+    onRestartButtonClick() {
+        this.openCamera();
+    }
+
     public convertImageToBlob(imageUrl): Promise<Blob> {
         return new Promise((resolve, reject) => {
             const image = new Image();
@@ -179,6 +184,9 @@ export class Liveness_passive {
                 <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': !this.verifying}}/>
                 <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || !this.livenessVerified}}/>
                 <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
+                {!this.cameraOpen && !this.verifying &&  <div class="liveness-buttons-wrapper">
+                    <button class="liveness-start-button" onClick={this.onRestartButtonClick} >Volver a verificar</button>
+                </div>}
             </div>
             {this.caption && <div class="caption-container">
                 <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
