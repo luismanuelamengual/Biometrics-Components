@@ -49,7 +49,7 @@ export class Liveness_passive {
 
     @Prop() messages: any = {};
 
-    @Prop() livenessTimeout = 5;
+    @Prop() livenessTimeout = 3;
 
     @State() phase = this.PHASE_INIT;
 
@@ -233,8 +233,8 @@ export class Liveness_passive {
 
     startImageCheckTimer() {
         if (!this.imageCheckTask) {
-            this.imageCheckTask = setInterval(() => {
-                this.checkImage();
+            this.imageCheckTask = setInterval(async () => {
+                await this.checkImage();
             }, 1000);
         }
     }
@@ -282,7 +282,7 @@ export class Liveness_passive {
         });
     }
 
-    checkImage() {
+    async checkImage() {
         try {
             const imageUrl = this.getCheckPicture();
             let url = this.serverUrl;
@@ -290,35 +290,30 @@ export class Liveness_passive {
                 url += '/';
             }
             url += 'v1/check_liveness_image?verifyLiveness=false';
-            fetch (url, {
+            let response: any = await fetch (url, {
                 method: 'post',
                 body: this.convertImageToBlob(imageUrl),
                 headers: {
                     'Authorization': 'Bearer ' + this.apiKey
                 }
-            })
-            .then((response) => response.json())
-            .then((response) => {
-                if (this.phase === this.PHASE_IMAGE_CHECK) {
-                    if (response.success) {
-                        this.status = response.data.status;
-                        this.updateMessage();
-                        if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                            this.startLivenessTimeoutTimer();
-                            this.stopLivenessTimer();
-                        } else {
-                            this.stopLivenessTimeoutTimer();
-                            this.startLivenessTimer();
-                        }
+            });
+            response = await response.json();
+            if (this.phase === this.PHASE_IMAGE_CHECK) {
+                if (response.success) {
+                    this.status = response.data.status;
+                    this.updateMessage();
+                    if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                        this.startLivenessTimeoutTimer();
+                        this.stopLivenessTimer();
+                    } else {
+                        this.stopLivenessTimeoutTimer();
+                        this.startLivenessTimer();
                     }
                 }
-            })
-            .catch(() => {
-                this.message = this.messages.communication_error;
-                this.stopSession();
-            });
+            }
         } catch (e) {
-            this.message = e.message;
+            this.message = this.messages.communication_error;
+            this.stopSession();
         }
     }
 

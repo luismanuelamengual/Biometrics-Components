@@ -11,7 +11,7 @@
 | ------------------ | -------------------- | ----------- | --------- | ----------- |
 | `apiKey`           | `api-key`            |             | `string`  | `undefined` |
 | `autoStart`        | `auto-start`         |             | `boolean` | `true`      |
-| `livenessTimeout`  | `liveness-timeout`   |             | `number`  | `5`         |
+| `livenessTimeout`  | `liveness-timeout`   |             | `number`  | `3`         |
 | `maxPictureHeight` | `max-picture-height` |             | `number`  | `600`       |
 | `maxPictureWidth`  | `max-picture-width`  |             | `number`  | `720`       |
 | `messages`         | `messages`           |             | `any`     | `{}`        |
