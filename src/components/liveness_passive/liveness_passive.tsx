@@ -31,6 +31,8 @@ export class Liveness_passive {
 
     @State() caption: string;
 
+    @State() captionStyle: 'normal' | 'danger' = 'normal';
+
     @State() verifying = false;
 
     @State() livenessVerified = false;
@@ -87,13 +89,18 @@ export class Liveness_passive {
     }
 
     openCamera() {
-        this.caption = 'Ubique su rostro dentro del recuadro y tome la foto';
+        this.setCaption('Ubique su rostro dentro del recuadro y tome la foto');
         this.cameraOpen = true;
     }
 
     closeCamera() {
-        this.caption = '';
+        this.setCaption('');
         this.cameraOpen = false;
+    }
+
+    setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
+        this.caption = caption;
+        this.captionStyle = style;
     }
 
     async onPictureCaptured(event) {
@@ -119,6 +126,23 @@ export class Liveness_passive {
             this.livenessVerified = true;
             this.successAnimation.goToAndPlay(0, true);
         } else {
+            switch (response.data.status) {
+                case 0:
+                    this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
+                    break;
+                case -1:
+                    this.setCaption('No se ha encontrado el rostro en la imagen', 'danger');
+                    break;
+                case -2:
+                    this.setCaption('El rostro no esta centrado. Vuelva a intentarlo con el rostro dentro del recuadro', 'danger');
+                    break;
+                case -3:
+                    this.setCaption('El rostro se ha encontrado demasiado cerca en la imagen', 'danger');
+                    break;
+                case -4:
+                    this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
+                    break;
+            }
             this.livenessVerified = false;
             this.failAnimation.goToAndPlay(0, true);
         }
@@ -149,7 +173,7 @@ export class Liveness_passive {
                 <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
             </div>
             {this.caption && <div class="caption-container">
-                <p class="caption">{this.caption}</p>
+                <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
             </div>}
             {this.cameraOpen && this.renderCamera()}
         </Host>;

@@ -39,6 +39,10 @@ $borderRadius: 30px;
             max-width: 300px;
             margin: 0 auto;
             padding: 12px;
+
+            &.caption-danger {
+                background-color: rgba(180, 0, 0, 0.8);
+            }
         }
     }
 
