@@ -25,9 +25,11 @@ export class Liveness_passive {
 
     @Prop() maxPictureHeight = 600;
 
-    @State() cameraOpen = true;
+    @State() cameraOpen = false;
 
     @State() picture: string;
+
+    @State() caption: string;
 
     @State() verifying = false;
 
@@ -44,6 +46,10 @@ export class Liveness_passive {
 
     constructor() {
         this.onPictureCaptured = this.onPictureCaptured.bind(this);
+    }
+
+    componentWillLoad() {
+        this.openCamera();
     }
 
     componentDidLoad() {
@@ -80,9 +86,19 @@ export class Liveness_passive {
         });
     }
 
+    openCamera() {
+        this.caption = 'Ubique su rostro dentro del recuadro y tome la foto';
+        this.cameraOpen = true;
+    }
+
+    closeCamera() {
+        this.caption = '';
+        this.cameraOpen = false;
+    }
+
     async onPictureCaptured(event) {
         this.picture = event.detail;
-        this.cameraOpen = false;
+        this.closeCamera();
         this.verifying = true;
         this.loadingAnimation.goToAndPlay(0, true);
         let url = this.serverUrl;
@@ -92,7 +108,7 @@ export class Liveness_passive {
         url += 'v1/check_liveness_image';
         let response: any = await fetch (url, {
             method: 'post',
-            body: this.convertImageToBlob(this.picture),
+            body: await this.convertImageToBlob(this.picture),
             headers: {
                 'Authorization': 'Bearer ' + this.apiKey
             }
@@ -108,19 +124,21 @@ export class Liveness_passive {
         }
     }
 
-    convertImageToBlob(dataURI): Blob {
-        let byteString;
-        const dataURITokens = dataURI.split(',');
-        if (dataURITokens[0].indexOf('base64') >= 0) {
-            byteString = atob(dataURITokens[1]);
-        } else {
-            byteString = this.convertImageToBlob(dataURITokens[1]);
-        }
-        const ia = new Uint8Array(byteString.length);
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
-        return new Blob([ia], {type: 'image/jpeg'});
+    public convertImageToBlob(imageUrl): Promise<Blob> {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = image.naturalWidth;
+                canvas.height = image.naturalHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(image, 0, 0);
+                canvas.toBlob(resolve, 'image/jpeg', 0.75);
+            };
+            image.onerror = () => reject(null);
+            image.crossOrigin = 'anonymous';
+            image.src = imageUrl;
+        });
     }
 
     render() {
@@ -130,15 +148,15 @@ export class Liveness_passive {
                 <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || !this.livenessVerified}}/>
                 <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
             </div>
+            {this.caption && <div class="caption-container">
+                <p class="caption">{this.caption}</p>
+            </div>}
             {this.cameraOpen && this.renderCamera()}
         </Host>;
     }
 
     renderCamera() {
         return <biometrics-camera facingMode="user" maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
-            <div class="camera-caption-container">
-                <p class="camera-caption">Ubice su rostro dentro del recuadro y tome la foto</p>
-            </div>
             <div class={{ 'marquee': true }}>
                 <div class='marquee-corner marquee-corner-nw'/>
                 <div class='marquee-corner marquee-corner-ne'/>
