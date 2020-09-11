@@ -33,9 +33,9 @@ export class Liveness_passive {
 
     @State() captionStyle: 'normal' | 'danger' = 'normal';
 
-    @State() verifying = false;
+    @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
-    @State() livenessVerified = false;
+    @State() livenessVerificationFinished = false;
 
     @Event() livenessVerificationComplete: EventEmitter;
 
@@ -76,6 +76,7 @@ export class Liveness_passive {
         });
         this.failAnimation.addEventListener('complete', () => {
             this.livenessVerificationComplete.emit({livenessVerified: false, picture: this.picture});
+            this.livenessVerificationFinished = true;
         });
         this.successAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
@@ -86,12 +87,14 @@ export class Liveness_passive {
         });
         this.successAnimation.addEventListener('complete', () => {
              this.livenessVerificationComplete.emit({livenessVerified: true, picture: this.picture});
+             this.livenessVerificationFinished = true;
         });
     }
 
     openCamera() {
         this.setCaption('Ubique su rostro dentro del recuadro y tome la foto');
         this.cameraOpen = true;
+        this.livenessVerificationFinished = false;
     }
 
     closeCamera() {
@@ -104,11 +107,25 @@ export class Liveness_passive {
         this.captionStyle = style;
     }
 
+    runAnimation(animation: 'loading' | 'success' | 'fail') {
+        this.activeAnimation = animation;
+        switch (this.activeAnimation) {
+            case 'loading':
+                this.loadingAnimation.goToAndPlay(0, true);
+                break;
+            case 'success':
+                this.successAnimation.goToAndPlay(0, true);
+                break;
+            case 'fail':
+                this.failAnimation.goToAndPlay(0, true);
+                break;
+        }
+    }
+
     async onPictureCaptured(event) {
         this.picture = event.detail;
         this.closeCamera();
-        this.verifying = true;
-        this.loadingAnimation.goToAndPlay(0, true);
+        this.runAnimation('loading');
         let url = this.serverUrl;
         if (!url.endsWith('/')) {
             url += '/';
@@ -124,17 +141,14 @@ export class Liveness_passive {
                 }
             });
             response = await response.json();
-        } catch (e) {}
-        this.verifying = false;
-
-        if (!response) {
+        } catch (e) {
             this.setCaption('Error de comunicación', 'danger');
-            this.livenessVerified = false;
-            this.failAnimation.goToAndPlay(0, true);
-        } else {
+            this.runAnimation('fail');
+        }
+
+        if (response) {
             if (response.data.status === 0 && response.data.liveness) {
-                this.livenessVerified = true;
-                this.successAnimation.goToAndPlay(0, true);
+                this.runAnimation('success');
             } else {
                 switch (response.data.status) {
                     case 0:
@@ -153,8 +167,7 @@ export class Liveness_passive {
                         this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
                         break;
                 }
-                this.livenessVerified = false;
-                this.failAnimation.goToAndPlay(0, true);
+                this.runAnimation('fail');
             }
         }
     }
@@ -183,11 +196,11 @@ export class Liveness_passive {
     render() {
         return <Host>
             <div class={{'liveness-panel': true, 'hidden': this.cameraOpen}}>
-                <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': !this.verifying}}/>
-                <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || !this.livenessVerified}}/>
-                <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
+                <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
+                <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
+                <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
                 <img src={this.picture} />
-                {!this.verifying && <div class="liveness-buttons-wrapper">
+                {this.livenessVerificationFinished && <div class="liveness-buttons-wrapper">
                     <button class="liveness-start-button" onClick={this.onRestartButtonClick} >Volver a verificar</button>
                 </div>}
             </div>
