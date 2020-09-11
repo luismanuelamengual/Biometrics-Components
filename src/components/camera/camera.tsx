@@ -55,8 +55,10 @@ export class Camera {
     onSnapshotButtonClick() {
         if (!this.picture) {
             this.capture();
+            this.finalizeVideo();
         } else {
             this.picture = null;
+            this.initializeVideo();
         }
     }
 
