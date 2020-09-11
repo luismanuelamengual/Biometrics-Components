@@ -50,6 +50,13 @@ $snapshotButtonSize: 50px;
                         z-index: 1;
                     }
                 }
+
+                video {
+                    &.video-user-mode {
+                        -webkit-transform: scaleX(-1);
+                        transform: scaleX(-1);
+                    }
+                }
             }
         }
 

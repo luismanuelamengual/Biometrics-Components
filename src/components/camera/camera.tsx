@@ -97,6 +97,10 @@ export class Camera {
             sx = 0;
             sy = Math.max(0, (videoHeight / 2) - (canvasHeight / 2));
         }
+        if (this.facingMode === 'user') {
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+        }
         context.drawImage(video, sx, sy, canvasWidth, canvasHeight, 0, 0, scaledCanvasWidth, scaledCanvasHeight);
         this.setPicture(canvas.toDataURL('image/jpeg'));
     }
@@ -104,6 +108,7 @@ export class Camera {
     setPicture(picture: string) {
         this.picture = picture;
         this.pictureCaptured.emit(this.picture);
+        console.log(this.picture);
     }
 
     render() {
@@ -112,7 +117,7 @@ export class Camera {
                 <div class="camera-video-wrapper">
                     <div class="camera-video">
                         <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true, "active": this.picture !== null}}/>
-                        <video ref={(el) => this.videoElement = el as HTMLVideoElement} class={{"video-element": true}} autoplay playsinline/>
+                        <video ref={(el) => this.videoElement = el as HTMLVideoElement} class={{"video-element": true, "video-user-mode": this.facingMode === 'user'}} autoplay playsinline/>
                         <slot/>
                     </div>
                 </div>
