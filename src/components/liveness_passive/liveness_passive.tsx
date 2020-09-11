@@ -187,7 +187,7 @@ export class Liveness_passive {
                 <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || !this.livenessVerified}}/>
                 <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
                 <img src={this.picture} />
-                {!this.cameraOpen && !this.verifying &&  <div class="liveness-buttons-wrapper">
+                {!this.verifying && <div class="liveness-buttons-wrapper">
                     <button class="liveness-start-button" onClick={this.onRestartButtonClick} >Volver a verificar</button>
                 </div>}
             </div>
