@@ -65,7 +65,7 @@ $snapshotButtonSize: 50px;
             position: absolute;
             background: black;
 
-            .snapshotButton {
+            .snapshot-button {
                 position: absolute;
                 top: calc(50% - #{$snapshotButtonSize / 2});
                 left: calc(50% - #{$snapshotButtonSize / 2});
@@ -78,6 +78,15 @@ $snapshotButtonSize: 50px;
 
                 &:focus {
                     outline: none;
+                }
+
+                &.confirmation-mode {
+                    background: dimgray !important;
+                    &:after {
+                        content: "OK";
+                        color: white;
+                        font-size: 20px;
+                    }
                 }
             }
         }

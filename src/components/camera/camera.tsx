@@ -17,7 +17,7 @@ export class Camera {
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
 
     @State()
-    picture: string;
+    picture: string = null;
 
     @Event()
     pictureCaptured: EventEmitter;
@@ -108,7 +108,6 @@ export class Camera {
     setPicture(picture: string) {
         this.picture = picture;
         this.pictureCaptured.emit(this.picture);
-        console.log(this.picture);
     }
 
     render() {
@@ -122,7 +121,7 @@ export class Camera {
                     </div>
                 </div>
                 <div class="camera-controls">
-                    <button type="button" class="snapshotButton" onClick={this.onSnapshotButtonClick}/>
+                    <button type="button" class={{"snapshot-button": true, "confirmation-mode": this.picture !== null}} onClick={this.onSnapshotButtonClick}/>
                 </div>
             </div>
         </Host>;
