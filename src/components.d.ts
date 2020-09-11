@@ -10,6 +10,7 @@ export namespace Components {
         "facingMode": "environment" | "user" | "left" | "right";
         "maxPictureHeight": number;
         "maxPictureWidth": number;
+        "type": "classic" | "fullscreen";
     }
     interface BiometricsLiveness {
         "apiKey": string;
@@ -63,6 +64,7 @@ declare namespace LocalJSX {
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onPictureCaptured"?: (event: CustomEvent<any>) => void;
+        "type"?: "classic" | "fullscreen";
     }
     interface BiometricsLiveness {
         "apiKey"?: string;

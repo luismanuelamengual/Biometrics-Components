@@ -64,6 +64,7 @@ $snapshotButtonSize: 50px;
             box-sizing: border-box;
             position: absolute;
             background: black;
+            z-index: 2;
 
             .capture-button {
                 position: absolute;
@@ -103,33 +104,58 @@ $snapshotButtonSize: 50px;
 
             }
         }
-    }
-}
 
-@media screen and (orientation: portrait) {
-    .camera-video-wrapper {
-        bottom: $controlsSize;
-        width: 100%;
-    }
+        @media screen and (orientation: portrait) {
+            .camera-video-wrapper {
+                bottom: $controlsSize;
+                width: 100%;
+            }
 
-    .camera-controls {
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: $controlsSize;
-    }
-}
+            .camera-controls {
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: $controlsSize;
+            }
+        }
 
-@media screen and (orientation: landscape) {
-    .camera-video-wrapper {
-        right: $controlsSize;
-        height: 100%;
-    }
+        @media screen and (orientation: landscape) {
+            .camera-video-wrapper {
+                right: $controlsSize;
+                height: 100%;
+            }
 
-    .camera-controls {
-        top: 0;
-        right: 0;
-        width: $controlsSize;
-        height: 100%;
+            .camera-controls {
+                top: 0;
+                right: 0;
+                width: $controlsSize;
+                height: 100%;
+            }
+        }
+
+        &.camera-fullscreen {
+            .camera-video-wrapper {
+                bottom: 0;
+                right: 0;
+            }
+
+            .camera-controls {
+                background: transparent;
+
+                .capture-button {
+                    border: 3px solid white;
+                    background: red;
+                }
+
+                .confirm-button {
+                    border: 3px solid white;
+                    background: green;
+
+                    &:after {
+                        content: none;
+                    }
+                }
+            }
+        }
     }
 }

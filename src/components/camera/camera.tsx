@@ -8,6 +8,9 @@ import {Component, Event, EventEmitter, h, Host, Prop, State} from '@stencil/cor
 export class Camera {
 
     @Prop()
+    type: 'classic' | 'fullscreen' = 'fullscreen';
+
+    @Prop()
     maxPictureWidth = 1280;
 
     @Prop()
@@ -115,7 +118,7 @@ export class Camera {
 
     render() {
         return <Host>
-            <div class="camera">
+            <div class={{"camera":true, "camera-fullscreen": this.type === 'fullscreen'}}>
                 <div class="camera-video-wrapper">
                     <div class="camera-video">
                         <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true, "active": this.picture !== null}}/>
