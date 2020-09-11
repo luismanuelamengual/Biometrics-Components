@@ -184,6 +184,7 @@ export class Liveness_passive {
                 <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': !this.verifying}}/>
                 <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || !this.livenessVerified}}/>
                 <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.verifying || this.livenessVerified}}/>
+                <img src={this.picture} />
                 {!this.cameraOpen && !this.verifying &&  <div class="liveness-buttons-wrapper">
                     <button class="liveness-start-button" onClick={this.onRestartButtonClick} >Volver a verificar</button>
                 </div>}
@@ -196,7 +197,7 @@ export class Liveness_passive {
     }
 
     renderCamera() {
-        return <biometrics-camera facingMode="user" maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
+        return <biometrics-camera facingMode="user" type="fullscreen" maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
             <div class={{ 'marquee': true }}>
                 <div class='marquee-corner marquee-corner-nw'/>
                 <div class='marquee-corner marquee-corner-ne'/>

@@ -47,18 +47,25 @@ $borderRadius: 30px;
     }
 
     .liveness-panel {
-        background: white;
+        background: black;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
 
+        img {
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         .liveness-animation {
             position: absolute;
-            left: 20%;
-            top: 20%;
-            right: 20%;
-            bottom: 20%;
+            left: 30%;
+            top: 30%;
+            right: 30%;
+            bottom: 30%;
         }
 
         .liveness-buttons-wrapper {
@@ -73,16 +80,16 @@ $borderRadius: 30px;
             z-index: 4000;
 
             .liveness-start-button {
-                border: 2px solid black;
+                border: 2px solid white;
                 border-radius: 18px;
-                background: dimgray;
+                background: black;
                 opacity: 0.6;
-                color: white;
+                color: #ffffff;
                 font-family: "Open Sans", sans-serif;
                 font-size: 15px;
+                font-weight: 500;
                 cursor: pointer;
                 padding: 10px 20px;
-                font-weight: bold;
 
                 &:focus {
                     outline: none;
@@ -96,10 +103,10 @@ $borderRadius: 30px;
         .marquee {
             position: absolute;
             z-index: 1500;
-            left: 15%;
-            top: 15%;
-            right: 15%;
-            bottom: 15%;
+            left: 20%;
+            top: 20%;
+            right: 20%;
+            bottom: 20%;
             display: block;
 
             .marquee-corner {

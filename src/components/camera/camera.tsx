@@ -8,7 +8,7 @@ import {Component, Event, EventEmitter, h, Host, Prop, State} from '@stencil/cor
 export class Camera {
 
     @Prop()
-    type: 'classic' | 'fullscreen' = 'fullscreen';
+    type: 'classic' | 'fullscreen' = 'classic';
 
     @Prop()
     maxPictureWidth = 1280;
