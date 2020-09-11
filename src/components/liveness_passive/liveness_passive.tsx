@@ -114,16 +114,24 @@ export class Liveness_passive {
             url += '/';
         }
         url += 'v1/check_liveness_image';
+        let response: any = null;
         try {
-            let response: any = await fetch(url, {
+            response = await fetch(url, {
                 method: 'post',
                 body: await this.convertImageToBlob(this.picture),
                 headers: {
                     'Authorization': 'Bearer ' + this.apiKey
                 }
             });
-
             response = await response.json();
+        } catch (e) {}
+        this.verifying = false;
+
+        if (!response) {
+            this.setCaption('Error de comunicación', 'danger');
+            this.livenessVerified = false;
+            this.failAnimation.goToAndPlay(0, true);
+        } else {
             if (response.data.status === 0 && response.data.liveness) {
                 this.livenessVerified = true;
                 this.successAnimation.goToAndPlay(0, true);
@@ -148,12 +156,6 @@ export class Liveness_passive {
                 this.livenessVerified = false;
                 this.failAnimation.goToAndPlay(0, true);
             }
-        } catch (e) {
-            this.setCaption('Error de comunicación', 'danger');
-            this.livenessVerified = false;
-            this.failAnimation.goToAndPlay(0, true);
-        } finally {
-            this.verifying = false;
         }
     }
 
