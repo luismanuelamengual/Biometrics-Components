@@ -26,7 +26,8 @@ export class Camera {
     canvasElement!: HTMLCanvasElement;
 
     constructor() {
-        this.onSnapshotButtonClick = this.onSnapshotButtonClick.bind(this);
+        this.onCaptureButtonClick = this.onCaptureButtonClick.bind(this);
+        this.onConfirmButtonClick = this.onConfirmButtonClick.bind(this);
     }
 
     componentDidLoad() {
@@ -52,14 +53,14 @@ export class Camera {
         }
     }
 
-    onSnapshotButtonClick() {
-        if (!this.picture) {
-            this.capture();
-            this.finalizeVideo();
-        } else {
-            this.picture = null;
-            this.initializeVideo();
-        }
+    onCaptureButtonClick() {
+        this.capture();
+        this.finalizeVideo();
+    }
+
+    onConfirmButtonClick() {
+        this.picture = null;
+        this.initializeVideo();
     }
 
     capture() {
@@ -123,7 +124,8 @@ export class Camera {
                     </div>
                 </div>
                 <div class="camera-controls">
-                    <button type="button" class={{"snapshot-button": true, "confirmation-mode": this.picture !== null}} onClick={this.onSnapshotButtonClick}/>
+                    {this.picture === null && <button type="button" class={{"capture-button": true}} onClick={this.onCaptureButtonClick}/>}
+                    {this.picture !== null && <button type="button" class={{"confirm-button": true}} onClick={this.onConfirmButtonClick}/>}
                 </div>
             </div>
         </Host>;

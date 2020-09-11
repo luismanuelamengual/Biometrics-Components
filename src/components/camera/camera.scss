@@ -65,7 +65,7 @@ $snapshotButtonSize: 50px;
             position: absolute;
             background: black;
 
-            .snapshot-button {
+            .capture-button {
                 position: absolute;
                 top: calc(50% - #{$snapshotButtonSize / 2});
                 left: calc(50% - #{$snapshotButtonSize / 2});
@@ -79,15 +79,28 @@ $snapshotButtonSize: 50px;
                 &:focus {
                     outline: none;
                 }
+            }
 
-                &.confirmation-mode {
-                    background: dimgray !important;
-                    &:after {
-                        content: "OK";
-                        color: white;
-                        font-size: 20px;
-                    }
+            .confirm-button {
+                position: absolute;
+                top: calc(50% - #{$snapshotButtonSize / 2});
+                left: calc(50% - #{$snapshotButtonSize / 2});
+                width: $snapshotButtonSize;
+                height: $snapshotButtonSize;
+                background: dimgray;
+                background-size: 80%;
+                border-radius: 80%;
+
+                &:after {
+                    content: "OK";
+                    color: white;
+                    font-size: 20px;
                 }
+
+                &:focus {
+                    outline: none;
+                }
+
             }
         }
     }
