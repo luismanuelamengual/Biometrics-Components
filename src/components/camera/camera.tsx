@@ -1,4 +1,4 @@
-import {Component, Event, EventEmitter, h, Host, Prop} from '@stencil/core';
+import {Component, Event, EventEmitter, h, Host, Prop, State} from '@stencil/core';
 
 @Component({
     tag: 'biometrics-camera',
@@ -16,6 +16,9 @@ export class Camera {
     @Prop()
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
 
+    @State()
+    picture: string;
+
     @Event()
     pictureCaptured: EventEmitter;
 
@@ -23,7 +26,7 @@ export class Camera {
     canvasElement!: HTMLCanvasElement;
 
     constructor() {
-        this.capture = this.capture.bind(this);
+        this.onSnapshotButtonClick = this.onSnapshotButtonClick.bind(this);
     }
 
     componentDidLoad() {
@@ -46,6 +49,14 @@ export class Camera {
             stream.getTracks().forEach((track) => {
                 track.stop();
             });
+        }
+    }
+
+    onSnapshotButtonClick() {
+        if (!this.picture) {
+            this.capture();
+        } else {
+            this.picture = null;
         }
     }
 
@@ -87,21 +98,26 @@ export class Camera {
             sy = Math.max(0, (videoHeight / 2) - (canvasHeight / 2));
         }
         context.drawImage(video, sx, sy, canvasWidth, canvasHeight, 0, 0, scaledCanvasWidth, scaledCanvasHeight);
-        this.pictureCaptured.emit(canvas.toDataURL('image/jpeg'));
+        this.setPicture(canvas.toDataURL('image/jpeg'));
+    }
+
+    setPicture(picture: string) {
+        this.picture = picture;
+        this.pictureCaptured.emit(this.picture);
     }
 
     render() {
         return <Host>
-            <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}/>
             <div class="camera">
                 <div class="camera-video-wrapper">
                     <div class="camera-video">
-                        <video ref={(el) => this.videoElement = el as HTMLVideoElement} autoplay playsinline/>
+                        <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true, "active": this.picture !== null}}/>
+                        <video ref={(el) => this.videoElement = el as HTMLVideoElement} class={{"video-element": true}} autoplay playsinline/>
                         <slot/>
                     </div>
                 </div>
                 <div class="camera-controls">
-                    <button type="button" class="snapshotButton" onClick={this.capture}/>
+                    <button type="button" class="snapshotButton" onClick={this.onSnapshotButtonClick}/>
                 </div>
             </div>
         </Host>;

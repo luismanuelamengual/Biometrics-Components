@@ -7,17 +7,12 @@
 
 ## Properties
 
-| Property           | Attribute            | Description | Type      | Default     |
-| ------------------ | -------------------- | ----------- | --------- | ----------- |
-| `apiKey`           | `api-key`            |             | `string`  | `undefined` |
-| `autoStart`        | `auto-start`         |             | `boolean` | `true`      |
-| `livenessTimeout`  | `liveness-timeout`   |             | `number`  | `3`         |
-| `maxPictureHeight` | `max-picture-height` |             | `number`  | `600`       |
-| `maxPictureWidth`  | `max-picture-width`  |             | `number`  | `720`       |
-| `messages`         | `messages`           |             | `any`     | `{}`        |
-| `serverUrl`        | `server-url`         |             | `string`  | `undefined` |
-| `showInitButton`   | `show-init-button`   |             | `boolean` | `true`      |
-| `timeout`          | `timeout`            |             | `number`  | `10`        |
+| Property           | Attribute            | Description | Type     | Default     |
+| ------------------ | -------------------- | ----------- | -------- | ----------- |
+| `apiKey`           | `api-key`            |             | `string` | `undefined` |
+| `maxPictureHeight` | `max-picture-height` |             | `number` | `600`       |
+| `maxPictureWidth`  | `max-picture-width`  |             | `number` | `720`       |
+| `serverUrl`        | `server-url`         |             | `string` | `undefined` |
 
 
 ## Events
@@ -25,31 +20,20 @@
 | Event                          | Description | Type               |
 | ------------------------------ | ----------- | ------------------ |
 | `livenessVerificationComplete` |             | `CustomEvent<any>` |
-| `phaseChanged`                 |             | `CustomEvent<any>` |
 
 
-## Methods
+## Dependencies
 
-### `startSession() => Promise<void>`
+### Depends on
 
+- [biometrics-camera](../camera)
 
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
-### `stopSession() => Promise<void>`
-
-
-
-#### Returns
-
-Type: `Promise<void>`
-
-
-
+### Graph
+```mermaid
+graph TD;
+  biometrics-liveness-passive --> biometrics-camera
+  style biometrics-liveness-passive fill:#f9f,stroke:#333,stroke-width:4px
+```
 
 ----------------------------------------------
 
