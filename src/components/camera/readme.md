@@ -12,6 +12,7 @@
 | `facingMode`       | `facing-mode`        |             | `"environment" \| "left" \| "right" \| "user"` | `'environment'` |
 | `maxPictureHeight` | `max-picture-height` |             | `number`                                       | `720`           |
 | `maxPictureWidth`  | `max-picture-width`  |             | `number`                                       | `1280`          |
+| `type`             | `type`               |             | `"classic" \| "fullscreen"`                    | `'classic'`     |
 
 
 ## Events
