@@ -24,7 +24,7 @@ export class Detector {
         };
     }
 
-    public loadClassifier(name: string, bytes: Int8Array) {
+    public loadClassifier(classifierName: string, bytes: Int8Array) {
         const dview = new DataView(new ArrayBuffer(4));
         let p = 8;
         dview.setUint8(0, bytes[p]), dview.setUint8(1, bytes[p + 1]), dview.setUint8(2, bytes[p + 2]), dview.setUint8(3, bytes[p + 3]);
@@ -52,7 +52,7 @@ export class Detector {
         const tcodes = new Int8Array(tcodes_ls);
         const tpreds = new Float32Array(tpreds_ls);
         const thresh = new Float32Array(thresh_ls);
-        this.classifiers[name] = function(r, c, s, pixels, ldim) {
+        this.classifiers[classifierName] = function(r, c, s, pixels, ldim) {
             r = 256 * r;
             c = 256 * c;
             let root = 0;
@@ -75,7 +75,7 @@ export class Detector {
         };
     }
 
-    public detect(image, classifierName, params) { //todo: params por defecto
+    public detect(classifierName: string, image, params: {shiftFactor?: number, minSize?: number, maxSize?: number, scaleFactor?: number, iouThreshold?: number} = {}) {
         let detections = [];
         const classifier = this.classifiers[classifierName];
         if (classifier) {
@@ -83,14 +83,16 @@ export class Detector {
             const nrows = image.nrows;
             const ncols = image.ncols;
             const ldim = image.ldim;
-            const shiftfactor = params.shiftfactor;
-            const minsize = params.minsize;
-            const maxsize = params.maxsize;
-            const scalefactor = params.scalefactor;
-            const iouthreshold = params.iouthreshold || 0.2;
-            let scale = minsize;
-            while (scale <= maxsize) {
-                const step = Math.max(shiftfactor * scale, 1) >> 0;
+            params = Object.assign({
+                shiftFactor: 0.1,
+                minSize: 100,
+                maxSize: 1000,
+                scaleFactor: 1.1,
+                iouThreshold: 0.2
+            }, params);
+            let scale = params.minSize;
+            while (scale <= params.maxSize) {
+                const step = Math.max(params.shiftFactor * scale, 1) >> 0;
                 const offset = (scale / 2 + 1) >> 0;
                 for (let r = offset; r <= nrows - offset; r += step) {
                     for (let c = offset; c <= ncols - offset; c += step) {
@@ -99,7 +101,7 @@ export class Detector {
                             detections.push([r, c, scale, q]);
                     }
                 }
-                scale = scale * scalefactor;
+                scale = scale * params.scaleFactor;
             }
             detections = this.memoryUpdateFn(detections);
 
@@ -117,7 +119,7 @@ export class Detector {
                 if (assignments[i] == 0) {
                     let r = 0.0, c = 0.0, s = 0.0, q = 0.0, n = 0;
                     for (let j = i; j < detections.length; ++j) {
-                        if (calculate_iou(detections[i], detections[j]) > iouthreshold) {
+                        if (calculate_iou(detections[i], detections[j]) > params.iouThreshold) {
                             assignments[j] = 1;
                             r = r + detections[j][0];
                             c = c + detections[j][1];
