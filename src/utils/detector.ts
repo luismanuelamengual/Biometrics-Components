@@ -1,6 +1,30 @@
 export class Detector {
 
-    unpack_cascade(bytes) {
+    private classifiers = [];
+    private memoryUpdateFn;
+
+    constructor(memorySize = 1) {
+        this.setMemorySize(memorySize);
+    }
+
+    public setMemorySize(size) { //todo: memory no hace falta una función de callback
+        let n = 0;
+        const memory = [];
+        for (let i = 0; i < size; ++i) {
+            memory.push([]);
+        }
+        this.memoryUpdateFn = function(dets) {
+            memory[n] = dets;
+            n = (n + 1) % memory.length;
+            dets = [];
+            for (let i = 0; i < memory.length; ++i) {
+                dets = dets.concat(memory[i]);
+            }
+            return dets;
+        };
+    }
+
+    public loadClassifier(name: string, bytes: Int8Array) {
         const dview = new DataView(new ArrayBuffer(4));
         let p = 8;
         dview.setUint8(0, bytes[p]), dview.setUint8(1, bytes[p + 1]), dview.setUint8(2, bytes[p + 2]), dview.setUint8(3, bytes[p + 3]);
@@ -28,8 +52,7 @@ export class Detector {
         const tcodes = new Int8Array(tcodes_ls);
         const tpreds = new Float32Array(tpreds_ls);
         const thresh = new Float32Array(thresh_ls);
-
-        function classify_region(r, c, s, pixels, ldim) {
+        this.classifiers[name] = function(r, c, s, pixels, ldim) {
             r = 256 * r;
             c = 256 * c;
             let root = 0;
@@ -49,83 +72,65 @@ export class Detector {
                 root += 4 * pow2tdepth;
             }
             return o - thresh[ntrees - 1];
-        }
-        return classify_region;
+        };
     }
 
-    run_cascade(image, classify_region, params) {
-        const pixels = image.pixels;
-        const nrows = image.nrows;
-        const ncols = image.ncols;
-        const ldim = image.ldim;
-        const shiftfactor = params.shiftfactor;
-        const minsize = params.minsize;
-        const maxsize = params.maxsize;
-        const scalefactor = params.scalefactor;
-        let scale = minsize;
-        const detections = [];
-        while (scale <= maxsize) {
-            const step = Math.max(shiftfactor * scale, 1) >> 0;
-            const offset = (scale / 2 + 1) >> 0;
-            for (let r = offset; r <= nrows - offset; r += step) {
-                for (let c = offset; c <= ncols - offset; c += step) {
-                    const q = classify_region(r, c, scale, pixels, ldim);
-                    if (q > 0.0)
-                        detections.push([r, c, scale, q]);
-                }
-            }
-            scale = scale * scalefactor;
-        }
-        return detections;
-    }
-
-    cluster_detections(dets, iouthreshold) {
-        dets = dets.sort(function (a, b) {
-            return b[3] - a[3];
-        });
-        function calculate_iou(det1, det2) {
-            const r1 = det1[0], c1 = det1[1], s1 = det1[2];
-            const r2 = det2[0], c2 = det2[1], s2 = det2[2];
-            const overr = Math.max(0, Math.min(r1 + s1 / 2, r2 + s2 / 2) - Math.max(r1 - s1 / 2, r2 - s2 / 2));
-            const overc = Math.max(0, Math.min(c1 + s1 / 2, c2 + s2 / 2) - Math.max(c1 - s1 / 2, c2 - s2 / 2));
-            return overr * overc / (s1 * s1 + s2 * s2 - overr * overc);
-        }
-        const assignments = new Array(dets.length).fill(0);
-        const clusters = [];
-        for (let i = 0; i < dets.length; ++i) {
-            if (assignments[i] == 0) {
-                let r = 0.0, c = 0.0, s = 0.0, q = 0.0, n = 0;
-                for (let j = i; j < dets.length; ++j) {
-                    if (calculate_iou(dets[i], dets[j]) > iouthreshold) {
-                        assignments[j] = 1;
-                        r = r + dets[j][0];
-                        c = c + dets[j][1];
-                        s = s + dets[j][2];
-                        q = q + dets[j][3];
-                        n = n + 1;
+    public detect(image, classifierName, params) { //todo: params por defecto
+        let detections = [];
+        const classifier = this.classifiers[classifierName];
+        if (classifier) {
+            const pixels = image.pixels;
+            const nrows = image.nrows;
+            const ncols = image.ncols;
+            const ldim = image.ldim;
+            const shiftfactor = params.shiftfactor;
+            const minsize = params.minsize;
+            const maxsize = params.maxsize;
+            const scalefactor = params.scalefactor;
+            const iouthreshold = params.iouthreshold || 0.2;
+            let scale = minsize;
+            while (scale <= maxsize) {
+                const step = Math.max(shiftfactor * scale, 1) >> 0;
+                const offset = (scale / 2 + 1) >> 0;
+                for (let r = offset; r <= nrows - offset; r += step) {
+                    for (let c = offset; c <= ncols - offset; c += step) {
+                        const q = classifier(r, c, scale, pixels, ldim);
+                        if (q > 0.0)
+                            detections.push([r, c, scale, q]);
                     }
                 }
-                clusters.push([r / n, c / n, s / n, q]);
+                scale = scale * scalefactor;
             }
-        }
-        return clusters;
-    }
+            detections = this.memoryUpdateFn(detections);
 
-    instantiate_detection_memory(size) {
-        let n = 0;
-        const memory = [];
-        for (let i = 0; i < size; ++i) {
-            memory.push([]);
-        }
-        function update_memory(dets) {
-            memory[n] = dets;
-            n = (n + 1) % memory.length;
-            dets = [];
-            for (let i = 0; i < memory.length; ++i) {
-                dets = dets.concat(memory[i]);
+            detections = detections.sort((a, b) => b[3] - a[3]);
+            function calculate_iou(det1, det2) {
+                const r1 = det1[0], c1 = det1[1], s1 = det1[2];
+                const r2 = det2[0], c2 = det2[1], s2 = det2[2];
+                const overr = Math.max(0, Math.min(r1 + s1 / 2, r2 + s2 / 2) - Math.max(r1 - s1 / 2, r2 - s2 / 2));
+                const overc = Math.max(0, Math.min(c1 + s1 / 2, c2 + s2 / 2) - Math.max(c1 - s1 / 2, c2 - s2 / 2));
+                return overr * overc / (s1 * s1 + s2 * s2 - overr * overc);
             }
-            return dets;
+            const assignments = new Array(detections.length).fill(0);
+            const clusters = [];
+            for (let i = 0; i < detections.length; ++i) {
+                if (assignments[i] == 0) {
+                    let r = 0.0, c = 0.0, s = 0.0, q = 0.0, n = 0;
+                    for (let j = i; j < detections.length; ++j) {
+                        if (calculate_iou(detections[i], detections[j]) > iouthreshold) {
+                            assignments[j] = 1;
+                            r = r + detections[j][0];
+                            c = c + detections[j][1];
+                            s = s + detections[j][2];
+                            q = q + detections[j][3];
+                            n = n + 1;
+                        }
+                    }
+                    clusters.push([r / n, c / n, s / n, q]);
+                }
+            }
+            detections = clusters;
         }
-        return update_memory;
+        return detections;
     }
 }
