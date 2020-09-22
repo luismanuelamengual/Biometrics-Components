@@ -3,11 +3,7 @@ export class Detector {
     private classifiers = [];
 
     public loadClassifierFromUrl(classifierName: string, classifierUrl: string) {
-        fetch(classifierUrl).then((response) => {
-            response.arrayBuffer().then((buffer) => {
-                this.loadClassifier(classifierName, new Int8Array(buffer));
-            })
-        });
+        fetch(classifierUrl).then((response) => response.arrayBuffer()).then((buffer) => this.loadClassifier(classifierName, new Int8Array(buffer)));
     }
 
     public loadClassifier(classifierName: string, bytes: Int8Array) {
