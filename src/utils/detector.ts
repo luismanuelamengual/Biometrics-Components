@@ -1,28 +1,6 @@
 export class Detector {
 
     private classifiers = [];
-    private memoryUpdateFn;
-
-    constructor(memorySize = 1) {
-        this.setMemorySize(memorySize);
-    }
-
-    public setMemorySize(size) { //todo: memory no hace falta una función de callback
-        let n = 0;
-        const memory = [];
-        for (let i = 0; i < size; ++i) {
-            memory.push([]);
-        }
-        this.memoryUpdateFn = function(dets) {
-            memory[n] = dets;
-            n = (n + 1) % memory.length;
-            dets = [];
-            for (let i = 0; i < memory.length; ++i) {
-                dets = dets.concat(memory[i]);
-            }
-            return dets;
-        };
-    }
 
     public loadClassifier(classifierName: string, bytes: Int8Array) {
         const dview = new DataView(new ArrayBuffer(4));
@@ -107,8 +85,6 @@ export class Detector {
                 }
                 scale = scale * config.scaleFactor;
             }
-            detections = this.memoryUpdateFn(detections);
-
             detections = detections.sort((a, b) => b[3] - a[3]);
             function calculate_iou(det1, det2) {
                 const r1 = det1[0], c1 = det1[1], s1 = det1[2];
