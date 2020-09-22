@@ -1,4 +1,4 @@
-import {Component, Event, EventEmitter, h, Host, Prop, State} from '@stencil/core';
+import {Component, Event, EventEmitter, h, Host, Method, Prop, State} from '@stencil/core';
 
 @Component({
     tag: 'biometrics-camera',
@@ -18,6 +18,9 @@ export class Camera {
 
     @Prop()
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
+
+    @Prop()
+    showControls = true;
 
     @State()
     picture: string = null;
@@ -66,7 +69,25 @@ export class Camera {
         this.initializeVideo();
     }
 
-    capture() {
+    @Method()
+    async capture() {
+        this.setPicture(await this.getSnapshotUrl(this.maxPictureWidth, this.maxPictureHeight));
+    }
+
+    @Method()
+    async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg') {
+        this.takeSnapshot(maxWidth, maxHeight);
+        return this.canvasElement.toDataURL(type);
+    }
+
+    @Method()
+    async getSnapshotImageData(maxWidth: number, maxHeight: number) {
+        this.takeSnapshot(maxWidth, maxHeight);
+        const canvas = this.canvasElement;
+        return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    takeSnapshot(maxWidth: number, maxHeight: number) {
         const video = this.videoElement;
         const canvas = this.canvasElement;
         const videoWidth = video.videoWidth;
@@ -86,8 +107,8 @@ export class Camera {
         }
         let scaledCanvasWidth: number = canvasWidth;
         let scaledCanvasHeight: number = canvasHeight;
-        if (scaledCanvasWidth > this.maxPictureWidth || scaledCanvasHeight > this.maxPictureHeight) {
-            const scale = Math.min((this.maxPictureWidth / canvasWidth), (this.maxPictureHeight / canvasHeight));
+        if (scaledCanvasWidth > maxWidth || scaledCanvasHeight > maxHeight) {
+            const scale = Math.min((maxWidth / canvasWidth), (maxHeight / canvasHeight));
             scaledCanvasWidth *= scale;
             scaledCanvasHeight *= scale;
         }
@@ -108,7 +129,6 @@ export class Camera {
             context.scale(-1, 1);
         }
         context.drawImage(video, sx, sy, canvasWidth, canvasHeight, 0, 0, scaledCanvasWidth, scaledCanvasHeight);
-        this.setPicture(canvas.toDataURL('image/jpeg'));
     }
 
     setPicture(picture: string) {
@@ -126,10 +146,10 @@ export class Camera {
                         <slot/>
                     </div>
                 </div>
-                <div class="camera-controls">
+                {this.showControls && <div class="camera-controls">
                     {this.picture === null && <button type="button" class={{"capture-button": true}} onClick={this.onCaptureButtonClick}/>}
                     {this.picture !== null && <button type="button" class={{"confirm-button": true}} onClick={this.onConfirmButtonClick}/>}
-                </div>
+                </div>}
             </div>
         </Host>;
     }
