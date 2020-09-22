@@ -75,14 +75,17 @@ export class Detector {
         };
     }
 
-    public detect(classifierName: string, image, params: {shiftFactor?: number, minSize?: number, maxSize?: number, scaleFactor?: number, iouThreshold?: number} = {}) {
+    public detect(classifierName: string, image: ImageData, params: {shiftFactor?: number, minSize?: number, maxSize?: number, scaleFactor?: number, iouThreshold?: number} = {}) {
         let detections = [];
         const classifier = this.classifiers[classifierName];
         if (classifier) {
-            const pixels = image.pixels;
-            const nrows = image.nrows;
-            const ncols = image.ncols;
-            const ldim = image.ldim;
+            const imageData = image.data;
+            const imagePixels = new Uint8Array(image.height * image.width);
+            for(let r = 0; r < image.height; ++r) {
+                for(let c = 0; c < image.width; ++c) {
+                    imagePixels[r*image.width + c] = (2 * imageData[(r * 4 * image.width + 4 * c)] + 7 * imageData[r * 4 *image.width + 4 * c + 1] + imageData[r * 4 * image.width + 4 * c + 2]) / 10;
+                }
+            }
             params = Object.assign({
                 shiftFactor: 0.1,
                 minSize: 100,
@@ -94,11 +97,12 @@ export class Detector {
             while (scale <= params.maxSize) {
                 const step = Math.max(params.shiftFactor * scale, 1) >> 0;
                 const offset = (scale / 2 + 1) >> 0;
-                for (let r = offset; r <= nrows - offset; r += step) {
-                    for (let c = offset; c <= ncols - offset; c += step) {
-                        const q = classifier(r, c, scale, pixels, ldim);
-                        if (q > 0.0)
+                for (let r = offset; r <= image.height - offset; r += step) {
+                    for (let c = offset; c <= image.width - offset; c += step) {
+                        const q = classifier(r, c, scale, imagePixels, image.width);
+                        if (q > 0.0) {
                             detections.push([r, c, scale, q]);
+                        }
                     }
                 }
                 scale = scale * params.scaleFactor;
