@@ -75,7 +75,7 @@ export class Detector {
         };
     }
 
-    public detect(classifierName: string, image: ImageData, params: {shiftFactor?: number, minSize?: number, maxSize?: number, scaleFactor?: number, iouThreshold?: number} = {}) {
+    public detect(classifierName: string, image: ImageData, config: {shiftFactor?: number, minSize?: number, maxSize?: number, scaleFactor?: number, iouThreshold?: number} = {}) {
         let detections = [];
         const classifier = this.classifiers[classifierName];
         if (classifier) {
@@ -86,16 +86,16 @@ export class Detector {
                     imagePixels[r*image.width + c] = (2 * imageData[(r * 4 * image.width + 4 * c)] + 7 * imageData[r * 4 *image.width + 4 * c + 1] + imageData[r * 4 * image.width + 4 * c + 2]) / 10;
                 }
             }
-            params = Object.assign({
+            config = Object.assign({
                 shiftFactor: 0.1,
                 minSize: 100,
                 maxSize: 1000,
                 scaleFactor: 1.1,
                 iouThreshold: 0.2
-            }, params);
-            let scale = params.minSize;
-            while (scale <= params.maxSize) {
-                const step = Math.max(params.shiftFactor * scale, 1) >> 0;
+            }, config);
+            let scale = config.minSize;
+            while (scale <= config.maxSize) {
+                const step = Math.max(config.shiftFactor * scale, 1) >> 0;
                 const offset = (scale / 2 + 1) >> 0;
                 for (let r = offset; r <= image.height - offset; r += step) {
                     for (let c = offset; c <= image.width - offset; c += step) {
@@ -105,7 +105,7 @@ export class Detector {
                         }
                     }
                 }
-                scale = scale * params.scaleFactor;
+                scale = scale * config.scaleFactor;
             }
             detections = this.memoryUpdateFn(detections);
 
@@ -123,7 +123,7 @@ export class Detector {
                 if (assignments[i] == 0) {
                     let r = 0.0, c = 0.0, s = 0.0, q = 0.0, n = 0;
                     for (let j = i; j < detections.length; ++j) {
-                        if (calculate_iou(detections[i], detections[j]) > params.iouThreshold) {
+                        if (calculate_iou(detections[i], detections[j]) > config.iouThreshold) {
                             assignments[j] = 1;
                             r = r + detections[j][0];
                             c = c + detections[j][1];
