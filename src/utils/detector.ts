@@ -2,10 +2,15 @@ export class Detector {
 
     private classifiers = [];
 
-    public async loadClassifierFromUrl(classifierName: string, classifierUrl: string) {
-        const response = await fetch(classifierUrl);
-        const buffer = await response.arrayBuffer();
-        this.loadClassifier(classifierName, new Int8Array(buffer));
+    public async loadClassifierFromUrl(classifierName: string, classifierUrl: string): Promise<boolean> {
+        let classifierLoaded = false;
+        try {
+            const response = await fetch(classifierUrl);
+            const buffer = await response.arrayBuffer();
+            this.loadClassifier(classifierName, new Int8Array(buffer));
+            classifierLoaded = true;
+        } catch (e) {}
+        return classifierLoaded;
     }
 
     public loadClassifier(classifierName: string, bytes: Int8Array) {
