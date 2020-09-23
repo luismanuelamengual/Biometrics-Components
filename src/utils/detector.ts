@@ -2,8 +2,10 @@ export class Detector {
 
     private classifiers = [];
 
-    public loadClassifierFromUrl(classifierName: string, classifierUrl: string) {
-        fetch(classifierUrl).then((response) => response.arrayBuffer()).then((buffer) => this.loadClassifier(classifierName, new Int8Array(buffer)));
+    public async loadClassifierFromUrl(classifierName: string, classifierUrl: string) {
+        const response = await fetch(classifierUrl);
+        const buffer = await response.arrayBuffer();
+        this.loadClassifier(classifierName, new Int8Array(buffer));
     }
 
     public loadClassifier(classifierName: string, bytes: Int8Array) {
