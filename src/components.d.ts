@@ -7,10 +7,14 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BiometricsCamera {
-        "facingMode": "environment" | "user" | "left" | "right";
+        "capture": () => Promise<void>;
+        "facingMode": 'environment' | 'user' | 'left' | 'right';
+        "getSnapshotImageData": (maxWidth: number, maxHeight: number) => Promise<ImageData>;
+        "getSnapshotUrl": (maxWidth: number, maxHeight: number, type?: string) => Promise<string>;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
-        "type": "classic" | "fullscreen";
+        "showControls": boolean;
+        "type": 'classic' | 'fullscreen';
     }
     interface BiometricsLiveness {
         "apiKey": string;
@@ -28,9 +32,12 @@ export namespace Components {
     }
     interface BiometricsLivenessPassive {
         "apiKey": string;
+        "autoCapture": boolean;
+        "autoCaptureTimeout": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
         "serverUrl": string;
+        "useDetector": boolean;
     }
 }
 declare global {
@@ -60,11 +67,12 @@ declare global {
 }
 declare namespace LocalJSX {
     interface BiometricsCamera {
-        "facingMode"?: "environment" | "user" | "left" | "right";
+        "facingMode"?: 'environment' | 'user' | 'left' | 'right';
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onPictureCaptured"?: (event: CustomEvent<any>) => void;
-        "type"?: "classic" | "fullscreen";
+        "showControls"?: boolean;
+        "type"?: 'classic' | 'fullscreen';
     }
     interface BiometricsLiveness {
         "apiKey"?: string;
@@ -84,10 +92,13 @@ declare namespace LocalJSX {
     }
     interface BiometricsLivenessPassive {
         "apiKey"?: string;
+        "autoCapture"?: boolean;
+        "autoCaptureTimeout"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onLivenessVerificationComplete"?: (event: CustomEvent<any>) => void;
         "serverUrl"?: string;
+        "useDetector"?: boolean;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;

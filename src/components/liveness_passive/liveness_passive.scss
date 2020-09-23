@@ -1,6 +1,6 @@
 
-$cornerSize: 20%;
-$borderWidth: 6px;
+$cornerSize: 30%;
+$borderWidth: 10px;
 $borderRadius: 30px;
 
 :host {
@@ -39,6 +39,10 @@ $borderRadius: 30px;
             max-width: 300px;
             margin: 0 auto;
             padding: 12px;
+            -webkit-transition: all 0.5s 0s ease;
+            -moz-transition: all 0.5s 0s ease;
+            -o-transition: all 0.5s 0s ease;
+            transition: all 0.5s 0s ease;
 
             &.caption-danger {
                 background-color: rgba(180, 0, 0, 0.8);
@@ -103,11 +107,11 @@ $borderRadius: 30px;
         .marquee {
             position: absolute;
             z-index: 1500;
-            left: 20%;
-            top: 20%;
-            right: 20%;
-            bottom: 20%;
-            display: block;
+            opacity: 0;
+            -webkit-transition: all 0.5s 0s ease;
+            -moz-transition: all 0.5s 0s ease;
+            -o-transition: all 0.5s 0s ease;
+            transition: all 0.5s 0s ease;
 
             .marquee-corner {
                 border-style: solid;
@@ -115,6 +119,10 @@ $borderRadius: 30px;
                 width: $cornerSize;
                 height: $cornerSize;
                 border-color: green;
+                -webkit-transition: all 0.5s 0s ease;
+                -moz-transition: all 0.5s 0s ease;
+                -o-transition: all 0.5s 0s ease;
+                transition: all 0.5s 0s ease;
 
                 &.marquee-corner-nw {
                     top: 0;
@@ -144,6 +152,24 @@ $borderRadius: 30px;
                     border-radius: 0 0 $borderRadius 0;
                 }
             }
+
+            &.marquee-error {
+                .marquee-corner {
+                    border-color: red;
+                }
+            }
+        }
+
+        .liveness-seconds {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            font-size: 35px;
+            text-shadow: 1px 1px black;
+            color: white;
+            font-weight: bold;
         }
     }
 }

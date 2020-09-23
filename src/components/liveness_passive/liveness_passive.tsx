@@ -1,19 +1,18 @@
-import {Component, EventEmitter, Event, h, Host, Prop, State} from '@stencil/core';
+import {Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State} from '@stencil/core';
 import bodymovin from 'bodymovin';
-
 // @ts-ignore
-import loadingAnimationData from './animations/loading.json';
-
+import loadingAnimationData from './assets/animations/loading.json';
 // @ts-ignore
-import failAnimationData from './animations/fail.json';
-
+import failAnimationData from './assets/animations/fail.json';
 // @ts-ignore
-import successAnimationData from './animations/success.json';
+import successAnimationData from './assets/animations/success.json';
+import {Detector} from "../../utils/detector";
 
 @Component({
-  tag: 'biometrics-liveness-passive',
-  styleUrl: 'liveness_passive.scss',
-  shadow: true
+    tag: 'biometrics-liveness-passive',
+    styleUrl: 'liveness_passive.scss',
+    assetsDirs: ['assets'],
+    shadow: true
 })
 export class Liveness_passive {
 
@@ -25,6 +24,12 @@ export class Liveness_passive {
 
     @Prop() maxPictureHeight = 600;
 
+    @Prop() autoCapture = true;
+
+    @Prop() autoCaptureTimeout = 3;
+
+    @Prop() useDetector = true;
+
     @State() cameraOpen = false;
 
     @State() picture: string;
@@ -35,6 +40,8 @@ export class Liveness_passive {
 
     @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
+    @State() autoCaptureTimeoutSecondsRemaining: number;
+
     @State() livenessVerificationFinished = false;
 
     @Event() livenessVerificationComplete: EventEmitter;
@@ -42,9 +49,16 @@ export class Liveness_passive {
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
+    marqueeElement!: HTMLDivElement;
+    cameraElement: HTMLBiometricsCameraElement;
     loadingAnimation = null;
     successAnimation = null;
     failAnimation = null;
+    detector: Detector = new Detector();
+    detectorLoaded = false;
+    autoCaptureTask: any = null;
+    faceDetectionTask: any = null;
+    faceDetectionInterval: number;
 
     constructor() {
         this.onPictureCaptured = this.onPictureCaptured.bind(this);
@@ -57,6 +71,7 @@ export class Liveness_passive {
 
     componentDidLoad() {
         this.initializeAnimations();
+        this.initializeDetector();
     }
 
     initializeAnimations() {
@@ -91,15 +106,136 @@ export class Liveness_passive {
         });
     }
 
+    initializeDetector() {
+        if (this.useDetector) {
+            this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`)).then((loaded) => {
+                this.detectorLoaded = loaded;
+                this.startFaceDetection(500);
+            });
+        } else {
+            this.marqueeElement.style.opacity = '1';
+            this.marqueeElement.style.left = '20%';
+            this.marqueeElement.style.top = '20%';
+            this.marqueeElement.style.right = '20%';
+            this.marqueeElement.style.bottom = '20%';
+        }
+    }
+
+    async detectFace() {
+        const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
+        const imageWidth = imageData.width;
+        const imageHeight = imageData.height;
+        const cameraWidth = this.cameraElement.offsetWidth;
+        const cameraHeight = this.cameraElement.offsetHeight;
+        const imageXFactor = cameraWidth / imageWidth;
+        const imageYFactor = cameraHeight / imageHeight;
+        let detections = this.detector.detect('frontal_face', imageData);
+
+        let bestDetection = null;
+        if (detections && detections.length) {
+            detections = detections.filter((detection) => detection[3] > 5).sort((detection1, detection2) => detection1[3] - detection2[3]);
+            bestDetection = detections[0];
+        }
+
+        if (bestDetection) {
+            const centerY = bestDetection[0];
+            const centerX = bestDetection[1];
+            const diameter = bestDetection[2];
+            const marqueeCenterX = centerX * imageXFactor;
+            const marqueeCenterY = centerY * imageYFactor;
+            const marqueeWidth = diameter * imageXFactor * 0.8;
+            const marqueeHeight = diameter * imageYFactor;
+            this.marqueeElement.style.opacity = '1';
+            this.marqueeElement.style.left = (marqueeCenterX - (marqueeWidth/2)) + 'px';
+            this.marqueeElement.style.top = (marqueeCenterY - (marqueeHeight/2)) + 'px';
+            this.marqueeElement.style.width = marqueeWidth + 'px';
+            this.marqueeElement.style.height = marqueeHeight + 'px';
+
+            const marqueeXDifferential = Math.abs(marqueeCenterX - (cameraWidth/2));
+            const marqueeYDifferential = Math.abs(marqueeCenterY - (cameraHeight/2));
+            if (marqueeXDifferential > 50 || marqueeYDifferential > 50) {
+                this.setCaption('El rostro no esta centrado. Ubique su rostro en el centro', 'danger');
+                this.marqueeElement.classList.add('marquee-error');
+                this.stopAutocaptureTimer();
+            } else {
+                if (marqueeWidth < 200) {
+                    this.setCaption('El rostro esta demasiado lejos. Acerque su rostro', 'danger');
+                    this.marqueeElement.classList.add('marquee-error');
+                    this.stopAutocaptureTimer();
+                } else if (marqueeWidth >= 240) {
+                    this.setCaption('El rostro esta demasiado cerca. Aleje su rostro', 'danger');
+                    this.marqueeElement.classList.add('marquee-error');
+                    this.stopAutocaptureTimer();
+                } else {
+                    this.setCaption('Ubique su rostro en el centro');
+                    this.marqueeElement.classList.remove('marquee-error');
+                    this.startAutocaptureTimer();
+                }
+            }
+        } else {
+            this.setCaption('El rostro no ha sido encontrado', 'danger');
+            this.marqueeElement.style.opacity = '0';
+            this.stopAutocaptureTimer();
+        }
+    }
+
+    stopFaceDetection() {
+        if (this.faceDetectionTask) {
+            clearInterval(this.faceDetectionTask);
+            this.faceDetectionInterval = 0;
+            this.faceDetectionTask = null;
+        }
+    }
+
+    startFaceDetection(interval: number) {
+        if (this.detectorLoaded) {
+            if (interval !== this.faceDetectionInterval) {
+                this.faceDetectionInterval = interval;
+                this.stopFaceDetection();
+                this.faceDetectionTask = setInterval(async () => {
+                    await this.detectFace();
+                }, interval);
+            }
+        }
+    }
+
+    stopAutocaptureTimer() {
+        if (this.autoCapture) {
+            this.autoCaptureTimeoutSecondsRemaining = null;
+            if (this.autoCaptureTask) {
+                clearInterval(this.autoCaptureTask);
+                this.autoCaptureTask = null;
+            }
+        }
+    }
+
+    startAutocaptureTimer() {
+        if (this.autoCapture && !this.autoCaptureTask) {
+            this.autoCaptureTimeoutSecondsRemaining = this.autoCaptureTimeout;
+            this.autoCaptureTask = setInterval( () => {
+                this.autoCaptureTimeoutSecondsRemaining--;
+                if (this.autoCaptureTimeoutSecondsRemaining <= 0) {
+                    this.cameraElement.capture();
+                    this.stopAutocaptureTimer();
+                }
+            }, 1000);
+        }
+    }
+
     openCamera() {
-        this.setCaption('Ubique su rostro dentro del recuadro y tome la foto');
+        this.setCaption('');
         this.cameraOpen = true;
         this.livenessVerificationFinished = false;
+        this.startFaceDetection(500);
+        if (!this.useDetector) {
+            this.startAutocaptureTimer();
+        }
     }
 
     closeCamera() {
         this.setCaption('');
         this.cameraOpen = false;
+        this.stopFaceDetection();
     }
 
     setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
@@ -212,13 +348,14 @@ export class Liveness_passive {
     }
 
     renderCamera() {
-        return <biometrics-camera facingMode="user" type="fullscreen" maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
-            <div class={{ 'marquee': true }}>
+        return <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" type="fullscreen" showControls={!this.autoCapture} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
+            <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{ 'marquee': true }}>
                 <div class='marquee-corner marquee-corner-nw'/>
                 <div class='marquee-corner marquee-corner-ne'/>
                 <div class='marquee-corner marquee-corner-sw'/>
                 <div class='marquee-corner marquee-corner-se'/>
             </div>
+            {this.autoCaptureTimeoutSecondsRemaining && <div class="liveness-seconds">{ this.autoCaptureTimeoutSecondsRemaining }</div>}
         </biometrics-camera>;
     }
 }

@@ -6,9 +6,11 @@ export class Detector {
         let classifierLoaded = false;
         try {
             const response = await fetch(classifierUrl);
-            const buffer = await response.arrayBuffer();
-            this.loadClassifier(classifierName, new Int8Array(buffer));
-            classifierLoaded = true;
+            if (response.ok) {
+                const buffer = await response.arrayBuffer();
+                this.loadClassifier(classifierName, new Int8Array(buffer));
+                classifierLoaded = true;
+            }
         } catch (e) {}
         return classifierLoaded;
     }
