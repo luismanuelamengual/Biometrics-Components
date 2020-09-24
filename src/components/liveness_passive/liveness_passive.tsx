@@ -55,7 +55,6 @@ export class Liveness_passive {
     successAnimation = null;
     failAnimation = null;
     detector: Detector = new Detector();
-    detectorLoaded = false;
     autoCaptureTask: any = null;
     faceDetectionTask: any = null;
     faceDetectionInterval: number;
@@ -71,7 +70,6 @@ export class Liveness_passive {
 
     componentDidLoad() {
         this.initializeAnimations();
-        this.initializeDetector();
     }
 
     initializeAnimations() {
@@ -106,19 +104,21 @@ export class Liveness_passive {
         });
     }
 
-    initializeDetector() {
-        if (this.useDetector) {
-            this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`)).then((loaded) => {
-                this.detectorLoaded = loaded;
-                this.startFaceDetection(500);
-            });
+    async startMarqueeDetection() {
+        if (this.useDetector && await this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`))) {
+            this.startFaceDetection(500);
         } else {
             this.marqueeElement.style.opacity = '1';
             this.marqueeElement.style.left = '20%';
             this.marqueeElement.style.top = '20%';
             this.marqueeElement.style.right = '20%';
             this.marqueeElement.style.bottom = '20%';
+            this.startAutocaptureTimer();
         }
+    }
+
+    stopMarqueeDetection() {
+        this.stopAutocaptureTimer();
     }
 
     async detectFace() {
@@ -188,14 +188,12 @@ export class Liveness_passive {
     }
 
     startFaceDetection(interval: number) {
-        if (this.detectorLoaded) {
-            if (interval !== this.faceDetectionInterval) {
-                this.faceDetectionInterval = interval;
-                this.stopFaceDetection();
-                this.faceDetectionTask = setInterval(async () => {
-                    await this.detectFace();
-                }, interval);
-            }
+        if (interval !== this.faceDetectionInterval) {
+            this.faceDetectionInterval = interval;
+            this.stopFaceDetection();
+            this.faceDetectionTask = setInterval(async () => {
+                await this.detectFace();
+            }, interval);
         }
     }
 
@@ -226,16 +224,13 @@ export class Liveness_passive {
         this.setCaption('');
         this.cameraOpen = true;
         this.livenessVerificationFinished = false;
-        this.startFaceDetection(500);
-        if (!this.useDetector) {
-            this.startAutocaptureTimer();
-        }
+        this.startMarqueeDetection();
     }
 
     closeCamera() {
         this.setCaption('');
         this.cameraOpen = false;
-        this.stopFaceDetection();
+        this.stopMarqueeDetection();
     }
 
     setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
