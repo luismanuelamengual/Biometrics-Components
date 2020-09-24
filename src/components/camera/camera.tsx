@@ -84,7 +84,7 @@ export class Camera {
     async getSnapshotImageData(maxWidth: number, maxHeight: number) {
         this.takeSnapshot(maxWidth, maxHeight);
         const canvas = this.canvasElement;
-        return canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        return canvas.width > 0 && canvas.height ? canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height) : null;
     }
 
     takeSnapshot(maxWidth: number, maxHeight: number) {

@@ -106,7 +106,7 @@ export class Liveness_passive {
 
     async startMarqueeDetection() {
         if (this.useDetector && await this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`))) {
-            this.startFaceDetection(500);
+            this.startFaceDetection(200);
         } else {
             this.marqueeElement.style.opacity = '1';
             this.marqueeElement.style.left = '20%';
@@ -118,64 +118,66 @@ export class Liveness_passive {
     }
 
     stopMarqueeDetection() {
-        this.stopAutocaptureTimer();
+        this.stopFaceDetection();
     }
 
     async detectFace() {
         const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
-        const imageWidth = imageData.width;
-        const imageHeight = imageData.height;
-        const cameraWidth = this.cameraElement.offsetWidth;
-        const cameraHeight = this.cameraElement.offsetHeight;
-        const imageXFactor = cameraWidth / imageWidth;
-        const imageYFactor = cameraHeight / imageHeight;
-        let detections = this.detector.detect('frontal_face', imageData);
+        if (imageData != null) {
+            const imageWidth = imageData.width;
+            const imageHeight = imageData.height;
+            const cameraWidth = this.cameraElement.offsetWidth;
+            const cameraHeight = this.cameraElement.offsetHeight;
+            const imageXFactor = cameraWidth / imageWidth;
+            const imageYFactor = cameraHeight / imageHeight;
+            let detections = this.detector.detect('frontal_face', imageData);
 
-        let bestDetection = null;
-        if (detections && detections.length) {
-            detections = detections.filter((detection) => detection[3] > 5).sort((detection1, detection2) => detection1[3] - detection2[3]);
-            bestDetection = detections[0];
-        }
+            let bestDetection = null;
+            if (detections && detections.length) {
+                detections = detections.filter((detection) => detection[3] > 5).sort((detection1, detection2) => detection1[3] - detection2[3]);
+                bestDetection = detections[0];
+            }
 
-        if (bestDetection) {
-            const centerY = bestDetection[0];
-            const centerX = bestDetection[1];
-            const diameter = bestDetection[2];
-            const marqueeCenterX = centerX * imageXFactor;
-            const marqueeCenterY = centerY * imageYFactor;
-            const marqueeWidth = diameter * imageXFactor * 0.8;
-            const marqueeHeight = diameter * imageYFactor;
-            this.marqueeElement.style.opacity = '1';
-            this.marqueeElement.style.left = (marqueeCenterX - (marqueeWidth/2)) + 'px';
-            this.marqueeElement.style.top = (marqueeCenterY - (marqueeHeight/2)) + 'px';
-            this.marqueeElement.style.width = marqueeWidth + 'px';
-            this.marqueeElement.style.height = marqueeHeight + 'px';
+            if (bestDetection) {
+                const centerY = bestDetection[0];
+                const centerX = bestDetection[1];
+                const diameter = bestDetection[2];
+                const marqueeCenterX = centerX * imageXFactor;
+                const marqueeCenterY = centerY * imageYFactor;
+                const marqueeWidth = diameter * imageXFactor * 0.8;
+                const marqueeHeight = diameter * imageYFactor;
+                this.marqueeElement.style.opacity = '1';
+                this.marqueeElement.style.left = (marqueeCenterX - (marqueeWidth/2)) + 'px';
+                this.marqueeElement.style.top = (marqueeCenterY - (marqueeHeight/2)) + 'px';
+                this.marqueeElement.style.width = marqueeWidth + 'px';
+                this.marqueeElement.style.height = marqueeHeight + 'px';
 
-            const marqueeXDifferential = Math.abs(marqueeCenterX - (cameraWidth/2));
-            const marqueeYDifferential = Math.abs(marqueeCenterY - (cameraHeight/2));
-            if (marqueeXDifferential > 50 || marqueeYDifferential > 50) {
-                this.setCaption('El rostro no esta centrado. Ubique su rostro en el centro', 'danger');
-                this.marqueeElement.classList.add('marquee-error');
-                this.stopAutocaptureTimer();
-            } else {
-                if (marqueeWidth < 200) {
-                    this.setCaption('El rostro esta demasiado lejos. Acerque su rostro', 'danger');
-                    this.marqueeElement.classList.add('marquee-error');
-                    this.stopAutocaptureTimer();
-                } else if (marqueeWidth >= 240) {
-                    this.setCaption('El rostro esta demasiado cerca. Aleje su rostro', 'danger');
+                const marqueeXDifferential = Math.abs(marqueeCenterX - (cameraWidth/2));
+                const marqueeYDifferential = Math.abs(marqueeCenterY - (cameraHeight/2));
+                if (marqueeXDifferential > 50 || marqueeYDifferential > 50) {
+                    this.setCaption('El rostro no esta centrado. Ubique su rostro en el centro', 'danger');
                     this.marqueeElement.classList.add('marquee-error');
                     this.stopAutocaptureTimer();
                 } else {
-                    this.setCaption('Ubique su rostro en el centro');
-                    this.marqueeElement.classList.remove('marquee-error');
-                    this.startAutocaptureTimer();
+                    if (marqueeWidth < 200) {
+                        this.setCaption('El rostro esta demasiado lejos. Acerque su rostro', 'danger');
+                        this.marqueeElement.classList.add('marquee-error');
+                        this.stopAutocaptureTimer();
+                    } else if (marqueeWidth >= 240) {
+                        this.setCaption('El rostro esta demasiado cerca. Aleje su rostro', 'danger');
+                        this.marqueeElement.classList.add('marquee-error');
+                        this.stopAutocaptureTimer();
+                    } else {
+                        this.setCaption('Ubique su rostro en el centro');
+                        this.marqueeElement.classList.remove('marquee-error');
+                        this.startAutocaptureTimer();
+                    }
                 }
+            } else {
+                this.setCaption('El rostro no ha sido encontrado', 'danger');
+                this.marqueeElement.style.opacity = '0';
+                this.stopAutocaptureTimer();
             }
-        } else {
-            this.setCaption('El rostro no ha sido encontrado', 'danger');
-            this.marqueeElement.style.opacity = '0';
-            this.stopAutocaptureTimer();
         }
     }
 

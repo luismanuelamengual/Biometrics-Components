@@ -108,10 +108,10 @@ $borderRadius: 30px;
             position: absolute;
             z-index: 1500;
             opacity: 0;
-            -webkit-transition: all 0.5s 0s ease;
-            -moz-transition: all 0.5s 0s ease;
-            -o-transition: all 0.5s 0s ease;
-            transition: all 0.5s 0s ease;
+            -webkit-transition: all 1s 0s ease-out;
+            -moz-transition: all 1s 0s ease-out;
+            -o-transition: all 1s 0s ease-out;
+            transition: all 1s 0s ease-out;
 
             .marquee-corner {
                 border-style: solid;
@@ -119,10 +119,10 @@ $borderRadius: 30px;
                 width: $cornerSize;
                 height: $cornerSize;
                 border-color: green;
-                -webkit-transition: all 0.5s 0s ease;
-                -moz-transition: all 0.5s 0s ease;
-                -o-transition: all 0.5s 0s ease;
-                transition: all 0.5s 0s ease;
+                -webkit-transition: all 1s 0s ease-out;
+                -moz-transition: all 1s 0s ease-out;
+                -o-transition: all 1s 0s ease-out;
+                transition: all 1s 0s ease-out;
 
                 &.marquee-corner-nw {
                     top: 0;
