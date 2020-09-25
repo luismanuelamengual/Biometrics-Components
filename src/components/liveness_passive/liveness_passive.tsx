@@ -28,7 +28,9 @@ export class Liveness_passive {
 
     @Prop() autoCaptureTimeout = 3;
 
-    @Prop() useDetector = true;
+    @Prop() useFaceDetector = true;
+
+    @Prop() faceDetectionInterval = 200;
 
     @State() cameraOpen = false;
 
@@ -57,7 +59,6 @@ export class Liveness_passive {
     detector: Detector = new Detector();
     autoCaptureTask: any = null;
     faceDetectionTask: any = null;
-    faceDetectionInterval: number;
 
     constructor() {
         this.onPictureCaptured = this.onPictureCaptured.bind(this);
@@ -105,8 +106,8 @@ export class Liveness_passive {
     }
 
     async startMarqueeDetection() {
-        if (this.useDetector && await this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`))) {
-            this.startFaceDetection(200);
+        if (this.useFaceDetector && await this.detector.loadClassifierFromUrl('frontal_face', getAssetPath(`./assets/cascades/frontal-face`))) {
+            this.startFaceDetection(this.faceDetectionInterval);
         } else {
             this.marqueeElement.style.opacity = '1';
             this.marqueeElement.style.left = '20%';
@@ -184,19 +185,15 @@ export class Liveness_passive {
     stopFaceDetection() {
         if (this.faceDetectionTask) {
             clearInterval(this.faceDetectionTask);
-            this.faceDetectionInterval = 0;
             this.faceDetectionTask = null;
         }
     }
 
     startFaceDetection(interval: number) {
-        if (interval !== this.faceDetectionInterval) {
-            this.faceDetectionInterval = interval;
-            this.stopFaceDetection();
-            this.faceDetectionTask = setInterval(async () => {
-                await this.detectFace();
-            }, interval);
-        }
+        this.stopFaceDetection();
+        this.faceDetectionTask = setInterval(async () => {
+            await this.detectFace();
+        }, interval);
     }
 
     stopAutocaptureTimer() {

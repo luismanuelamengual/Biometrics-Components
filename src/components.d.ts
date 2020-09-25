@@ -34,10 +34,11 @@ export namespace Components {
         "apiKey": string;
         "autoCapture": boolean;
         "autoCaptureTimeout": number;
+        "faceDetectionInterval": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
         "serverUrl": string;
-        "useDetector": boolean;
+        "useFaceDetector": boolean;
     }
 }
 declare global {
@@ -94,11 +95,12 @@ declare namespace LocalJSX {
         "apiKey"?: string;
         "autoCapture"?: boolean;
         "autoCaptureTimeout"?: number;
+        "faceDetectionInterval"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onLivenessVerificationComplete"?: (event: CustomEvent<any>) => void;
         "serverUrl"?: string;
-        "useDetector"?: boolean;
+        "useFaceDetector"?: boolean;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;
