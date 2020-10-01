@@ -119,10 +119,6 @@ $borderRadius: 30px;
                 width: $cornerSize;
                 height: $cornerSize;
                 border-color: green;
-                -webkit-transition: all 1s 0s ease-out;
-                -moz-transition: all 1s 0s ease-out;
-                -o-transition: all 1s 0s ease-out;
-                transition: all 1s 0s ease-out;
 
                 &.marquee-corner-nw {
                     top: 0;
