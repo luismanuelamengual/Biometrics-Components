@@ -271,10 +271,6 @@ export class Liveness_passive {
                 this.runAnimation('success');
             } else {
                 switch (response.data.status) {
-                    case 2001:
-                    case 9001:
-                        this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
-                        break;
                     case 1000:
                         this.setCaption('No se ha encontrado el rostro en la imagen', 'danger');
                         break;
@@ -286,6 +282,12 @@ export class Liveness_passive {
                         break;
                     case 1003:
                         this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
+                        break;
+                    case 2001:
+                        this.setCaption('La imagen no ha superado la prueba de brillos. Inténtelo nuevamente en una sala con luminosidad más uniforme', 'danger');
+                        break;
+                    case 9001:
+                        this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
                         break;
                 }
                 this.runAnimation('fail');
