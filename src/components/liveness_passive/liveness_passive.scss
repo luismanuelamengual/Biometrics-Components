@@ -39,10 +39,6 @@ $borderRadius: 30px;
             max-width: 300px;
             margin: 0 auto;
             padding: 12px;
-            -webkit-transition: all 0.5s 0s ease;
-            -moz-transition: all 0.5s 0s ease;
-            -o-transition: all 0.5s 0s ease;
-            transition: all 0.5s 0s ease;
 
             &.caption-danger {
                 background-color: rgba(180, 0, 0, 0.8);
