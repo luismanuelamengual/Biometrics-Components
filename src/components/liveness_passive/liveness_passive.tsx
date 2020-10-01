@@ -287,7 +287,10 @@ export class Liveness_passive {
                         this.setCaption('La imagen no ha superado la prueba de brillos. Inténtelo nuevamente en una sala con luminosidad más uniforme', 'danger');
                         break;
                     case 9001:
-                        this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
+                        this.setCaption('La imagen no ha superado la prueba de vida. Inténtelo nuevamente con un fondo liso detrás', 'danger');
+                        break;
+                    default:
+                        this.setCaption('La imagen no ha superado la prueba de vida. Código: ' + response.data.status, 'danger');
                         break;
                 }
                 this.runAnimation('fail');
