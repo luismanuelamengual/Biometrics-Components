@@ -160,19 +160,9 @@ export class Liveness_passive {
                     this.marqueeElement.classList.add('marquee-error');
                     this.stopAutocaptureTimer();
                 } else {
-                    if (marqueeWidth < 200) {
-                        this.setCaption('El rostro esta demasiado lejos. Acerque su rostro', 'danger');
-                        this.marqueeElement.classList.add('marquee-error');
-                        this.stopAutocaptureTimer();
-                    } else if (marqueeWidth >= 240) {
-                        this.setCaption('El rostro esta demasiado cerca. Aleje su rostro', 'danger');
-                        this.marqueeElement.classList.add('marquee-error');
-                        this.stopAutocaptureTimer();
-                    } else {
-                        this.setCaption('Ubique su rostro en el centro');
-                        this.marqueeElement.classList.remove('marquee-error');
-                        this.startAutocaptureTimer();
-                    }
+                    this.setCaption('Ubique su rostro en el centro');
+                    this.marqueeElement.classList.remove('marquee-error');
+                    this.startAutocaptureTimer();
                 }
             } else {
                 this.setCaption('El rostro no ha sido encontrado', 'danger');
