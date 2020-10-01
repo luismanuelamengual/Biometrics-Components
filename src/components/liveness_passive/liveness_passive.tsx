@@ -277,23 +277,24 @@ export class Liveness_passive {
         }
 
         if (response) {
-            if (response.data.status === 0 && response.data.liveness) {
+            if (response.data.status === 0) {
                 this.runAnimation('success');
             } else {
                 switch (response.data.status) {
-                    case 0:
+                    case 2001:
+                    case 9001:
                         this.setCaption('La prueba de vida no ha sido superada. Por favor vuelva a intentarlo', 'danger');
                         break;
-                    case -1:
+                    case 1000:
                         this.setCaption('No se ha encontrado el rostro en la imagen', 'danger');
                         break;
-                    case -2:
+                    case 1001:
                         this.setCaption('El rostro no esta centrado. Vuelva a intentarlo con el rostro dentro del recuadro', 'danger');
                         break;
-                    case -3:
+                    case 1002:
                         this.setCaption('El rostro se ha encontrado demasiado cerca en la imagen', 'danger');
                         break;
-                    case -4:
+                    case 1003:
                         this.setCaption('El rostro se ha encontrado demasiado lejos en la imagen', 'danger');
                         break;
                 }

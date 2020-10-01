@@ -7,12 +7,16 @@
 
 ## Properties
 
-| Property           | Attribute            | Description | Type     | Default     |
-| ------------------ | -------------------- | ----------- | -------- | ----------- |
-| `apiKey`           | `api-key`            |             | `string` | `undefined` |
-| `maxPictureHeight` | `max-picture-height` |             | `number` | `600`       |
-| `maxPictureWidth`  | `max-picture-width`  |             | `number` | `720`       |
-| `serverUrl`        | `server-url`         |             | `string` | `undefined` |
+| Property                | Attribute                 | Description | Type      | Default     |
+| ----------------------- | ------------------------- | ----------- | --------- | ----------- |
+| `apiKey`                | `api-key`                 |             | `string`  | `undefined` |
+| `autoCapture`           | `auto-capture`            |             | `boolean` | `true`      |
+| `autoCaptureTimeout`    | `auto-capture-timeout`    |             | `number`  | `3`         |
+| `faceDetectionInterval` | `face-detection-interval` |             | `number`  | `200`       |
+| `maxPictureHeight`      | `max-picture-height`      |             | `number`  | `600`       |
+| `maxPictureWidth`       | `max-picture-width`       |             | `number`  | `720`       |
+| `serverUrl`             | `server-url`              |             | `string`  | `undefined` |
+| `useFaceDetector`       | `use-face-detector`       |             | `boolean` | `true`      |
 
 
 ## Events

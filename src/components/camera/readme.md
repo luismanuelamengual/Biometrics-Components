@@ -12,6 +12,7 @@
 | `facingMode`       | `facing-mode`        |             | `"environment" \| "left" \| "right" \| "user"` | `'environment'` |
 | `maxPictureHeight` | `max-picture-height` |             | `number`                                       | `720`           |
 | `maxPictureWidth`  | `max-picture-width`  |             | `number`                                       | `1280`          |
+| `showControls`     | `show-controls`      |             | `boolean`                                      | `true`          |
 | `type`             | `type`               |             | `"classic" \| "fullscreen"`                    | `'classic'`     |
 
 
@@ -20,6 +21,39 @@
 | Event             | Description | Type               |
 | ----------------- | ----------- | ------------------ |
 | `pictureCaptured` |             | `CustomEvent<any>` |
+
+
+## Methods
+
+### `capture() => Promise<void>`
+
+
+
+#### Returns
+
+Type: `Promise<void>`
+
+
+
+### `getSnapshotImageData(maxWidth: number, maxHeight: number) => Promise<ImageData>`
+
+
+
+#### Returns
+
+Type: `Promise<ImageData>`
+
+
+
+### `getSnapshotUrl(maxWidth: number, maxHeight: number, type?: string) => Promise<string>`
+
+
+
+#### Returns
+
+Type: `Promise<string>`
+
+
 
 
 ## Dependencies
