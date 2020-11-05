@@ -18,17 +18,17 @@
 | `messages`         | `messages`           |             | `any`      | `{}`                                                                                                         |
 | `serverUrl`        | `server-url`         |             | `string`   | `undefined`                                                                                                  |
 | `showInitButton`   | `show-init-button`   |             | `boolean`  | `true`                                                                                                       |
-| `timeout`          | `timeout`            |             | `number`   | `10`                                                                                                         |
+| `timeout`          | `timeout`            |             | `number`   | `5`                                                                                                          |
 
 
 ## Events
 
-| Event              | Description | Type               |
-| ------------------ | ----------- | ------------------ |
-| `initialized`      |             | `CustomEvent<any>` |
-| `sessionCompleted` |             | `CustomEvent<any>` |
-| `sessionEnded`     |             | `CustomEvent<any>` |
-| `sessionStarted`   |             | `CustomEvent<any>` |
+| Event             | Description | Type               |
+| ----------------- | ----------- | ------------------ |
+| `sessionEnded`    |             | `CustomEvent<any>` |
+| `sessionFailed`   |             | `CustomEvent<any>` |
+| `sessionStarted`  |             | `CustomEvent<any>` |
+| `sessionSucceded` |             | `CustomEvent<any>` |
 
 
 ## Methods
@@ -53,6 +53,19 @@ Type: `Promise<void>`
 
 
 
+
+## Dependencies
+
+### Depends on
+
+- [biometrics-camera](../camera)
+
+### Graph
+```mermaid
+graph TD;
+  biometrics-liveness --> biometrics-camera
+  style biometrics-liveness fill:#f9f,stroke:#333,stroke-width:4px
+```
 
 ----------------------------------------------
 

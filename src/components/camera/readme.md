@@ -35,6 +35,16 @@ Type: `Promise<void>`
 
 
 
+### `getSnapshot(maxWidth: number, maxHeight: number) => Promise<Blob>`
+
+
+
+#### Returns
+
+Type: `Promise<Blob>`
+
+
+
 ### `getSnapshotImageData(maxWidth: number, maxHeight: number) => Promise<ImageData>`
 
 
@@ -60,11 +70,13 @@ Type: `Promise<string>`
 
 ### Used by
 
+ - [biometrics-liveness](../liveness)
  - [biometrics-liveness-passive](../liveness_passive)
 
 ### Graph
 ```mermaid
 graph TD;
+  biometrics-liveness --> biometrics-camera
   biometrics-liveness-passive --> biometrics-camera
   style biometrics-camera fill:#f9f,stroke:#333,stroke-width:4px
 ```
