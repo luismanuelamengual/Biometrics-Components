@@ -103,14 +103,14 @@ export class Liveness {
         this.messages.camera_permission_denied_error = this.messages.camera_permission_denied_error || 'No se ha proporcionado el permiso para el acceso a la cámara web';
         this.messages.face_not_found = this.messages.face_not_found || 'Rostro no encontrado';
         this.messages.face_not_centered = this.messages.face_not_centered || 'Rostro no centrado';
-        this.messages.face_too_close = this.messages.face_too_close || 'Rostro demasiado cerca';
-        this.messages.face_too_far = this.messages.face_too_far || 'Rostro demasiado lejos. Acerque el rostro';
+        this.messages.face_too_close = this.messages.face_too_close || 'Rostro demasiado CERCA';
+        this.messages.face_too_far = this.messages.face_too_far || 'Rostro demasiado LEJOS. Acerque el rostro';
         this.messages.start_button = this.messages.start_button || 'INICIAR';
         if (!this.messages.face_instructions) {
             this.messages.face_instructions =  {} as any;
-            this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el centro';
-            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la derecha';
-            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la izquierda';
+            this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el CENTRO';
+            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la DERECHA';
+            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la IZQUIERDA';
         }
     }
 
