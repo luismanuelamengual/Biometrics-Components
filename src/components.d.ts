@@ -9,6 +9,7 @@ export namespace Components {
     interface BiometricsCamera {
         "capture": () => Promise<void>;
         "facingMode": 'environment' | 'user' | 'left' | 'right';
+        "getSnapshot": (maxWidth: number, maxHeight: number) => Promise<Blob>;
         "getSnapshotImageData": (maxWidth: number, maxHeight: number) => Promise<ImageData>;
         "getSnapshotUrl": (maxWidth: number, maxHeight: number, type?: string) => Promise<string>;
         "maxPictureHeight": number;
@@ -83,10 +84,10 @@ declare namespace LocalJSX {
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "messages"?: any;
-        "onInitialized"?: (event: CustomEvent<any>) => void;
-        "onSessionCompleted"?: (event: CustomEvent<any>) => void;
         "onSessionEnded"?: (event: CustomEvent<any>) => void;
+        "onSessionFailed"?: (event: CustomEvent<any>) => void;
         "onSessionStarted"?: (event: CustomEvent<any>) => void;
+        "onSessionSucceded"?: (event: CustomEvent<any>) => void;
         "serverUrl"?: string;
         "showInitButton"?: boolean;
         "timeout"?: number;

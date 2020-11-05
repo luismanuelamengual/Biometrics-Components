@@ -75,6 +75,14 @@ export class Camera {
     }
 
     @Method()
+    async getSnapshot(maxWidth: number, maxHeight: number) {
+        this.takeSnapshot(maxWidth, maxHeight);
+        return new Promise<Blob>((resolve) => {
+            this.canvasElement.toBlob(resolve,'image/jpeg', 0.75)
+        });
+    }
+
+    @Method()
     async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg') {
         this.takeSnapshot(maxWidth, maxHeight);
         return this.canvasElement.toDataURL(type);

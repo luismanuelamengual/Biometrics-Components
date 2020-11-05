@@ -1,10 +1,11 @@
-import {Component, h, Prop, Element, Listen, State, Method, Event, EventEmitter} from '@stencil/core';
+import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host} from '@stencil/core';
 import bodymovin from 'bodymovin';
-
 // @ts-ignore
-import checkAnimationData from './animations/check.animation.json';
+import loadingAnimationData from './assets/animations/loading.json';
 // @ts-ignore
-import maskAnimationData from './animations/mask.animation.json';
+import failAnimationData from './assets/animations/fail.json';
+// @ts-ignore
+import successAnimationData from './assets/animations/success.json';
 
 @Component({
   tag: 'biometrics-liveness',
@@ -24,8 +25,6 @@ export class Liveness {
     readonly FACE_TOO_CLOSE_STATUS_CODE = -3;
     readonly FACE_TOO_FAR_AWAY_STATUS_CODE = -4;
 
-    readonly MASK_ANIMATION_MAX_FRAMES = 60;
-
     @Element() host: HTMLElement;
 
     @Prop() serverUrl: string;
@@ -38,7 +37,7 @@ export class Liveness {
 
     @Prop() instructions = [ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ];
 
-    @Prop() timeout = 10;
+    @Prop() timeout = 5;
 
     @Prop() maxPictureWidth = 720;
 
@@ -48,40 +47,37 @@ export class Liveness {
 
     @Prop() messages: any = {};
 
-    @State() running: boolean;
+    @State() running = false;
 
-    @State() completed: boolean;
-
-    @State() videoStarted: boolean = false;
+    @State() verifying = false;
 
     @State() status: number;
 
     @State() message: string;
 
-    @Event() initialized: EventEmitter;
+    @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
     @Event() sessionStarted: EventEmitter;
 
     @Event() sessionEnded: EventEmitter;
 
-    @Event() sessionCompleted: EventEmitter;
+    @Event() sessionSucceded: EventEmitter;
 
-    videoElement!: HTMLVideoElement;
-    videoOverlayElement!: HTMLDivElement;
-    maskAnimationElement!: HTMLDivElement;
-    checkAnimationElement!: HTMLDivElement;
-    canvasElement!: HTMLCanvasElement;
-    pictureCanvasElement!: HTMLCanvasElement;
-    checkAnimation = null;
-    maskAnimation = null;
-    maskAnimationInProgress = false;
-    maskAnimationTargetFrame = 0;
-    maskAnimationRequestedFrame = 0;
+    @Event() sessionFailed: EventEmitter;
+
+    cameraElement: HTMLBiometricsCameraElement;
     pictures = [];
     instruction = null;
     instructionsRemaining: number;
     instructionTimeoutTask: any;
-    debug = false;
+    loadingAnimationElement!: HTMLDivElement;
+    successAnimationElement!: HTMLDivElement;
+    failAnimationElement!: HTMLDivElement;
+    loadingAnimation = null;
+    successAnimation = null;
+    failAnimation = null;
+    imageCheckTask = null;
+    checkingImage = false;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -90,16 +86,13 @@ export class Liveness {
     componentDidLoad() {
         this.initializeMessages();
         this.initializeAnimations();
-        this.initializeVideo();
+        if (this.autoStart) {
+            this.startSession();
+        }
     }
 
     componentDidUnload() {
-        this.finalizeVideo();
-    }
-
-    @Listen('resize', { target: 'window' })
-    handleResize() {
-        this.adjustVideoOverlay();
+        this.stopSession();
     }
 
     initializeMessages() {
@@ -114,96 +107,174 @@ export class Liveness {
         if (!this.messages.face_instructions) {
             this.messages.face_instructions =  {} as any;
             this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el centro';
-            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la izquierda';
-            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la derecha';
+            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la derecha';
+            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Dirija su rostro hacia la izquierda';
         }
     }
 
     initializeAnimations() {
-        this.checkAnimation = bodymovin.loadAnimation({
+        this.loadingAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: false,
+            loop: true,
+            animationData: loadingAnimationData,
+            container: this.loadingAnimationElement
+        });
+        this.failAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,
-            animationData: checkAnimationData,
-            container: this.checkAnimationElement
+            animationData: failAnimationData,
+            container: this.failAnimationElement
         });
-        this.checkAnimation.addEventListener('complete', () => {
-            this.onSessionCompleted();
+        this.failAnimation.addEventListener('complete', () => {
+            this.onSessionFail();
         });
-        this.maskAnimation = bodymovin.loadAnimation({
+        this.successAnimation = bodymovin.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,
-            animationData: maskAnimationData,
-            container: this.maskAnimationElement
+            animationData: successAnimationData,
+            container: this.successAnimationElement
         });
-        this.maskAnimation.addEventListener('complete', () => {
-            if (this.maskAnimationTargetFrame != null && this.maskAnimationTargetFrame !== this.maskAnimationRequestedFrame) {
-                this.animateMask(this.maskAnimationRequestedFrame, this.maskAnimationTargetFrame);
-                this.maskAnimationRequestedFrame = this.maskAnimationTargetFrame;
-            } else {
-                this.maskAnimationInProgress = false;
-            }
+        this.successAnimation.addEventListener('complete', () => {
+            this.onSessionSuccess();
         });
-        this.maskAnimation.setSpeed(2);
     }
 
-    async initializeVideo() {
-        this.videoElement.addEventListener('loadeddata', () => {
-            this.adjustVideoOverlay();
-            this.videoStarted = true;
-            this.initialized.emit();
-            if (this.autoStart) {
-                this.startSession();
-            }
-        }, false);
-        try {
-            this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({video: true});
-        } catch (e) {
-            this.message = this.messages.camera_permission_denied_error;
+    startImageCheck() {
+        if (this.imageCheckTask == null) {
+            this.imageCheckTask = setInterval(async () => {
+                await this.checkImage();
+            }, 200);
         }
     }
 
-    finalizeVideo() {
-        const stream = this.videoElement.srcObject as MediaStream;
-        if (stream) {
-            stream.getTracks().forEach((track) => {
-                track.stop();
-            });
+    stopImageCheck() {
+        if (this.imageCheckTask != null) {
+            clearInterval(this.imageCheckTask);
+            this.imageCheckTask = null;
         }
     }
 
     @Method()
     async startSession() {
-        this.checkAnimation.goToAndStop(0);
-        this.running = true;
-        this.completed = false;
         this.message = null;
         this.status = 0;
         this.pictures = [];
         this.instructionsRemaining = this.maxInstructions;
+        this.running = true;
+        this.verifying = false;
+        this.clearAnimation();
         this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+        this.startSessionInstructionTimer();
+        this.startImageCheck();
         this.sessionStarted.emit();
     }
 
     @Method()
     async stopSession() {
         this.stopSessionInstructionTimer();
+        this.stopImageCheck();
         this.running = false;
         this.sessionEnded.emit();
     }
 
-    completeSession() {
-        this.stopSessionInstructionTimer();
-        this.completed = true;
-        this.checkAnimation.goToAndPlay(0, true);
+    async checkImage() {
+        if (!this.checkingImage) {
+            this.checkingImage = true;
+            try {
+                const image: Blob = await this.cameraElement.getSnapshot (320, 320);
+                if (image !== null) {
+                    const formData = new FormData();
+                    formData.append('instruction', this.instruction);
+                    formData.append('selfie', image);
+                    let url = this.serverUrl;
+                    if (!url.endsWith('/')) {
+                        url += '/';
+                    }
+                    url += 'v1/check_liveness_instruction';
+                    let response: any = await fetch (url, {
+                        method: 'post',
+                        body: formData,
+                        headers: {
+                            'Authorization': 'Bearer ' + this.apiKey
+                        }
+                    });
+                    response = await response.json();
+                    if (response.success) {
+                        this.status = response.data.status;
+                        this.updateMessage();
+                        if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                            this.instructionsRemaining = this.maxInstructions;
+                            this.pictures = [];
+                            if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
+                                this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                            }
+                        } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                            this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
+                            this.pictures.push(await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight));
+                            this.instructionsRemaining--;
+                            if (!this.instructionsRemaining) {
+                                this.stopSession();
+                                await this.onSessionComplete();
+                            } else {
+                                this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
+                                this.startSessionInstructionTimer();
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                this.message = e.message;
+                this.stopSession();
+            }
+            this.checkingImage = false;
+        }
     }
 
-    onSessionCompleted() {
+    async onSessionComplete() {
+        this.verifying = true;
+        this.runAnimation("loading");
+        try {
+            const formData = new FormData();
+            formData.append('imagesCount', this.pictures.length.toString());
+            for (var i = 0; i < this.pictures.length; i++) {
+                formData.append('image' + (i + 1), this.pictures[i]);
+            }
+            let url = this.serverUrl;
+            if (!url.endsWith('/')) {
+                url += '/';
+            }
+            url += 'v1/check_liveness_images';
+            let response: any = await fetch(url, {
+                method: 'post',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + this.apiKey
+                }
+            });
+            response = await response.json();
+            if (response.success && response.data.status) {
+                this.runAnimation('success');
+            } else {
+                this.runAnimation('fail');
+            }
+        } catch (e) {
+            this.runAnimation('fail');
+        }
+        this.verifying = false;
+    }
+
+    onSessionSuccess() {
         this.stopSession();
-        this.sessionCompleted.emit({
+        this.sessionSucceded.emit({
             pictures: this.pictures
         });
+    }
+
+    onSessionFail() {
+        this.stopSession();
     }
 
     getNextSessionInstruction(instruction) {
@@ -225,259 +296,79 @@ export class Liveness {
     startSessionInstructionTimer() {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
-            if (this.running) {
-                this.message = this.messages.timeout;
-                this.stopSession();
-            }
+            this.message = this.messages.timeout;
+            this.stopSession();
         }, this.timeout * 1000);
     }
 
     startSessionInstruction(instruction) {
-        if (!this.debug) {
-            this.startSessionInstructionTimer();
-        }
-        this.setSessionInstruction(instruction);
+        this.instruction = instruction;
         this.updateMessage();
-        this.checkImage();
-    }
-
-    setSessionInstruction(livenessInstruction) {
-        this.instruction = livenessInstruction;
-        switch (livenessInstruction) {
-            case this.FRONTAL_FACE_INSTRUCTION:
-                this.requestMaskAnimation(this.MASK_ANIMATION_MAX_FRAMES / 2);
-                break;
-            case this.RIGHT_PROFILE_FACE_INSTRUCTION:
-                this.requestMaskAnimation(this.MASK_ANIMATION_MAX_FRAMES);
-                break;
-            case this.LEFT_PROFILE_FACE_INSTRUCTION:
-                this.requestMaskAnimation(0);
-                break;
-        }
-    }
-
-    checkImage() {
-        try {
-            if (this.running) {
-                const video = this.videoElement;
-                const videoWidth = video.videoWidth;
-                const videoHeight = video.videoHeight;
-                const videoAspectRatio = videoHeight / videoWidth;
-                const canvas = this.canvasElement;
-                const context = canvas.getContext('2d');
-                if (videoWidth >= 320) {
-                    canvas.width = 320;
-                    canvas.height = 320 * videoAspectRatio;
-                    context.drawImage(video, 0, 0, 320, 320 * videoAspectRatio);
-                } else {
-                    canvas.width = videoWidth;
-                    canvas.height = videoHeight;
-                    context.drawImage(video, 0, 0, videoWidth, videoHeight);
-                }
-                const imageUrl = canvas.toDataURL('image/jpeg', 0.7);
-                const formData = new FormData();
-                formData.append('instruction', this.instruction);
-                formData.append('selfie', this.convertImageToBlob(imageUrl));
-                let url = this.serverUrl;
-                if (!url.endsWith('/')) {
-                    url += '/';
-                }
-                url += 'v1/check_liveness_instruction';
-                fetch (url, {
-                    method: 'post',
-                    body: formData,
-                    headers: {
-                        'Authorization': 'Bearer ' + this.apiKey
-                    }
-                })
-                .then((response) => response.json())
-                .then((response) => {
-                    if (response.success) {
-                        if (this.running) {
-                            this.status = response.data.status;
-                            this.updateMessage();
-                            setTimeout(() => { if (this.running) {
-                                if (!this.debug && this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                                    this.instructionsRemaining = this.maxInstructions;
-                                    this.pictures = [];
-                                    if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
-                                        this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
-                                    } else {
-                                        this.checkImage();
-                                    }
-                                } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                                    this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
-                                    if (!this.debug) {
-                                        this.pictures.push(this.getPicture(this.maxPictureWidth, this.maxPictureHeight));
-                                        this.instructionsRemaining--;
-                                        if (!this.instructionsRemaining) {
-                                            this.completeSession();
-                                        } else {
-                                            this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
-                                        }
-                                    } else {
-                                        this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
-                                    }
-                                } else {
-                                    this.checkImage();
-                                }
-                            } }, 50);
-                        }
-                    }
-                })
-                .catch(() => {
-                    this.message = this.messages.communication_error;
-                    this.stopSession();
-                });
-            }
-        } catch (e) {
-            this.message = e.message;
-            if (this.running) {
-                setTimeout(() => { if (this.running) { this.checkImage(); } }, 50);
-            }
-        }
-    }
-
-    getPicture(maxWidth: number, maxHeight: number) {
-        const livenessPictureCanvas = this.pictureCanvasElement;
-        const video = this.videoElement;
-        const scale = Math.min((maxWidth / video.videoWidth), (maxHeight / video.videoHeight));
-        const canvasWidth = video.videoWidth * scale;
-        const canvasHeight = video.videoHeight * scale;
-        livenessPictureCanvas.width = canvasWidth;
-        livenessPictureCanvas.height = canvasHeight;
-        const context = livenessPictureCanvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvasWidth, canvasHeight);
-        return livenessPictureCanvas.toDataURL('image/jpeg');
-    }
-
-    updateMessage() {
-        switch (this.status) {
-            case this.FACE_MATCH_SUCCESS_STATUS_CODE:
-                this.message = null;
-                break;
-            case this.FACE_NOT_FOUND_STATUS_CODE:
-                this.message = this.messages.face_not_found;
-                break;
-            case this.FACE_NOT_CENTERED_STATUS_CODE:
-                this.message = this.messages.face_not_centered;
-                break;
-            case this.FACE_TOO_CLOSE_STATUS_CODE:
-                this.message = this.messages.face_too_close;
-                break;
-            case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
-                this.message = this.messages.face_too_far;
-                break;
-            case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-            default:
-                this.message = this.messages.face_instructions[this.instruction];
-                break;
-        }
     }
 
     handleSessionStartButtonClick () {
         this.startSession();
     }
 
-    convertImageToBlob(dataURI): Blob {
-        let byteString;
-        const dataURITokens = dataURI.split(',');
-        if (dataURITokens[0].indexOf('base64') >= 0) {
-            byteString = atob(dataURITokens[1]);
-        } else {
-            byteString = this.convertImageToBlob(dataURITokens[1]);
-        }
-        const ia = new Uint8Array(byteString.length);
-        for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-        }
-        return new Blob([ia], {type: 'image/jpeg'});
-    }
-
-    requestMaskAnimation(frame) {
-        if (frame !== this.maskAnimationRequestedFrame) {
-            if (!this.maskAnimationInProgress) {
-                this.maskAnimationTargetFrame = null;
-                this.maskAnimationInProgress = true;
-                this.animateMask(this.maskAnimationRequestedFrame, frame);
-                this.maskAnimationRequestedFrame = frame;
-            } else {
-                this.maskAnimationTargetFrame = frame;
+    updateMessage() {
+        if (this.running) {
+            switch (this.status) {
+                case this.FACE_MATCH_SUCCESS_STATUS_CODE:
+                    this.message = null;
+                    break;
+                case this.FACE_NOT_FOUND_STATUS_CODE:
+                    this.message = this.messages.face_not_found;
+                    break;
+                case this.FACE_NOT_CENTERED_STATUS_CODE:
+                    this.message = this.messages.face_not_centered;
+                    break;
+                case this.FACE_TOO_CLOSE_STATUS_CODE:
+                    this.message = this.messages.face_too_close;
+                    break;
+                case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
+                    this.message = this.messages.face_too_far;
+                    break;
+                case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
+                default:
+                    this.message = this.messages.face_instructions[this.instruction];
+                    break;
             }
         }
     }
 
-    animateMask(fromFrame, toFrame) {
-        if (fromFrame !== toFrame) {
-            this.maskAnimation.setDirection(toFrame >= fromFrame ? 1 : -1);
-            this.maskAnimation.playSegments([fromFrame, toFrame], true);
-        }
+    clearAnimation() {
+        this.activeAnimation = null;
     }
 
-    adjustVideoOverlay() {
-        const el = this.host;
-        const video = this.videoElement;
-        const videoAspectRatio = video.videoWidth / video.videoHeight;
-        const videoOverlay = this.videoOverlayElement;
-        const widthDifferential = el.offsetWidth - video.videoWidth;
-        const heightDifferential = Math.floor(el.offsetHeight - video.videoHeight) * videoAspectRatio;
-        let left = 0;
-        let right = 0;
-        let top = 0;
-        let bottom = 0;
-        if (widthDifferential < heightDifferential) {
-            const differential = Math.floor((heightDifferential - widthDifferential) / videoAspectRatio / 2);
-            left = 0;
-            right = 0;
-            top = differential;
-            bottom = differential;
-        } else {
-            const differential = Math.floor((widthDifferential - heightDifferential) / 2);
-            left = differential;
-            right = differential;
-            top = 0;
-            bottom = 0;
+    runAnimation(animation: 'loading' | 'success' | 'fail') {
+        this.activeAnimation = animation;
+        switch (this.activeAnimation) {
+            case 'loading':
+                this.loadingAnimation.goToAndPlay(0, true);
+                break;
+            case 'success':
+                this.successAnimation.goToAndPlay(0, true);
+                break;
+            case 'fail':
+                this.failAnimation.goToAndPlay(0, true);
+                break;
         }
-        const overlayWidth = el.offsetWidth - left - right;
-        const overlayHeight = el.offsetHeight - top - bottom;
-        if (overlayWidth > overlayHeight) {
-            const differential = Math.floor((overlayWidth - overlayHeight) / 2);
-            left += differential;
-            right += differential;
-        } else {
-            const differential = Math.floor((overlayHeight - overlayWidth) / 2);
-            top += differential;
-            bottom += differential;
-        }
-        videoOverlay.style.left = left + 'px';
-        videoOverlay.style.right = right + 'px';
-        videoOverlay.style.top = top + 'px';
-        videoOverlay.style.bottom = bottom + 'px';
     }
 
     render() {
-        return <div class="liveness-panel">
-            <div ref={(el) => this.checkAnimationElement = el as HTMLDivElement} class={{ 'liveness-check-animation': true, 'liveness-hidden': !this.running || !this.completed }}></div>
-            <video ref={(el) => this.videoElement = el as HTMLVideoElement} class="liveness-video" autoplay playsinline></video>
-            <div ref={(el) => this.videoOverlayElement = el as HTMLDivElement} class="liveness-video-overlay">
-                <div class="liveness-video-overlay-content">
-                    <div ref={(el) => this.maskAnimationElement = el as HTMLDivElement} class={{ 'liveness-mask-animation': true, 'liveness-hidden': !this.running || this.status < 0 || this.completed}}></div>
-                    {this.running && <div class={{ 'marquee': true, 'liveness-hidden': this.status >= 0 }}>
-                        <div class='marquee-corner marquee-corner-nw'/>
-                        <div class='marquee-corner marquee-corner-ne'/>
-                        <div class='marquee-corner marquee-corner-sw'/>
-                        <div class='marquee-corner marquee-corner-se'/>
-                    </div>}
-                </div>
-            </div>
-            <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement}/>
-            <canvas ref={(el) => this.pictureCanvasElement = el as HTMLCanvasElement}/>
+        return <Host>
+            <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
+            <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
+            <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
+
+            <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" type="fullscreen" showControls={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}></biometrics-camera>
+
             {this.message != null && <div class="liveness-instructions-container">
                 <p class="liveness-instructions">{ this.message }</p>
             </div>}
-            {this.showInitButton && this.videoStarted && !this.running && <div class="liveness-buttons-wrapper">
+            {this.showInitButton && !this.verifying && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >{this.messages.start_button}</button>
             </div>}
-        </div>;
+        </Host>;
     }
 }
