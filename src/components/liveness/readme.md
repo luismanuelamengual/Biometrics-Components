@@ -18,7 +18,7 @@
 | `messages`         | `messages`           |             | `any`      | `{}`                                                                                                         |
 | `serverUrl`        | `server-url`         |             | `string`   | `undefined`                                                                                                  |
 | `showInitButton`   | `show-init-button`   |             | `boolean`  | `true`                                                                                                       |
-| `timeout`          | `timeout`            |             | `number`   | `5`                                                                                                          |
+| `timeout`          | `timeout`            |             | `number`   | `10`                                                                                                         |
 
 
 ## Events

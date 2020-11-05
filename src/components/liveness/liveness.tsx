@@ -37,7 +37,7 @@ export class Liveness {
 
     @Prop() instructions = [ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ];
 
-    @Prop() timeout = 5;
+    @Prop() timeout = 10;
 
     @Prop() maxPictureWidth = 720;
 
