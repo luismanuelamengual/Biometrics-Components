@@ -19,6 +19,33 @@ $borderRadius: 30px;
         display: none !important;
     }
 
+    .caption-container {
+        display: table;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        z-index: 2500;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+
+        .caption {
+            font-family: 'Roboto', sans-serif;
+            color: white;
+            background-color: rgba(12, 28, 65, 0.8);
+            text-shadow: 1px 1px #000000;
+            font-size: 20px;
+            border-radius: 8px;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 12px;
+
+            &.caption-danger {
+                background-color: rgba(180, 0, 0, 0.8);
+            }
+        }
+    }
+
     .liveness-animation {
         position: absolute;
         left: 30%;

@@ -53,7 +53,9 @@ export class Liveness {
 
     @State() status: number;
 
-    @State() message: string;
+    @State() caption: string;
+
+    @State() captionStyle: 'normal' | 'danger' = 'normal';
 
     @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
@@ -159,7 +161,7 @@ export class Liveness {
 
     @Method()
     async startSession() {
-        this.message = null;
+        this.setCaption('');
         this.status = 0;
         this.pictures = [];
         this.instructionsRemaining = this.maxInstructions;
@@ -226,7 +228,7 @@ export class Liveness {
                     }
                 }
             } catch (e) {
-                this.message = e.message;
+                this.setCaption(e.message, "danger");
                 this.stopSession();
             }
             this.checkingImage = false;
@@ -296,7 +298,7 @@ export class Liveness {
     startSessionInstructionTimer() {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
-            this.message = this.messages.timeout;
+            this.setCaption(this.messages.timeout, 'danger');
             this.stopSession();
         }, this.timeout * 1000);
     }
@@ -314,23 +316,23 @@ export class Liveness {
         if (this.running) {
             switch (this.status) {
                 case this.FACE_MATCH_SUCCESS_STATUS_CODE:
-                    this.message = null;
+                    this.setCaption('');
                     break;
                 case this.FACE_NOT_FOUND_STATUS_CODE:
-                    this.message = this.messages.face_not_found;
+                    this.setCaption(this.messages.face_not_found, 'danger');
                     break;
                 case this.FACE_NOT_CENTERED_STATUS_CODE:
-                    this.message = this.messages.face_not_centered;
+                    this.setCaption(this.messages.face_not_centered, 'danger');
                     break;
                 case this.FACE_TOO_CLOSE_STATUS_CODE:
-                    this.message = this.messages.face_too_close;
+                    this.setCaption(this.messages.face_too_close, 'danger');
                     break;
                 case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
-                    this.message = this.messages.face_too_far;
+                    this.setCaption(this.messages.face_too_far, 'danger');
                     break;
                 case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
                 default:
-                    this.message = this.messages.face_instructions[this.instruction];
+                    this.setCaption(this.messages.face_instructions[this.instruction]);
                     break;
             }
         }
@@ -338,6 +340,11 @@ export class Liveness {
 
     clearAnimation() {
         this.activeAnimation = null;
+    }
+
+    setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
+        this.caption = caption;
+        this.captionStyle = style;
     }
 
     runAnimation(animation: 'loading' | 'success' | 'fail') {
@@ -363,8 +370,8 @@ export class Liveness {
 
             <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" type="fullscreen" showControls={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}></biometrics-camera>
 
-            {this.message != null && <div class="liveness-instructions-container">
-                <p class="liveness-instructions">{ this.message }</p>
+            {this.caption && <div class="caption-container">
+                <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
             </div>}
             {this.showInitButton && !this.verifying && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >{this.messages.start_button}</button>
