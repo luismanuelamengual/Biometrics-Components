@@ -66,42 +66,48 @@ $snapshotButtonSize: 50px;
             background: black;
             z-index: 2;
 
-            .capture-button {
+            .button {
                 position: absolute;
                 top: calc(50% - #{$snapshotButtonSize / 2});
                 left: calc(50% - #{$snapshotButtonSize / 2});
                 width: $snapshotButtonSize;
                 height: $snapshotButtonSize;
-                background: url("data:image/svg+xml,%3Csvg fill='%23FFFFFF' viewBox='0 0 24 24' width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E") center no-repeat;
-                background-size: 80%;
                 border-radius: 80%;
-                background-color: dimgray;
-
-                &:focus {
-                    outline: none;
-                }
-            }
-
-            .confirm-button {
-                position: absolute;
-                top: calc(50% - #{$snapshotButtonSize / 2});
-                left: calc(50% - #{$snapshotButtonSize / 2});
-                width: $snapshotButtonSize;
-                height: $snapshotButtonSize;
-                background: dimgray;
-                background-size: 80%;
-                border-radius: 80%;
-
-                &:after {
-                    content: "OK";
-                    color: white;
-                    font-size: 20px;
-                }
 
                 &:focus {
                     outline: none;
                 }
 
+                &.button-normal {
+                    border: 3px solid white;
+
+                    &.button-capture {
+                        background: red;
+                    }
+
+                    &.button-confirm {
+                        background: green;
+                    }
+                }
+
+                &.button-classic {
+                    background-color: dimgray;
+
+                    &.button-capture {
+                        background-image: url("data:image/svg+xml,%3Csvg fill='%23FFFFFF' viewBox='0 0 24 24' width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3.2'/%3E%3Cpath d='M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+                        background-size: 80%;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                    }
+
+                    &.button-confirm {
+                        &:after {
+                            content: "OK";
+                            color: white;
+                            font-size: 20px;
+                        }
+                    }
+                }
             }
         }
 
@@ -141,20 +147,6 @@ $snapshotButtonSize: 50px;
 
             .camera-controls {
                 background: transparent;
-
-                .capture-button {
-                    border: 3px solid white;
-                    background: red;
-                }
-
-                .confirm-button {
-                    border: 3px solid white;
-                    background: green;
-
-                    &:after {
-                        content: none;
-                    }
-                }
             }
         }
     }

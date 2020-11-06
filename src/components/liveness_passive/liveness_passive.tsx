@@ -338,7 +338,7 @@ export class Liveness_passive {
     }
 
     renderCamera() {
-        return <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" type="fullscreen" showControls={!this.autoCapture} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
+        return <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" showCaptureButton={!this.autoCapture} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight} onPictureCaptured={this.onPictureCaptured}>
             <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{ 'marquee': true }}>
                 <div class='marquee-corner marquee-corner-nw'/>
                 <div class='marquee-corner marquee-corner-ne'/>

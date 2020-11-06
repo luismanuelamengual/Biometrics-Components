@@ -230,7 +230,7 @@ export class Liveness {
                     }
                 }
             } catch (e) {
-                this.setCaption(e.message, "danger");
+                this.setCaption(this.messages.communication_error, "danger");
                 this.stopSession();
             }
             this.checkingImage = false;
@@ -369,7 +369,7 @@ export class Liveness {
             <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
 
-            <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" type="fullscreen" showControls={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}></biometrics-camera>
+            <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode="user" showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}></biometrics-camera>
 
             {this.caption && <div class="caption-container">
                 <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>

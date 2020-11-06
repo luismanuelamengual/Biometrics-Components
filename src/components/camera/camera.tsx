@@ -8,9 +8,6 @@ import {Component, Event, EventEmitter, h, Host, Method, Prop, State} from '@ste
 export class Camera {
 
     @Prop()
-    type: 'classic' | 'fullscreen' = 'classic';
-
-    @Prop()
     maxPictureWidth = 1280;
 
     @Prop()
@@ -20,7 +17,16 @@ export class Camera {
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
 
     @Prop()
-    showControls = true;
+    buttonStyle: 'normal' | 'classic' = 'normal';
+
+    @Prop()
+    fullScreen = true;
+
+    @Prop()
+    showCaptureButton = true;
+
+    @Prop()
+    showConfirmButton = true;
 
     @State()
     picture: string = null;
@@ -146,7 +152,7 @@ export class Camera {
 
     render() {
         return <Host>
-            <div class={{"camera":true, "camera-fullscreen": this.type === 'fullscreen'}}>
+            <div class={{"camera":true, "camera-fullscreen": this.fullScreen}}>
                 <div class="camera-video-wrapper">
                     <div class="camera-video">
                         <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true, "active": this.picture !== null}}/>
@@ -154,10 +160,10 @@ export class Camera {
                         <slot/>
                     </div>
                 </div>
-                {this.showControls && <div class="camera-controls">
-                    {this.picture === null && <button type="button" class={{"capture-button": true}} onClick={this.onCaptureButtonClick}/>}
-                    {this.picture !== null && <button type="button" class={{"confirm-button": true}} onClick={this.onConfirmButtonClick}/>}
-                </div>}
+                <div class="camera-controls">
+                    {this.picture === null && this.showCaptureButton && <button type="button" class={{"button": true, "button-normal": this.buttonStyle === 'normal', "button-classic": this.buttonStyle === 'classic', "button-capture": true}} onClick={this.onCaptureButtonClick}/>}
+                    {this.picture !== null && this.showConfirmButton && <button type="button" class={{"button": true, "button-normal": this.buttonStyle === 'normal', "button-classic": this.buttonStyle === 'classic', "button-confirm": true}} onClick={this.onConfirmButtonClick}/>}
+                </div>
             </div>
         </Host>;
     }

@@ -7,15 +7,17 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BiometricsCamera {
+        "buttonStyle": 'normal' | 'classic';
         "capture": () => Promise<void>;
         "facingMode": 'environment' | 'user' | 'left' | 'right';
-        "getSnapshot": (maxWidth: number, maxHeight: number) => Promise<Blob>;
+        "fullScreen": boolean;
+        "getSnapshot": (maxWidth: number, maxHeight: number, type?: string, quality?: number) => Promise<Blob>;
         "getSnapshotImageData": (maxWidth: number, maxHeight: number) => Promise<ImageData>;
         "getSnapshotUrl": (maxWidth: number, maxHeight: number, type?: string) => Promise<string>;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
-        "showControls": boolean;
-        "type": 'classic' | 'fullscreen';
+        "showCaptureButton": boolean;
+        "showConfirmButton": boolean;
     }
     interface BiometricsLiveness {
         "apiKey": string;
@@ -69,12 +71,14 @@ declare global {
 }
 declare namespace LocalJSX {
     interface BiometricsCamera {
+        "buttonStyle"?: 'normal' | 'classic';
         "facingMode"?: 'environment' | 'user' | 'left' | 'right';
+        "fullScreen"?: boolean;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onPictureCaptured"?: (event: CustomEvent<any>) => void;
-        "showControls"?: boolean;
-        "type"?: 'classic' | 'fullscreen';
+        "showCaptureButton"?: boolean;
+        "showConfirmButton"?: boolean;
     }
     interface BiometricsLiveness {
         "apiKey"?: string;
