@@ -7,18 +7,19 @@
 
 ## Properties
 
-| Property           | Attribute            | Description | Type       | Default                                                                                                      |
-| ------------------ | -------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| `apiKey`           | `api-key`            |             | `string`   | `undefined`                                                                                                  |
-| `autoStart`        | `auto-start`         |             | `boolean`  | `true`                                                                                                       |
-| `instructions`     | --                   |             | `string[]` | `[ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ]` |
-| `maxInstructions`  | `max-instructions`   |             | `number`   | `5`                                                                                                          |
-| `maxPictureHeight` | `max-picture-height` |             | `number`   | `600`                                                                                                        |
-| `maxPictureWidth`  | `max-picture-width`  |             | `number`   | `720`                                                                                                        |
-| `messages`         | `messages`           |             | `any`      | `{}`                                                                                                         |
-| `serverUrl`        | `server-url`         |             | `string`   | `undefined`                                                                                                  |
-| `showInitButton`   | `show-init-button`   |             | `boolean`  | `true`                                                                                                       |
-| `timeout`          | `timeout`            |             | `number`   | `10`                                                                                                         |
+| Property           | Attribute            | Description | Type                                           | Default                                                                                                      |
+| ------------------ | -------------------- | ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `apiKey`           | `api-key`            |             | `string`                                       | `undefined`                                                                                                  |
+| `autoStart`        | `auto-start`         |             | `boolean`                                      | `true`                                                                                                       |
+| `cameraFacingMode` | `camera-facing-mode` |             | `"environment" \| "left" \| "right" \| "user"` | `'user'`                                                                                                     |
+| `instructions`     | --                   |             | `string[]`                                     | `[ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ]` |
+| `maxInstructions`  | `max-instructions`   |             | `number`                                       | `5`                                                                                                          |
+| `maxPictureHeight` | `max-picture-height` |             | `number`                                       | `600`                                                                                                        |
+| `maxPictureWidth`  | `max-picture-width`  |             | `number`                                       | `720`                                                                                                        |
+| `messages`         | `messages`           |             | `any`                                          | `{}`                                                                                                         |
+| `serverUrl`        | `server-url`         |             | `string`                                       | `undefined`                                                                                                  |
+| `showInitButton`   | `show-init-button`   |             | `boolean`                                      | `true`                                                                                                       |
+| `timeout`          | `timeout`            |             | `number`                                       | `10`                                                                                                         |
 
 
 ## Events

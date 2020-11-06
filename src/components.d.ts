@@ -22,6 +22,7 @@ export namespace Components {
     interface BiometricsLiveness {
         "apiKey": string;
         "autoStart": boolean;
+        "cameraFacingMode": 'environment' | 'user' | 'left' | 'right';
         "instructions": string[];
         "maxInstructions": number;
         "maxPictureHeight": number;
@@ -83,6 +84,7 @@ declare namespace LocalJSX {
     interface BiometricsLiveness {
         "apiKey"?: string;
         "autoStart"?: boolean;
+        "cameraFacingMode"?: 'environment' | 'user' | 'left' | 'right';
         "instructions"?: string[];
         "maxInstructions"?: number;
         "maxPictureHeight"?: number;

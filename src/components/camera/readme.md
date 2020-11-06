@@ -7,13 +7,15 @@
 
 ## Properties
 
-| Property           | Attribute            | Description | Type                                           | Default         |
-| ------------------ | -------------------- | ----------- | ---------------------------------------------- | --------------- |
-| `facingMode`       | `facing-mode`        |             | `"environment" \| "left" \| "right" \| "user"` | `'environment'` |
-| `maxPictureHeight` | `max-picture-height` |             | `number`                                       | `720`           |
-| `maxPictureWidth`  | `max-picture-width`  |             | `number`                                       | `1280`          |
-| `showControls`     | `show-controls`      |             | `boolean`                                      | `true`          |
-| `type`             | `type`               |             | `"classic" \| "fullscreen"`                    | `'classic'`     |
+| Property            | Attribute             | Description | Type                                           | Default         |
+| ------------------- | --------------------- | ----------- | ---------------------------------------------- | --------------- |
+| `buttonStyle`       | `button-style`        |             | `"classic" \| "normal"`                        | `'normal'`      |
+| `facingMode`        | `facing-mode`         |             | `"environment" \| "left" \| "right" \| "user"` | `'environment'` |
+| `fullScreen`        | `full-screen`         |             | `boolean`                                      | `true`          |
+| `maxPictureHeight`  | `max-picture-height`  |             | `number`                                       | `720`           |
+| `maxPictureWidth`   | `max-picture-width`   |             | `number`                                       | `1280`          |
+| `showCaptureButton` | `show-capture-button` |             | `boolean`                                      | `true`          |
+| `showConfirmButton` | `show-confirm-button` |             | `boolean`                                      | `true`          |
 
 
 ## Events
@@ -35,7 +37,7 @@ Type: `Promise<void>`
 
 
 
-### `getSnapshot(maxWidth: number, maxHeight: number) => Promise<Blob>`
+### `getSnapshot(maxWidth: number, maxHeight: number, type?: string, quality?: number) => Promise<Blob>`
 
 
 
