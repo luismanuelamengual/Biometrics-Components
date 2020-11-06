@@ -74,6 +74,7 @@ export class Liveness {
     instruction = null;
     instructionsRemaining: number;
     instructionTimeoutTask: any;
+    marqueeElement!: HTMLDivElement;
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
@@ -82,6 +83,7 @@ export class Liveness {
     failAnimation = null;
     imageCheckTask = null;
     checkingImage = false;
+    marqueeAlert = false;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -90,6 +92,7 @@ export class Liveness {
     componentDidLoad() {
         this.initializeMessages();
         this.initializeAnimations();
+        this.adjustMarquee();
         if (this.autoStart) {
             this.startSession();
         }
@@ -211,6 +214,7 @@ export class Liveness {
                     if (response.success) {
                         this.status = response.data.status;
                         this.updateMessage();
+                        this.updateMarqeeStyle();
                         if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                             this.instructionsRemaining = this.maxInstructions;
                             this.pictures = [];
@@ -341,6 +345,20 @@ export class Liveness {
         }
     }
 
+    updateMarqeeStyle() {
+        if (this.running) {
+            switch (this.status) {
+                case this.FACE_MATCH_SUCCESS_STATUS_CODE:
+                case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
+                    this.marqueeAlert = false;
+                    break;
+                default:
+                    this.marqueeAlert = true;
+                    break;
+            }
+        }
+    }
+
     clearAnimation() {
         this.activeAnimation = null;
     }
@@ -365,13 +383,43 @@ export class Liveness {
         }
     }
 
+    adjustMarquee() {
+        const hostRect = this.host.getBoundingClientRect();
+        const hostHeight = hostRect.height;
+        const hostWidth = hostRect.width;
+        const marqueeAspectRatio = 3.2 / 4;
+        const hostAspectRatio = hostWidth / hostHeight;
+        let marqueeLeft;
+        let marqueeTop;
+        let marqueeWidth;
+        let marqueeHeight;
+        const hostPadding = 120;
+        if (hostAspectRatio > marqueeAspectRatio) {
+            marqueeHeight = Math.min(hostHeight - 30, Math.max(300, hostHeight - (hostPadding * 2)));
+            marqueeWidth = marqueeHeight * marqueeAspectRatio;
+            marqueeTop = (hostHeight - marqueeHeight) / 2;
+            marqueeLeft = (hostWidth / 2) - (marqueeWidth / 2);
+        } else {
+            marqueeWidth = Math.min(hostWidth - 30, Math.max(200, hostWidth - (hostPadding * 2)));
+            marqueeHeight = marqueeWidth * (1 / marqueeAspectRatio);
+            marqueeLeft = (hostWidth - marqueeWidth) / 2;
+            marqueeTop = (hostHeight / 2) - (marqueeHeight / 2);
+        }
+        this.marqueeElement.style.left = marqueeLeft + 'px';
+        this.marqueeElement.style.top = marqueeTop + 'px';
+        this.marqueeElement.style.width = marqueeWidth + 'px';
+        this.marqueeElement.style.height = marqueeHeight + 'px';
+    }
+
     render() {
         return <Host>
             <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
             <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
 
-            <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode={this.cameraFacingMode} showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}></biometrics-camera>
+            <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode={this.cameraFacingMode} showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}>
+                <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{"marquee": true, "marquee-danger": this.marqueeAlert, "hidden": !this.running}}></div>
+            </biometrics-camera>
 
             {this.caption && <div class="caption-container">
                 <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
