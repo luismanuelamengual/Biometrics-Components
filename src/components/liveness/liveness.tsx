@@ -108,14 +108,14 @@ export class Liveness {
         this.messages.camera_permission_denied_error = this.messages.camera_permission_denied_error || 'No se ha proporcionado el permiso para el acceso a la cámara web';
         this.messages.face_not_found = this.messages.face_not_found || 'Rostro no encontrado';
         this.messages.face_not_centered = this.messages.face_not_centered || 'Rostro no centrado';
-        this.messages.face_too_close = this.messages.face_too_close || 'Rostro demasiado CERCA';
-        this.messages.face_too_far = this.messages.face_too_far || 'Rostro demasiado LEJOS. Acerque el rostro';
+        this.messages.face_too_close = this.messages.face_too_close || 'Rostro demasiado <b>CERCA</b>';
+        this.messages.face_too_far = this.messages.face_too_far || 'Rostro demasiado <b>LEJOS</b>. Acerque el rostro';
         this.messages.start_button = this.messages.start_button || 'INICIAR';
         if (!this.messages.face_instructions) {
             this.messages.face_instructions =  {} as any;
-            this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el CENTRO';
-            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la DERECHA';
-            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la IZQUIERDA';
+            this.messages.face_instructions[this.FRONTAL_FACE_INSTRUCTION] = 'Dirija su rostro hacia el <b>CENTRO</b>';
+            this.messages.face_instructions[this.LEFT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la <b>DERECHA</b>';
+            this.messages.face_instructions[this.RIGHT_PROFILE_FACE_INSTRUCTION] = 'Gire su rostro hacia la <b>IZQUIERDA</b>';
         }
     }
 
@@ -418,11 +418,11 @@ export class Liveness {
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
 
             <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode={this.cameraFacingMode} showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}>
-                <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{"marquee": true, "marquee-danger": this.marqueeAlert, "hidden": !this.running}}></div>
+                <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{"marquee": true, "marquee-danger": this.marqueeAlert, "hidden": !this.running}}/>
             </biometrics-camera>
 
             {this.caption && <div class="caption-container">
-                <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
+                <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}} innerHTML={this.caption}/>
             </div>}
             {this.showInitButton && !this.verifying && !this.running && <div class="liveness-buttons-wrapper">
                 <button class="liveness-start-button" onClick={this.handleSessionStartButtonClick} >{this.messages.start_button}</button>
