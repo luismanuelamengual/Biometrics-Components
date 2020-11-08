@@ -1,4 +1,4 @@
-import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host} from '@stencil/core';
+import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host, Listen} from '@stencil/core';
 import bodymovin from 'bodymovin';
 // @ts-ignore
 import loadingAnimationData from './assets/animations/loading.json';
@@ -100,6 +100,11 @@ export class Liveness {
 
     componentDidUnload() {
         this.stopSession();
+    }
+
+    @Listen('resize', { target: 'window' })
+    handleResize() {
+        this.adjustMarquee();
     }
 
     initializeMessages() {
