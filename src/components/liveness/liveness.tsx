@@ -6,6 +6,10 @@ import loadingAnimationData from './assets/animations/loading.json';
 import failAnimationData from './assets/animations/fail.json';
 // @ts-ignore
 import successAnimationData from './assets/animations/success.json';
+// @ts-ignore
+import leftAnimationData from './assets/animations/left.json';
+// @ts-ignore
+import rightAnimationData from './assets/animations/right.json';
 
 @Component({
   tag: 'biometrics-liveness',
@@ -59,7 +63,7 @@ export class Liveness {
 
     @State() captionStyle: 'normal' | 'danger' = 'normal';
 
-    @State() activeAnimation!: 'loading' | 'success' | 'fail';
+    @State() activeAnimation!: 'loading' | 'success' | 'fail' | 'left' | 'right';
 
     @Event() sessionStarted: EventEmitter;
 
@@ -78,9 +82,13 @@ export class Liveness {
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
+    leftAnimationElement!: HTMLDivElement;
+    rightAnimationElement!: HTMLDivElement;
     loadingAnimation = null;
     successAnimation = null;
     failAnimation = null;
+    leftAnimation = null;
+    rightAnimation = null;
     imageCheckTask = null;
     checkingImage = false;
     marqueeAlert = false;
@@ -153,6 +161,20 @@ export class Liveness {
         this.successAnimation.addEventListener('complete', () => {
             this.verifying = false;
             this.onSessionSuccess();
+        });
+        this.leftAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: false,
+            loop: true,
+            animationData: leftAnimationData,
+            container: this.leftAnimationElement
+        });
+        this.rightAnimation = bodymovin.loadAnimation({
+            renderer: 'svg',
+            autoplay: false,
+            loop: true,
+            animationData: rightAnimationData,
+            container: this.rightAnimationElement
         });
     }
 
@@ -317,6 +339,17 @@ export class Liveness {
 
     startSessionInstruction(instruction) {
         this.instruction = instruction;
+        switch (instruction) {
+            case this.LEFT_PROFILE_FACE_INSTRUCTION:
+                this.runAnimation('left');
+                break;
+            case this.RIGHT_PROFILE_FACE_INSTRUCTION:
+                this.runAnimation('right');
+                break;
+            default:
+                this.clearAnimation();
+                break;
+        }
         this.updateMessage();
     }
 
@@ -373,7 +406,7 @@ export class Liveness {
         this.captionStyle = style;
     }
 
-    runAnimation(animation: 'loading' | 'success' | 'fail') {
+    runAnimation(animation: 'loading' | 'success' | 'fail' | 'left' | 'right') {
         this.activeAnimation = animation;
         switch (this.activeAnimation) {
             case 'loading':
@@ -385,6 +418,12 @@ export class Liveness {
             case 'fail':
                 this.failAnimation.goToAndPlay(0, true);
                 break;
+            case 'left':
+                this.leftAnimation.goToAndPlay(0, true);
+                break;
+            case 'right':
+                this.rightAnimation.goToAndPlay(0, true);
+                break;
         }
     }
 
@@ -392,7 +431,7 @@ export class Liveness {
         const hostRect = this.host.getBoundingClientRect();
         const hostHeight = hostRect.height;
         const hostWidth = hostRect.width;
-        const marqueeAspectRatio = 3.2 / 4;
+        const marqueeAspectRatio = 3.5 / 4;
         const hostAspectRatio = hostWidth / hostHeight;
         let marqueeLeft;
         let marqueeTop;
@@ -421,6 +460,8 @@ export class Liveness {
             <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
             <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
+            <div ref={(el) => this.leftAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'liveness-animation-hint': true, 'hidden': this.activeAnimation !== 'left'}}/>
+            <div ref={(el) => this.rightAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'liveness-animation-hint': true, 'hidden': this.activeAnimation !== 'right'}}/>
 
             <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode={this.cameraFacingMode} showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}>
                 <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{"marquee": true, "marquee-danger": this.marqueeAlert, "hidden": !this.running}}/>
