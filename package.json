@@ -1,6 +1,6 @@
 {
     "name": "biometrics-components",
-    "version": "1.0.20",
+    "version": "1.0.21",
     "description": "Stencil Component Starter",
     "main": "dist/index.js",
     "module": "dist/index.mjs",

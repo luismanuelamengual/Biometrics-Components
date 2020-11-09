@@ -439,14 +439,14 @@ export class Liveness {
         let marqueeTop;
         let marqueeWidth;
         let marqueeHeight;
-        const hostPadding = 120;
+        const hostPadding = 40;
         if (hostAspectRatio > marqueeAspectRatio) {
-            marqueeHeight = Math.min(hostHeight - 30, Math.max(300, hostHeight - (hostPadding * 2)));
+            marqueeHeight = Math.min(hostHeight - 30, Math.max(350, hostHeight - (hostPadding * 2)));
             marqueeWidth = marqueeHeight * marqueeAspectRatio;
             marqueeTop = (hostHeight - marqueeHeight) / 2;
             marqueeLeft = (hostWidth / 2) - (marqueeWidth / 2);
         } else {
-            marqueeWidth = Math.min(hostWidth - 30, Math.max(200, hostWidth - (hostPadding * 2)));
+            marqueeWidth = Math.min(hostWidth - 30, Math.max(250, hostWidth - (hostPadding * 2)));
             marqueeHeight = marqueeWidth * (1 / marqueeAspectRatio);
             marqueeLeft = (hostWidth - marqueeWidth) / 2;
             marqueeTop = (hostHeight / 2) - (marqueeHeight / 2);
