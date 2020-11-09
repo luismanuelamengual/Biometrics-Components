@@ -264,6 +264,7 @@ export class Liveness {
                 }
             } catch (e) {
                 this.setCaption(this.messages.communication_error, "danger");
+                this.clearAnimation();
                 this.stopSession();
             }
             this.checkingImage = false;
@@ -333,6 +334,7 @@ export class Liveness {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
             this.setCaption(this.messages.timeout, 'danger');
+            this.clearAnimation();
             this.stopSession();
         }, this.timeout * 1000);
     }
@@ -397,13 +399,13 @@ export class Liveness {
         }
     }
 
-    clearAnimation() {
-        this.activeAnimation = null;
-    }
-
     setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
         this.caption = caption;
         this.captionStyle = style;
+    }
+
+    clearAnimation() {
+        this.activeAnimation = null;
     }
 
     runAnimation(animation: 'loading' | 'success' | 'fail' | 'left' | 'right') {
