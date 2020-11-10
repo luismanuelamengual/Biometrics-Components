@@ -23,11 +23,15 @@ export namespace Components {
         "apiKey": string;
         "autoStart": boolean;
         "cameraFacingMode": 'environment' | 'user' | 'left' | 'right';
+        "instructionPictureQuality": number;
         "instructions": string[];
+        "maxInstructionPictureHeight": number;
+        "maxInstructionPictureWidth": number;
         "maxInstructions": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
         "messages": any;
+        "pictureQuality": number;
         "serverUrl": string;
         "showInitButton": boolean;
         "startSession": () => Promise<void>;
@@ -85,7 +89,10 @@ declare namespace LocalJSX {
         "apiKey"?: string;
         "autoStart"?: boolean;
         "cameraFacingMode"?: 'environment' | 'user' | 'left' | 'right';
+        "instructionPictureQuality"?: number;
         "instructions"?: string[];
+        "maxInstructionPictureHeight"?: number;
+        "maxInstructionPictureWidth"?: number;
         "maxInstructions"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
@@ -94,6 +101,7 @@ declare namespace LocalJSX {
         "onSessionFailed"?: (event: CustomEvent<any>) => void;
         "onSessionStarted"?: (event: CustomEvent<any>) => void;
         "onSessionSucceded"?: (event: CustomEvent<any>) => void;
+        "pictureQuality"?: number;
         "serverUrl"?: string;
         "showInitButton"?: boolean;
         "timeout"?: number;

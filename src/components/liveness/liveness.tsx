@@ -47,6 +47,14 @@ export class Liveness {
 
     @Prop() maxPictureHeight = 600;
 
+    @Prop() pictureQuality = 0.95;
+
+    @Prop() maxInstructionPictureWidth = 300;
+
+    @Prop() maxInstructionPictureHeight = 300;
+
+    @Prop() instructionPictureQuality = 0.75;
+
     @Prop() showInitButton = true;
 
     @Prop() messages: any = {};
@@ -74,7 +82,8 @@ export class Liveness {
     @Event() sessionFailed: EventEmitter;
 
     cameraElement: HTMLBiometricsCameraElement;
-    pictures = [];
+    livenessPicture: Blob;
+    instructionPictures: Array<Blob>;
     instruction = null;
     instructionsRemaining: number;
     instructionTimeoutTask: any;
@@ -197,7 +206,8 @@ export class Liveness {
     async startSession() {
         this.setCaption('');
         this.status = 0;
-        this.pictures = [];
+        this.livenessPicture = null;
+        this.instructionPictures = [];
         this.instructionsRemaining = this.maxInstructions;
         this.running = true;
         this.verifying = false;
@@ -220,7 +230,7 @@ export class Liveness {
         if (!this.checkingImage) {
             this.checkingImage = true;
             try {
-                const image: Blob = await this.cameraElement.getSnapshot (320, 320);
+                const image: Blob = await this.cameraElement.getSnapshot (this.maxInstructionPictureWidth, this.maxInstructionPictureHeight, 'image/jpeg', this.instructionPictureQuality);
                 if (image !== null) {
                     const formData = new FormData();
                     formData.append('instruction', this.instruction);
@@ -244,13 +254,17 @@ export class Liveness {
                         this.updateMarqeeStyle();
                         if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                             this.instructionsRemaining = this.maxInstructions;
-                            this.pictures = [];
+                            this.livenessPicture = null;
+                            this.instructionPictures = [];
                             if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
                                 this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
                             }
                         } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                             this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
-                            this.pictures.push(await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight));
+                            this.instructionPictures.push(image);
+                            if (this.livenessPicture === null) {
+                                this.livenessPicture = await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', this.pictureQuality);
+                            }
                             this.instructionsRemaining--;
                             if (!this.instructionsRemaining) {
                                 this.stopSession();
@@ -276,9 +290,9 @@ export class Liveness {
         this.runAnimation("loading");
         try {
             const formData = new FormData();
-            formData.append('imagesCount', this.pictures.length.toString());
-            for (var i = 0; i < this.pictures.length; i++) {
-                formData.append('image' + (i + 1), this.pictures[i]);
+            formData.append('imagesCount', this.instructionPictures.length.toString());
+            for (var i = 0; i < this.instructionPictures.length; i++) {
+                formData.append('image' + (i + 1), this.instructionPictures[i]);
             }
             let url = this.serverUrl;
             if (!url.endsWith('/')) {
@@ -306,7 +320,8 @@ export class Liveness {
     onSessionSuccess() {
         this.stopSession();
         this.sessionSucceded.emit({
-            pictures: this.pictures
+            picture: this.livenessPicture,
+            instructionPictures: this.instructionPictures
         });
     }
 
