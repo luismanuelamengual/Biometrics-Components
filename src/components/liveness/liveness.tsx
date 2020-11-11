@@ -307,7 +307,7 @@ export class Liveness {
                 }
             });
             response = await response.json();
-            if (response.success && response.data.status) {
+            if (response.success && response.data.liveness) {
                 this.runAnimation('success');
             } else {
                 this.runAnimation('fail');
