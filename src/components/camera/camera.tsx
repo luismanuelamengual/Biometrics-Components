@@ -29,7 +29,7 @@ export class Camera {
     showConfirmButton = true;
 
     @State()
-    picture: string = null;
+    picture: Blob = null;
 
     @Event()
     pictureCaptured: EventEmitter;
@@ -77,7 +77,7 @@ export class Camera {
 
     @Method()
     async capture() {
-        this.setPicture(await this.getSnapshotUrl(this.maxPictureWidth, this.maxPictureHeight));
+        this.setPicture(await this.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', 0.95));
     }
 
     @Method()
@@ -145,7 +145,7 @@ export class Camera {
         context.drawImage(video, sx, sy, canvasWidth, canvasHeight, 0, 0, scaledCanvasWidth, scaledCanvasHeight);
     }
 
-    setPicture(picture: string) {
+    setPicture(picture: Blob) {
         this.picture = picture;
         this.pictureCaptured.emit(this.picture);
     }
