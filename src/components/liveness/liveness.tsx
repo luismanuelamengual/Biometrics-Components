@@ -109,6 +109,7 @@ export class Liveness {
     initializeMessages() {
         this.messages.timeout = this.messages.timeout || 'Se ha expirado el tiempo de sesión. Por favor intente nuevamente';
         this.messages.communication_error = this.messages.communication_error || 'Error de comunicación con el servidor';
+        this.messages.liveness_session_failed_error = this.messages.liveness_session_failed_error || 'La prueba de vida no ha sido superada. Por favor intente nuevamente';
         this.messages.camera_permission_denied_error = this.messages.camera_permission_denied_error || 'No se ha proporcionado el permiso para el acceso a la cámara web';
         this.messages.face_not_found = this.messages.face_not_found || 'Rostro no encontrado';
         this.messages.face_not_centered = this.messages.face_not_centered || 'Rostro no centrado';
@@ -193,7 +194,7 @@ export class Liveness {
     }
 
     async checkImage() {
-        if (!this.checkingImage) {
+        if (this.running && !this.checkingImage) {
             this.checkingImage = true;
             try {
                 const image: Blob = await this.cameraElement.getSnapshot (this.maxInstructionPictureWidth, this.maxInstructionPictureHeight, 'image/jpeg', this.instructionPictureQuality);
@@ -214,7 +215,7 @@ export class Liveness {
                         }
                     });
                     response = await response.json();
-                    if (response.success) {
+                    if (this.running && response.success) {
                         this.status = response.data.status;
                         this.updateMessage();
                         if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
@@ -241,12 +242,24 @@ export class Liveness {
                     }
                 }
             } catch (e) {
-                this.setCaption(this.messages.communication_error, "danger");
-                this.clearAnimation();
-                this.stopSession();
+                this.onSessionCommunicationError();
             }
             this.checkingImage = false;
         }
+    }
+
+    onSessionTimeout() {
+        this.verifying = true;
+        this.setCaption(this.messages.timeout, 'danger');
+        this.stopSession();
+        this.runAnimation('fail');
+    }
+
+    onSessionCommunicationError() {
+        this.verifying = true;
+        this.setCaption(this.messages.communication_error, "danger");
+        this.stopSession();
+        this.runAnimation('fail');
     }
 
     async onSessionComplete() {
@@ -274,6 +287,7 @@ export class Liveness {
             if (response.success && response.data.liveness) {
                 this.runAnimation('success');
             } else {
+                this.setCaption(this.messages.liveness_session_failed_error , "danger");
                 this.runAnimation('fail');
             }
         } catch (e) {
@@ -282,7 +296,7 @@ export class Liveness {
     }
 
     onSessionSuccess() {
-        this.stopSession();
+        this.verifying = false;
         this.sessionSucceded.emit({
             picture: this.livenessPicture,
             instructionPictures: this.instructionPictures
@@ -290,7 +304,8 @@ export class Liveness {
     }
 
     onSessionFail() {
-        this.stopSession();
+        this.verifying = false;
+        this.sessionFailed.emit();
     }
 
     getNextSessionInstruction(instruction) {
@@ -312,9 +327,7 @@ export class Liveness {
     startSessionInstructionTimer() {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
-            this.setCaption(this.messages.timeout, 'danger');
-            this.clearAnimation();
-            this.stopSession();
+            this.onSessionTimeout();
         }, this.timeout * 1000);
     }
 
