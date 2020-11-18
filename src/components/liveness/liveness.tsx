@@ -33,11 +33,13 @@ export class Liveness {
 
     @Prop() autoStart = true;
 
+    @Prop() timeout = 45;
+
     @Prop() maxInstructions = 5;
 
     @Prop() instructions = [ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ];
 
-    @Prop() timeout = 10;
+    @Prop() instructionTimeout = 10;
 
     @Prop() maxPictureWidth = 720;
 
@@ -89,6 +91,7 @@ export class Liveness {
     failAnimation = null;
     imageCheckTask = null;
     checkingImage = false;
+    timeoutTask: any;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -180,12 +183,14 @@ export class Liveness {
         this.verifying = false;
         this.clearAnimation();
         this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+        this.startSessionTimer();
         this.startImageCheck();
         this.sessionStarted.emit();
     }
 
     @Method()
     async stopSession() {
+        this.stopSessionTimer();
         this.stopSessionInstructionTimer();
         this.stopImageCheck();
         this.instruction = null;
@@ -327,6 +332,20 @@ export class Liveness {
     startSessionInstructionTimer() {
         this.stopSessionInstructionTimer();
         this.instructionTimeoutTask = setTimeout(() => {
+            this.onSessionTimeout();
+        }, this.instructionTimeout * 1000);
+    }
+
+    stopSessionTimer() {
+        if (this.timeoutTask) {
+            clearTimeout(this.timeoutTask);
+            this.timeoutTask = null;
+        }
+    }
+
+    startSessionTimer() {
+        this.stopSessionTimer();
+        this.timeoutTask = setTimeout(() => {
             this.onSessionTimeout();
         }, this.timeout * 1000);
     }

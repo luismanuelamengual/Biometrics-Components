@@ -13,6 +13,7 @@
 | `autoStart`                   | `auto-start`                     |             | `boolean`                                      | `true`                                                                                                       |
 | `cameraFacingMode`            | `camera-facing-mode`             |             | `"environment" \| "left" \| "right" \| "user"` | `'user'`                                                                                                     |
 | `instructionPictureQuality`   | `instruction-picture-quality`    |             | `number`                                       | `0.75`                                                                                                       |
+| `instructionTimeout`          | `instruction-timeout`            |             | `number`                                       | `10`                                                                                                         |
 | `instructions`                | --                               |             | `string[]`                                     | `[ this.FRONTAL_FACE_INSTRUCTION, this.LEFT_PROFILE_FACE_INSTRUCTION, this.RIGHT_PROFILE_FACE_INSTRUCTION ]` |
 | `maxInstructionPictureHeight` | `max-instruction-picture-height` |             | `number`                                       | `300`                                                                                                        |
 | `maxInstructionPictureWidth`  | `max-instruction-picture-width`  |             | `number`                                       | `300`                                                                                                        |
@@ -23,14 +24,13 @@
 | `pictureQuality`              | `picture-quality`                |             | `number`                                       | `0.95`                                                                                                       |
 | `serverUrl`                   | `server-url`                     |             | `string`                                       | `undefined`                                                                                                  |
 | `showInitButton`              | `show-init-button`               |             | `boolean`                                      | `true`                                                                                                       |
-| `timeout`                     | `timeout`                        |             | `number`                                       | `10`                                                                                                         |
+| `timeout`                     | `timeout`                        |             | `number`                                       | `45`                                                                                                         |
 
 
 ## Events
 
 | Event             | Description | Type               |
 | ----------------- | ----------- | ------------------ |
-| `sessionEnded`    |             | `CustomEvent<any>` |
 | `sessionFailed`   |             | `CustomEvent<any>` |
 | `sessionStarted`  |             | `CustomEvent<any>` |
 | `sessionSucceded` |             | `CustomEvent<any>` |

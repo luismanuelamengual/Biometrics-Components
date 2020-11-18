@@ -24,6 +24,7 @@ export namespace Components {
         "autoStart": boolean;
         "cameraFacingMode": 'environment' | 'user' | 'left' | 'right';
         "instructionPictureQuality": number;
+        "instructionTimeout": number;
         "instructions": string[];
         "maxInstructionPictureHeight": number;
         "maxInstructionPictureWidth": number;
@@ -90,6 +91,7 @@ declare namespace LocalJSX {
         "autoStart"?: boolean;
         "cameraFacingMode"?: 'environment' | 'user' | 'left' | 'right';
         "instructionPictureQuality"?: number;
+        "instructionTimeout"?: number;
         "instructions"?: string[];
         "maxInstructionPictureHeight"?: number;
         "maxInstructionPictureWidth"?: number;
