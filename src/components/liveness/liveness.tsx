@@ -1,4 +1,4 @@
-import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host, Listen} from '@stencil/core';
+import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host} from '@stencil/core';
 import bodymovin from 'bodymovin';
 // @ts-ignore
 import loadingAnimationData from './assets/animations/loading.json';
@@ -6,10 +6,6 @@ import loadingAnimationData from './assets/animations/loading.json';
 import failAnimationData from './assets/animations/fail.json';
 // @ts-ignore
 import successAnimationData from './assets/animations/success.json';
-// @ts-ignore
-import leftAnimationData from './assets/animations/left.json';
-// @ts-ignore
-import rightAnimationData from './assets/animations/right.json';
 
 @Component({
   tag: 'biometrics-liveness',
@@ -71,7 +67,7 @@ export class Liveness {
 
     @State() captionStyle: 'normal' | 'danger' = 'normal';
 
-    @State() activeAnimation!: 'loading' | 'success' | 'fail' | 'left' | 'right';
+    @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
     @Event() sessionStarted: EventEmitter;
 
@@ -91,16 +87,11 @@ export class Liveness {
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
-    leftAnimationElement!: HTMLDivElement;
-    rightAnimationElement!: HTMLDivElement;
     loadingAnimation = null;
     successAnimation = null;
     failAnimation = null;
-    leftAnimation = null;
-    rightAnimation = null;
     imageCheckTask = null;
     checkingImage = false;
-    marqueeAlert = false;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -109,7 +100,6 @@ export class Liveness {
     componentDidLoad() {
         this.initializeMessages();
         this.initializeAnimations();
-        this.adjustMarquee();
         if (this.autoStart) {
             this.startSession();
         }
@@ -117,11 +107,6 @@ export class Liveness {
 
     componentDidUnload() {
         this.stopSession();
-    }
-
-    @Listen('resize', { target: 'window' })
-    handleResize() {
-        this.adjustMarquee();
     }
 
     initializeMessages() {
@@ -171,20 +156,6 @@ export class Liveness {
             this.verifying = false;
             this.onSessionSuccess();
         });
-        this.leftAnimation = bodymovin.loadAnimation({
-            renderer: 'svg',
-            autoplay: false,
-            loop: true,
-            animationData: leftAnimationData,
-            container: this.leftAnimationElement
-        });
-        this.rightAnimation = bodymovin.loadAnimation({
-            renderer: 'svg',
-            autoplay: false,
-            loop: true,
-            animationData: rightAnimationData,
-            container: this.rightAnimationElement
-        });
     }
 
     startImageCheck() {
@@ -222,6 +193,7 @@ export class Liveness {
     async stopSession() {
         this.stopSessionInstructionTimer();
         this.stopImageCheck();
+        this.instruction = null;
         this.running = false;
         this.sessionEnded.emit();
     }
@@ -251,7 +223,6 @@ export class Liveness {
                     if (response.success) {
                         this.status = response.data.status;
                         this.updateMessage();
-                        this.updateMarqeeStyle();
                         if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                             this.instructionsRemaining = this.maxInstructions;
                             this.livenessPicture = null;
@@ -356,17 +327,6 @@ export class Liveness {
 
     startSessionInstruction(instruction) {
         this.instruction = instruction;
-        switch (instruction) {
-            case this.LEFT_PROFILE_FACE_INSTRUCTION:
-                this.runAnimation('left');
-                break;
-            case this.RIGHT_PROFILE_FACE_INSTRUCTION:
-                this.runAnimation('right');
-                break;
-            default:
-                this.clearAnimation();
-                break;
-        }
         this.updateMessage();
     }
 
@@ -400,20 +360,6 @@ export class Liveness {
         }
     }
 
-    updateMarqeeStyle() {
-        if (this.running) {
-            switch (this.status) {
-                case this.FACE_MATCH_SUCCESS_STATUS_CODE:
-                case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
-                    this.marqueeAlert = false;
-                    break;
-                default:
-                    this.marqueeAlert = true;
-                    break;
-            }
-        }
-    }
-
     setCaption(caption: string, style: 'normal' | 'danger' = 'normal') {
         this.caption = caption;
         this.captionStyle = style;
@@ -423,7 +369,7 @@ export class Liveness {
         this.activeAnimation = null;
     }
 
-    runAnimation(animation: 'loading' | 'success' | 'fail' | 'left' | 'right') {
+    runAnimation(animation: 'loading' | 'success' | 'fail') {
         this.activeAnimation = animation;
         switch (this.activeAnimation) {
             case 'loading':
@@ -435,41 +381,7 @@ export class Liveness {
             case 'fail':
                 this.failAnimation.goToAndPlay(0, true);
                 break;
-            case 'left':
-                this.leftAnimation.goToAndPlay(0, true);
-                break;
-            case 'right':
-                this.rightAnimation.goToAndPlay(0, true);
-                break;
         }
-    }
-
-    adjustMarquee() {
-        const hostRect = this.host.getBoundingClientRect();
-        const hostHeight = hostRect.height;
-        const hostWidth = hostRect.width;
-        const marqueeAspectRatio = 3.5 / 4;
-        const hostAspectRatio = hostWidth / hostHeight;
-        let marqueeLeft;
-        let marqueeTop;
-        let marqueeWidth;
-        let marqueeHeight;
-        const hostPadding = 40;
-        if (hostAspectRatio > marqueeAspectRatio) {
-            marqueeHeight = Math.min(hostHeight - 30, Math.max(350, hostHeight - (hostPadding * 2)));
-            marqueeWidth = marqueeHeight * marqueeAspectRatio;
-            marqueeTop = (hostHeight - marqueeHeight) / 2;
-            marqueeLeft = (hostWidth / 2) - (marqueeWidth / 2);
-        } else {
-            marqueeWidth = Math.min(hostWidth - 30, Math.max(250, hostWidth - (hostPadding * 2)));
-            marqueeHeight = marqueeWidth * (1 / marqueeAspectRatio);
-            marqueeLeft = (hostWidth - marqueeWidth) / 2;
-            marqueeTop = (hostHeight / 2) - (marqueeHeight / 2);
-        }
-        this.marqueeElement.style.left = marqueeLeft + 'px';
-        this.marqueeElement.style.top = marqueeTop + 'px';
-        this.marqueeElement.style.width = marqueeWidth + 'px';
-        this.marqueeElement.style.height = marqueeHeight + 'px';
     }
 
     render() {
@@ -477,11 +389,14 @@ export class Liveness {
             <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
             <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
-            <div ref={(el) => this.leftAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'liveness-animation-hint': true, 'hidden': this.activeAnimation !== 'left'}}/>
-            <div ref={(el) => this.rightAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'liveness-animation-hint': true, 'hidden': this.activeAnimation !== 'right'}}/>
 
             <biometrics-camera ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement} facingMode={this.cameraFacingMode} showCaptureButton={false} maxPictureWidth={this.maxPictureWidth} maxPictureHeight={this.maxPictureHeight}>
-                <div ref={(el) => this.marqueeElement = el as HTMLDivElement} class={{"marquee": true, "marquee-danger": this.marqueeAlert, "hidden": !this.running}}/>
+                <div class={{
+                    'instructions-image': true,
+                    'instructions-image-frontal-face': this.instruction == this.FRONTAL_FACE_INSTRUCTION,
+                    'instructions-image-right-profile-face': this.instruction == this.RIGHT_PROFILE_FACE_INSTRUCTION,
+                    'instructions-image-left-profile-face': this.instruction == this.LEFT_PROFILE_FACE_INSTRUCTION
+                }}/>
             </biometrics-camera>
 
             {this.caption && <div class="caption-container">
