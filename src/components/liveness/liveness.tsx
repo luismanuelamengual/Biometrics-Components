@@ -71,8 +71,6 @@ export class Liveness {
 
     @Event() sessionStarted: EventEmitter;
 
-    @Event() sessionEnded: EventEmitter;
-
     @Event() sessionSucceded: EventEmitter;
 
     @Event() sessionFailed: EventEmitter;
@@ -83,7 +81,6 @@ export class Liveness {
     instruction = null;
     instructionsRemaining: number;
     instructionTimeoutTask: any;
-    marqueeElement!: HTMLDivElement;
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
@@ -182,7 +179,6 @@ export class Liveness {
         this.verifying = false;
         this.clearAnimation();
         this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
-        this.startSessionInstructionTimer();
         this.startImageCheck();
         this.sessionStarted.emit();
     }
@@ -194,7 +190,6 @@ export class Liveness {
         this.instruction = null;
         this.running = false;
         this.verifying = false;
-        this.sessionEnded.emit();
     }
 
     async checkImage() {
@@ -227,7 +222,7 @@ export class Liveness {
                             this.livenessPicture = null;
                             this.instructionPictures = [];
                             if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
-                                this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION);
+                                this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION, false);
                             }
                         } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
                             this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
@@ -241,7 +236,6 @@ export class Liveness {
                                 await this.onSessionComplete();
                             } else {
                                 this.startSessionInstruction(this.getNextSessionInstruction(this.instruction));
-                                this.startSessionInstructionTimer();
                             }
                         }
                     }
@@ -324,9 +318,12 @@ export class Liveness {
         }, this.timeout * 1000);
     }
 
-    startSessionInstruction(instruction) {
+    startSessionInstruction(instruction, updateInstructionTimer = true) {
         this.instruction = instruction;
         this.updateMessage();
+        if (updateInstructionTimer) {
+            this.startSessionInstructionTimer();
+        }
     }
 
     handleSessionStartButtonClick () {
