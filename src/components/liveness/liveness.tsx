@@ -142,7 +142,6 @@ export class Liveness {
             container: this.failAnimationElement
         });
         this.failAnimation.addEventListener('complete', () => {
-            this.verifying = false;
             this.onSessionFail();
         });
         this.successAnimation = bodymovin.loadAnimation({
@@ -153,7 +152,6 @@ export class Liveness {
             container: this.successAnimationElement
         });
         this.successAnimation.addEventListener('complete', () => {
-            this.verifying = false;
             this.onSessionSuccess();
         });
     }
@@ -195,6 +193,7 @@ export class Liveness {
         this.stopImageCheck();
         this.instruction = null;
         this.running = false;
+        this.verifying = false;
         this.sessionEnded.emit();
     }
 
