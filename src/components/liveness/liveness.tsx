@@ -249,16 +249,16 @@ export class Liveness {
     }
 
     onSessionTimeout() {
-        this.verifying = true;
         this.setCaption(this.messages.timeout, 'danger');
         this.stopSession();
+        this.verifying = true;
         this.runAnimation('fail');
     }
 
     onSessionCommunicationError() {
-        this.verifying = true;
         this.setCaption(this.messages.communication_error, "danger");
         this.stopSession();
+        this.verifying = true;
         this.runAnimation('fail');
     }
 
