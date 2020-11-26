@@ -32,6 +32,7 @@ export namespace Components {
         "maxPictureHeight": number;
         "maxPictureWidth": number;
         "messages": any;
+        "mode": 'classic' | 'mask';
         "pictureQuality": number;
         "serverUrl": string;
         "showInitButton": boolean;
@@ -99,6 +100,7 @@ declare namespace LocalJSX {
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "messages"?: any;
+        "mode"?: 'classic' | 'mask';
         "onSessionFailed"?: (event: CustomEvent<any>) => void;
         "onSessionStarted"?: (event: CustomEvent<any>) => void;
         "onSessionSucceded"?: (event: CustomEvent<any>) => void;

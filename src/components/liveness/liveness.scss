@@ -21,6 +21,16 @@ $borderRadius: 30px;
 
     biometrics-camera {
 
+        .marquee {
+            position: absolute;
+            border: 5px solid black;
+            box-shadow: 0 0 0 99999px rgba(0, 0, 0, .5);
+
+            &.marquee-danger {
+                border: 5px solid red;
+            }
+        }
+
         .instructions-image {
             position: absolute;
             top: 0;
@@ -79,17 +89,22 @@ $borderRadius: 30px;
         right: 30%;
         bottom: 30%;
         z-index: 4000;
+    }
 
-        &.liveness-animation-hint {
-            @media screen and (orientation: portrait) {
-                top: 70%;
-                bottom: 0%;
-            }
+    .instruction-animation {
+        position: absolute;
+        left: 30%;
+        right: 30%;
+        z-index: 4000;
 
-            @media screen and (orientation: landscape) {
-                top: 80%;
-                bottom: 5%;
-            }
+        @media screen and (orientation: portrait) {
+            top: 70%;
+            bottom: 0;
+        }
+
+        @media screen and (orientation: landscape) {
+            top: 80%;
+            bottom: 5%;
         }
     }
 
