@@ -31,6 +31,7 @@ export namespace Components {
         "maxInstructions": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
+        "maxStatusFailBuffer": number;
         "messages": any;
         "mode": 'classic' | 'mask';
         "pictureQuality": number;
@@ -99,6 +100,7 @@ declare namespace LocalJSX {
         "maxInstructions"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
+        "maxStatusFailBuffer"?: number;
         "messages"?: any;
         "mode"?: 'classic' | 'mask';
         "onSessionFailed"?: (event: CustomEvent<any>) => void;

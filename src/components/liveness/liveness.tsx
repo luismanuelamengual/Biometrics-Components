@@ -63,6 +63,8 @@ export class Liveness {
 
     @Prop() messages: any = {};
 
+    @Prop() maxStatusFailBuffer = 1;
+
     @Prop() cameraFacingMode: 'environment' | 'user' | 'left' | 'right' = 'user';
 
     @State() running = false;
@@ -104,6 +106,7 @@ export class Liveness {
     leftAnimation = null;
     rightAnimation = null;
     marqueeAlert = false;
+    statusFailAttemptsRemaining: number;
 
     constructor() {
         this.handleSessionStartButtonClick = this.handleSessionStartButtonClick.bind(this);
@@ -210,6 +213,7 @@ export class Liveness {
     async startSession() {
         this.setCaption('');
         this.status = this.FACE_FOUND_STATUS_CODE;
+        this.statusFailAttemptsRemaining = this.maxStatusFailBuffer;
         this.livenessPicture = null;
         this.instructionPictures = [];
         this.instructionsRemaining = this.maxInstructions;
@@ -255,7 +259,17 @@ export class Liveness {
                     });
                     response = await response.json();
                     if (this.running && response.success) {
-                        this.status = response.data.status;
+                        let newStatus = response.data.status;
+                        if (this.status >= this.FACE_FOUND_STATUS_CODE && newStatus < this.FACE_FOUND_STATUS_CODE) {
+                            if (this.statusFailAttemptsRemaining) {
+                                this.statusFailAttemptsRemaining--;
+                                newStatus = this.FACE_FOUND_STATUS_CODE;
+                            }
+                        } else {
+                            this.statusFailAttemptsRemaining = this.maxStatusFailBuffer;
+                        }
+
+                        this.status = newStatus;
                         this.updateMessage();
                         this.updateMarqeeStyle();
                         if (this.status < this.FACE_FOUND_STATUS_CODE) {
