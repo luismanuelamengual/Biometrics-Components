@@ -22,12 +22,12 @@ export class Liveness {
     readonly LEFT_PROFILE_FACE_INSTRUCTION = 'left_profile_face';
     readonly RIGHT_PROFILE_FACE_INSTRUCTION = 'right_profile_face';
 
-    readonly FACE_MATCH_SUCCESS_STATUS_CODE = 0;
-    readonly FACE_WITH_INCORRECT_GESTURE_STATUS_CODE = 1;
-    readonly FACE_NOT_FOUND_STATUS_CODE = -1;
-    readonly FACE_NOT_CENTERED_STATUS_CODE = -2;
-    readonly FACE_TOO_CLOSE_STATUS_CODE = -3;
-    readonly FACE_TOO_FAR_AWAY_STATUS_CODE = -4;
+    readonly FACE_MATCH_STATUS_CODE = 1;
+    readonly FACE_FOUND_STATUS_CODE = 0;
+    readonly FACE_NOT_CENTERED_STATUS_CODE = -1;
+    readonly FACE_TOO_CLOSE_STATUS_CODE = -2;
+    readonly FACE_TOO_FAR_AWAY_STATUS_CODE = -3;
+    readonly FACE_NOT_FOUND_STATUS_CODE = -4;
 
     @Element() host: HTMLElement;
 
@@ -209,7 +209,7 @@ export class Liveness {
     @Method()
     async startSession() {
         this.setCaption('');
-        this.status = 0;
+        this.status = this.FACE_FOUND_STATUS_CODE;
         this.livenessPicture = null;
         this.instructionPictures = [];
         this.instructionsRemaining = this.maxInstructions;
@@ -255,16 +255,18 @@ export class Liveness {
                     });
                     response = await response.json();
                     if (this.running && response.success) {
-                        this.setStatus(response.data.status);
-                        if (this.status < this.FACE_MATCH_SUCCESS_STATUS_CODE) {
+                        this.status = response.data.status;
+                        this.updateMessage();
+                        this.updateMarqeeStyle();
+                        if (this.status < this.FACE_FOUND_STATUS_CODE) {
                             this.instructionsRemaining = this.maxInstructions;
                             this.livenessPicture = null;
                             this.instructionPictures = [];
                             if (this.instruction !== this.FRONTAL_FACE_INSTRUCTION) {
                                 this.startSessionInstruction(this.FRONTAL_FACE_INSTRUCTION, false);
                             }
-                        } else if (this.status === this.FACE_MATCH_SUCCESS_STATUS_CODE) {
-                            this.status = this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE;
+                        } else if (this.status === this.FACE_MATCH_STATUS_CODE) {
+                            this.status = this.FACE_FOUND_STATUS_CODE;
                             this.instructionPictures.push(image);
                             if (this.livenessPicture === null) {
                                 this.livenessPicture = await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', this.pictureQuality);
@@ -331,12 +333,6 @@ export class Liveness {
         } catch (e) {
             this.runAnimation('fail');
         }
-    }
-
-    setStatus(status: number) {
-        this.status = status;
-        this.updateMessage();
-        this.updateMarqeeStyle();
     }
 
     onSessionSuccess() {
@@ -417,7 +413,7 @@ export class Liveness {
     updateMessage() {
         if (this.running) {
             switch (this.status) {
-                case this.FACE_MATCH_SUCCESS_STATUS_CODE:
+                case this.FACE_MATCH_STATUS_CODE:
                     this.setCaption('');
                     break;
                 case this.FACE_NOT_FOUND_STATUS_CODE:
@@ -432,7 +428,7 @@ export class Liveness {
                 case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
                     this.setCaption(this.messages.face_too_far, 'danger');
                     break;
-                case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
+                case this.FACE_FOUND_STATUS_CODE:
                 default:
                     this.setCaption(this.messages.face_instructions[this.instruction]);
                     break;
@@ -495,10 +491,10 @@ export class Liveness {
     }
 
     updateMarqeeStyle() {
-        if (this.running) {
+        if (this.running && this.marqueeElement) {
             switch (this.status) {
-                case this.FACE_MATCH_SUCCESS_STATUS_CODE:
-                case this.FACE_WITH_INCORRECT_GESTURE_STATUS_CODE:
+                case this.FACE_MATCH_STATUS_CODE:
+                case this.FACE_FOUND_STATUS_CODE:
                     this.marqueeAlert = false;
                     break;
                 default:
