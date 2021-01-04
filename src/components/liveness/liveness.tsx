@@ -27,7 +27,8 @@ export class Liveness {
     readonly FACE_NOT_CENTERED_STATUS_CODE = -1;
     readonly FACE_TOO_CLOSE_STATUS_CODE = -2;
     readonly FACE_TOO_FAR_AWAY_STATUS_CODE = -3;
-    readonly FACE_NOT_FOUND_STATUS_CODE = -4;
+    readonly FACE_TOO_BLURRY_STATUS_CODE = -4;
+    readonly FACE_NOT_FOUND_STATUS_CODE = -99;
 
     @Element() host: HTMLElement;
 
@@ -139,6 +140,7 @@ export class Liveness {
         this.messages.face_not_centered = this.messages.face_not_centered || 'Rostro no centrado';
         this.messages.face_too_close = this.messages.face_too_close || 'Rostro demasiado <b>CERCA</b>';
         this.messages.face_too_far = this.messages.face_too_far || 'Rostro demasiado <b>LEJOS</b>. Acerque el rostro';
+        this.messages.face_too_blurry = this.messages.face_too_blurry || 'Rostro demasiado borroso';
         this.messages.start_button = this.messages.start_button || 'INICIAR';
         if (!this.messages.face_instructions) {
             this.messages.face_instructions =  {} as any;
@@ -430,8 +432,8 @@ export class Liveness {
                 case this.FACE_MATCH_STATUS_CODE:
                     this.setCaption('');
                     break;
-                case this.FACE_NOT_FOUND_STATUS_CODE:
-                    this.setCaption(this.messages.face_not_found, 'danger');
+                case this.FACE_TOO_BLURRY_STATUS_CODE:
+                    this.setCaption(this.messages.face_too_blurry, 'danger');
                     break;
                 case this.FACE_NOT_CENTERED_STATUS_CODE:
                     this.setCaption(this.messages.face_not_centered, 'danger');
@@ -441,6 +443,9 @@ export class Liveness {
                     break;
                 case this.FACE_TOO_FAR_AWAY_STATUS_CODE:
                     this.setCaption(this.messages.face_too_far, 'danger');
+                    break;
+                case this.FACE_NOT_FOUND_STATUS_CODE:
+                    this.setCaption(this.messages.face_not_found, 'danger');
                     break;
                 case this.FACE_FOUND_STATUS_CODE:
                 default:
