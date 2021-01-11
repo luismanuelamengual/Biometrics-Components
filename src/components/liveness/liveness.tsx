@@ -122,7 +122,7 @@ export class Liveness {
         }
     }
 
-    componentDidUnload() {
+    disconnectedCallback() {
         this.stopSession();
     }
 
