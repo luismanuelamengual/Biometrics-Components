@@ -1,6 +1,5 @@
 // @ts-ignore
 import {Component, Event, EventEmitter, getAssetPath, Host, h, Prop, State} from '@stencil/core';
-import bodymovin from 'bodymovin';
 // @ts-ignore
 import loadingAnimationData from './assets/animations/loading.json';
 // @ts-ignore
@@ -8,6 +7,7 @@ import failAnimationData from './assets/animations/fail.json';
 // @ts-ignore
 import successAnimationData from './assets/animations/success.json';
 import {Detector} from "../../utils/detector";
+import Lottie from "lottie-web";
 
 @Component({
     tag: 'biometrics-liveness2',
@@ -75,14 +75,14 @@ export class Liveness2 {
     }
 
     initializeAnimations() {
-        this.loadingAnimation = bodymovin.loadAnimation({
+        this.loadingAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: true,
             animationData: loadingAnimationData,
             container: this.loadingAnimationElement
         });
-        this.failAnimation = bodymovin.loadAnimation({
+        this.failAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,
@@ -93,7 +93,7 @@ export class Liveness2 {
             this.livenessVerificationComplete.emit({livenessVerified: false, picture: this.picture});
             this.livenessVerificationFinished = true;
         });
-        this.successAnimation = bodymovin.loadAnimation({
+        this.successAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,

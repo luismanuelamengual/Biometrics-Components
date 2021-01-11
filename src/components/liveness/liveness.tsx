@@ -1,6 +1,5 @@
 // @ts-ignore
 import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host, Listen} from '@stencil/core';
-import bodymovin from 'bodymovin';
 // @ts-ignore
 import loadingAnimationData from './assets/animations/loading.json';
 // @ts-ignore
@@ -11,6 +10,7 @@ import successAnimationData from './assets/animations/success.json';
 import leftAnimationData from './assets/animations/left.json';
 // @ts-ignore
 import rightAnimationData from './assets/animations/right.json';
+import Lottie from "lottie-web";
 
 @Component({
   tag: 'biometrics-liveness',
@@ -152,14 +152,14 @@ export class Liveness {
     }
 
     initializeAnimations() {
-        this.loadingAnimation = bodymovin.loadAnimation({
+        this.loadingAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: true,
             animationData: loadingAnimationData,
             container: this.loadingAnimationElement
         });
-        this.failAnimation = bodymovin.loadAnimation({
+        this.failAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,
@@ -169,7 +169,7 @@ export class Liveness {
         this.failAnimation.addEventListener('complete', () => {
             this.onSessionFail();
         });
-        this.successAnimation = bodymovin.loadAnimation({
+        this.successAnimation = Lottie.loadAnimation({
             renderer: 'svg',
             autoplay: false,
             loop: false,
@@ -180,14 +180,14 @@ export class Liveness {
             this.onSessionSuccess();
         });
         if (this.mode == 'classic') {
-            this.leftAnimation = bodymovin.loadAnimation({
+            this.leftAnimation = Lottie.loadAnimation({
                 renderer: 'svg',
                 autoplay: false,
                 loop: true,
                 animationData: leftAnimationData,
                 container: this.leftAnimationElement
             });
-            this.rightAnimation = bodymovin.loadAnimation({
+            this.rightAnimation = Lottie.loadAnimation({
                 renderer: 'svg',
                 autoplay: false,
                 loop: true,

@@ -24,7 +24,7 @@
     "devDependencies": {
         "@stencil/core": "2.3.0",
         "@stencil/sass": "^1.4.0",
-        "bodymovin": "^4.13.0"
+        "lottie-web": "^5.7.5"
     },
     "license": "MIT"
 }
