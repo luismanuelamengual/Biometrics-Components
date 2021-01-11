@@ -73,13 +73,13 @@ Type: `Promise<string>`
 ### Used by
 
  - [biometrics-liveness](../liveness)
- - [biometrics-liveness-passive](../liveness_passive)
+ - [biometrics-liveness2](../liveness2)
 
 ### Graph
 ```mermaid
 graph TD;
   biometrics-liveness --> biometrics-camera
-  biometrics-liveness-passive --> biometrics-camera
+  biometrics-liveness2 --> biometrics-camera
   style biometrics-camera fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

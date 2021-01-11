@@ -35,8 +35,8 @@
 ### Graph
 ```mermaid
 graph TD;
-  biometrics-liveness-passive --> biometrics-camera
-  style biometrics-liveness-passive fill:#f9f,stroke:#333,stroke-width:4px
+  biometrics-liveness2 --> biometrics-camera
+  style biometrics-liveness2 fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

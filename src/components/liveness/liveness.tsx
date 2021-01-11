@@ -1,3 +1,4 @@
+// @ts-ignore
 import {Component, h, Prop, Element, State, Method, Event, EventEmitter, Host, Listen} from '@stencil/core';
 import bodymovin from 'bodymovin';
 // @ts-ignore

@@ -1,4 +1,5 @@
-import {Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State} from '@stencil/core';
+// @ts-ignore
+import {Component, Event, EventEmitter, getAssetPath, Host, h, Prop, State} from '@stencil/core';
 import bodymovin from 'bodymovin';
 // @ts-ignore
 import loadingAnimationData from './assets/animations/loading.json';
@@ -9,12 +10,12 @@ import successAnimationData from './assets/animations/success.json';
 import {Detector} from "../../utils/detector";
 
 @Component({
-    tag: 'biometrics-liveness-passive',
-    styleUrl: 'liveness_passive.scss',
+    tag: 'biometrics-liveness2',
+    styleUrl: 'liveness2.scss',
     assetsDirs: ['assets'],
     shadow: true
 })
-export class Liveness_passive {
+export class Liveness2 {
 
     @Prop() serverUrl: string;
 
