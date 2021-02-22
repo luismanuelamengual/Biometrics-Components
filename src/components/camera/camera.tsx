@@ -1,3 +1,4 @@
+// @ts-ignore
 import {Component, Element, Event, EventEmitter, h, Host, Method, Prop, State} from '@stencil/core';
 
 @Component({
