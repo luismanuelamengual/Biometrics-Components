@@ -12,7 +12,7 @@
 | `buttonStyle`       | `button-style`        |             | `"classic" \| "normal"`                        | `'normal'`      |
 | `facingMode`        | `facing-mode`         |             | `"environment" \| "left" \| "right" \| "user"` | `'environment'` |
 | `fullScreen`        | `full-screen`         |             | `boolean`                                      | `true`          |
-| `maxPictureHeight`  | `max-picture-height`  |             | `number`                                       | `720`           |
+| `maxPictureHeight`  | `max-picture-height`  |             | `number`                                       | `1280`          |
 | `maxPictureWidth`   | `max-picture-width`   |             | `number`                                       | `1280`          |
 | `showCaptureButton` | `show-capture-button` |             | `boolean`                                      | `true`          |
 | `showConfirmButton` | `show-confirm-button` |             | `boolean`                                      | `true`          |
@@ -73,13 +73,13 @@ Type: `Promise<string>`
 ### Used by
 
  - [biometrics-liveness](../liveness)
- - [biometrics-liveness2](../liveness2)
+ - [biometrics-liveness3d](../liveness3d)
 
 ### Graph
 ```mermaid
 graph TD;
   biometrics-liveness --> biometrics-camera
-  biometrics-liveness2 --> biometrics-camera
+  biometrics-liveness3d --> biometrics-camera
   style biometrics-camera fill:#f9f,stroke:#333,stroke-width:4px
 ```
 

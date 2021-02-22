@@ -1,4 +1,4 @@
-import {Component, Event, EventEmitter, h, Host, Method, Prop, State} from '@stencil/core';
+import {Component, Element, Event, EventEmitter, h, Host, Method, Prop, State} from '@stencil/core';
 
 @Component({
     tag: 'biometrics-camera',
@@ -7,11 +7,14 @@ import {Component, Event, EventEmitter, h, Host, Method, Prop, State} from '@ste
 })
 export class Camera {
 
+    @Element()
+    host: HTMLElement;
+
     @Prop()
     maxPictureWidth = 1280;
 
     @Prop()
-    maxPictureHeight = 720;
+    maxPictureHeight = 1280;
 
     @Prop()
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
@@ -51,9 +54,31 @@ export class Camera {
     }
 
     async initializeVideo() {
-        try {
-            this.videoElement.srcObject = await navigator.mediaDevices.getUserMedia({audio: false, video: {facingMode: this.facingMode}});
-        } catch (e) {}
+        const hostAspectRatio = this.host.offsetWidth / this.host.offsetHeight;
+        const mediaFallbackConstraints: Array<MediaStreamConstraints> = [];
+        const videoResolutions = [4096, 2028, 1024, 960, 720];
+        if (hostAspectRatio > 1) {
+            for (const videoResolution of videoResolutions) {
+                mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode, width: { ideal: videoResolution }}});
+            }
+        } else {
+            for (const videoResolution of videoResolutions) {
+                mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode, height: { ideal: videoResolution }}});
+            }
+        }
+        mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode}});
+        let videoSource = null;
+        for (const mediaConstraints of mediaFallbackConstraints) {
+            try {
+                videoSource = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+                if (videoSource != null) {
+                    break;
+                }
+            } catch (e) {}
+        }
+        if (videoSource != null) {
+            this.videoElement.srcObject = videoSource;
+        }
     }
 
     finalizeVideo() {

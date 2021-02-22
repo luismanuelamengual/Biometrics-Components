@@ -41,15 +41,15 @@ export namespace Components {
         "stopSession": () => Promise<void>;
         "timeout": number;
     }
-    interface BiometricsLiveness2 {
+    interface BiometricsLiveness3d {
         "apiKey": string;
-        "autoCapture": boolean;
-        "autoCaptureTimeout": number;
         "faceDetectionInterval": number;
+        "maskAnimationSeconds": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
+        "maxTrailPictures": number;
         "serverUrl": string;
-        "useFaceDetector": boolean;
+        "sessionStartSeconds": number;
     }
 }
 declare global {
@@ -65,16 +65,16 @@ declare global {
         prototype: HTMLBiometricsLivenessElement;
         new (): HTMLBiometricsLivenessElement;
     };
-    interface HTMLBiometricsLiveness2Element extends Components.BiometricsLiveness2, HTMLStencilElement {
+    interface HTMLBiometricsLiveness3dElement extends Components.BiometricsLiveness3d, HTMLStencilElement {
     }
-    var HTMLBiometricsLiveness2Element: {
-        prototype: HTMLBiometricsLiveness2Element;
-        new (): HTMLBiometricsLiveness2Element;
+    var HTMLBiometricsLiveness3dElement: {
+        prototype: HTMLBiometricsLiveness3dElement;
+        new (): HTMLBiometricsLiveness3dElement;
     };
     interface HTMLElementTagNameMap {
         "biometrics-camera": HTMLBiometricsCameraElement;
         "biometrics-liveness": HTMLBiometricsLivenessElement;
-        "biometrics-liveness2": HTMLBiometricsLiveness2Element;
+        "biometrics-liveness3d": HTMLBiometricsLiveness3dElement;
     }
 }
 declare namespace LocalJSX {
@@ -111,21 +111,20 @@ declare namespace LocalJSX {
         "showInitButton"?: boolean;
         "timeout"?: number;
     }
-    interface BiometricsLiveness2 {
+    interface BiometricsLiveness3d {
         "apiKey"?: string;
-        "autoCapture"?: boolean;
-        "autoCaptureTimeout"?: number;
         "faceDetectionInterval"?: number;
+        "maskAnimationSeconds"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
-        "onLivenessVerificationComplete"?: (event: CustomEvent<any>) => void;
+        "maxTrailPictures"?: number;
         "serverUrl"?: string;
-        "useFaceDetector"?: boolean;
+        "sessionStartSeconds"?: number;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;
         "biometrics-liveness": BiometricsLiveness;
-        "biometrics-liveness2": BiometricsLiveness2;
+        "biometrics-liveness3d": BiometricsLiveness3d;
     }
 }
 export { LocalJSX as JSX };
@@ -134,7 +133,7 @@ declare module "@stencil/core" {
         interface IntrinsicElements {
             "biometrics-camera": LocalJSX.BiometricsCamera & JSXBase.HTMLAttributes<HTMLBiometricsCameraElement>;
             "biometrics-liveness": LocalJSX.BiometricsLiveness & JSXBase.HTMLAttributes<HTMLBiometricsLivenessElement>;
-            "biometrics-liveness2": LocalJSX.BiometricsLiveness2 & JSXBase.HTMLAttributes<HTMLBiometricsLiveness2Element>;
+            "biometrics-liveness3d": LocalJSX.BiometricsLiveness3d & JSXBase.HTMLAttributes<HTMLBiometricsLiveness3dElement>;
         }
     }
 }
