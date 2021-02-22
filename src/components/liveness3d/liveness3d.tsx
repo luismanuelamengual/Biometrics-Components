@@ -16,12 +16,6 @@ import successAnimationData from './assets/animations/success.json';
 })
 export class Liveness3d {
 
-    readonly SESSION_NOT_STARTED = 0;
-    readonly SESSION_FACE_SCAN = 1;
-    readonly SESSION_FACE_ANIMATION = 2;
-    readonly SESSION_FACE_VERIFICATION = 3;
-    readonly SESSION_RESULTS = 4;
-
     readonly FACE_ASPECT_RATIO = 0.75;
 
     @Element() host: HTMLElement;
@@ -50,7 +44,7 @@ export class Liveness3d {
 
     @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
-    @State() sessionPhase = this.SESSION_NOT_STARTED;
+    @State() maskVisible = false;
 
     @State() remainingSessionStartSeconds: number | null = null;
 
@@ -122,31 +116,14 @@ export class Liveness3d {
 
     startSession() {
         this.sessionRunning = true;
-        this.setSessionPhase(this.SESSION_FACE_SCAN);
+        this.setCaption('');
+        this.setMaskVisible(true);
+        this.adjustMask();
+        this.startFaceDetection(this.faceDetectionInterval);
     }
 
     stopSession() {
         this.sessionRunning = false;
-    }
-
-    setSessionPhase(sessionPhase: number) {
-        this.sessionPhase = sessionPhase;
-        switch (sessionPhase) {
-            case this.SESSION_FACE_SCAN:
-                this.setCaption('');
-                this.adjustMask();
-                this.startFaceDetection(this.faceDetectionInterval);
-                break;
-            case this.SESSION_FACE_ANIMATION:
-                this.setCaption('Centre su rostro en el marco');
-                this.stopFaceDetection();
-                this.animateMask();
-                break;
-            case this.SESSION_FACE_VERIFICATION:
-                this.setCaption('');
-                this.verifyLiveness();
-                break;
-        }
     }
 
     startFaceDetection(interval: number) {
@@ -211,10 +188,16 @@ export class Liveness3d {
                 if (this.remainingSessionStartSeconds <= 0) {
                     this.picture = await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', 0.95);
                     this.stopFaceMatchTimer();
-                    this.setSessionPhase(this.SESSION_FACE_ANIMATION);
+                    this.stopFaceDetection();
+                    this.setCaption('Centre su rostro en el marco');
+                    this.animateMask();
                 }
             }, 1000);
         }
+    }
+
+    setMaskVisible(maskVisible) {
+        this.maskVisible = maskVisible;
     }
 
     async detectFaceRect(): Promise<DOMRect> {
@@ -297,7 +280,9 @@ export class Liveness3d {
                 this.maskElement.style.top = newTop + 'px';
                 this.maskElement.style.width = newWidth + 'px';
                 this.maskElement.style.height = newHeight + 'px';
-                this.setSessionPhase(this.SESSION_FACE_VERIFICATION);
+                this.setMaskVisible(false);
+                this.setCaption('');
+                this.verifyLiveness();
             };
             maskAnimation.play();
         }
@@ -368,7 +353,7 @@ export class Liveness3d {
 
             <div ref={(el) => this.maskElement = el as HTMLDivElement} class={{
                 'mask': true,
-                'hidden': this.sessionPhase === this.SESSION_FACE_VERIFICATION
+                'hidden': !this.maskVisible
             }}/>
 
             {this.remainingSessionStartSeconds > 0 && <div class="liveness-seconds">{ this.remainingSessionStartSeconds }</div>}
