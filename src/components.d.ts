@@ -53,6 +53,7 @@ export namespace Components {
         "maxTrailPictures": number;
         "serverUrl": string;
         "sessionStartSeconds": number;
+        "showStartButton": boolean;
     }
 }
 declare global {
@@ -126,6 +127,7 @@ declare namespace LocalJSX {
         "maxTrailPictures"?: number;
         "serverUrl"?: string;
         "sessionStartSeconds"?: number;
+        "showStartButton"?: boolean;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;

@@ -42,6 +42,8 @@ export class Liveness3d {
 
     @Prop() maxTrailPictureHeight = 320;
 
+    @Prop() showStartButton = true;
+
     @State() picture: Blob;
 
     @State() caption: string;
@@ -51,6 +53,8 @@ export class Liveness3d {
     @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
     @State() maskVisible = false;
+
+    @State() startButtonVisible = false;
 
     @State() remainingSessionStartSeconds: number | null = null;
 
@@ -69,7 +73,7 @@ export class Liveness3d {
     failAnimation = null;
 
     constructor() {
-        this.onRestartButtonClick = this.onRestartButtonClick.bind(this);
+        this.onStartButtonClick = this.onStartButtonClick.bind(this);
     }
 
     componentWillLoad() {
@@ -78,6 +82,10 @@ export class Liveness3d {
     componentDidLoad() {
         this.initializeAnimations();
         this.initializeDetector();
+        this.startSession();
+    }
+
+    onStartButtonClick() {
         this.startSession();
     }
 
@@ -97,7 +105,7 @@ export class Liveness3d {
             container: this.failAnimationElement
         });
         this.failAnimation.addEventListener('complete', () => {
-            console.log('onFail');
+            this.setStartButtonVisible(true);
         });
         this.successAnimation = Lottie.loadAnimation({
             renderer: 'svg',
@@ -107,7 +115,7 @@ export class Liveness3d {
             container: this.successAnimationElement
         });
         this.successAnimation.addEventListener('complete', () => {
-             console.log('onSuccess');
+            this.setStartButtonVisible(true);
         });
     }
 
@@ -124,6 +132,8 @@ export class Liveness3d {
         this.sessionRunning = true;
         this.setCaption('');
         this.setMaskVisible(true);
+        this.setStartButtonVisible(false);
+        this.clearAnimation();
         this.adjustMask();
         this.startFaceDetection(this.faceDetectionInterval);
     }
@@ -202,8 +212,12 @@ export class Liveness3d {
         }
     }
 
-    setMaskVisible(maskVisible) {
+    setMaskVisible(maskVisible: boolean) {
         this.maskVisible = maskVisible;
+    }
+
+    setStartButtonVisible(startButtonVisible: boolean) {
+        this.startButtonVisible = startButtonVisible;
     }
 
     async detectFaceRect(): Promise<DOMRect> {
@@ -343,8 +357,8 @@ export class Liveness3d {
         }
     }
 
-    onRestartButtonClick() {
-        this.startSession();
+    clearAnimation() {
+        this.activeAnimation = null;
     }
 
     render() {
@@ -369,6 +383,9 @@ export class Liveness3d {
 
             {this.caption && <div class="caption-container">
                 <p class={{'caption': true, 'caption-danger': this.captionStyle === 'danger'}}>{this.caption}</p>
+            </div>}
+            {this.showStartButton && this.startButtonVisible && <div class="liveness-buttons-wrapper">
+                <button class="liveness-start-button" onClick={this.onStartButtonClick} >Iniciar</button>
             </div>}
         </Host>;
     }
