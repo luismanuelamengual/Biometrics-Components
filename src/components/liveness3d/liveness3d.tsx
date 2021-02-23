@@ -56,7 +56,7 @@ export class Liveness3d {
 
     @State() maskVisible = false;
 
-    @State() startButtonVisible = false;
+    @State() startButtonVisible = true;
 
     @State() remainingSessionStartSeconds: number | null = null;
 
@@ -82,6 +82,7 @@ export class Liveness3d {
         if (this.startOnInit) {
             this.caption = '';
             this.maskVisible = true;
+            this.startButtonVisible = false;
             this.activeAnimation = null;
         }
     }
