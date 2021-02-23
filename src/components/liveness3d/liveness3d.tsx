@@ -310,9 +310,7 @@ export class Liveness3d {
                 this.maskElement.style.top = newTop + 'px';
                 this.maskElement.style.width = newWidth + 'px';
                 this.maskElement.style.height = newHeight + 'px';
-                if (this.trailPictures.length < this.maxTrailPictures) {
-                    await this.takeTrailPicture();
-                }
+                await this.takeTrailPicture();
                 this.setMaskVisible(false);
                 this.setCaption('');
                 this.verifyLiveness();
@@ -322,7 +320,10 @@ export class Liveness3d {
     }
 
     async takeTrailPicture() {
-        this.trailPictures.push(await this.cameraElement.getSnapshot(this.maxTrailPictureWidth, this.maxTrailPictureHeight, 'image/jpeg', 0.95));
+        const trailPicture = await this.cameraElement.getSnapshot(this.maxTrailPictureWidth, this.maxTrailPictureHeight, 'image/jpeg', 0.95);
+        if (this.trailPictures.length < this.maxTrailPictures) {
+            this.trailPictures.push(trailPicture);
+        }
     }
 
     async verifyLiveness() {
@@ -337,7 +338,7 @@ export class Liveness3d {
             if (!url.endsWith('/')) {
                 url += '/';
             }
-            url += 'api/v1/check_liveness_session';
+            url += 'v1/check_liveness_session';
             let response: any = await fetch (url, {
                 method: 'post',
                 body: formData,
