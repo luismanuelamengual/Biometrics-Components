@@ -331,26 +331,32 @@ export class Liveness3d {
     async verifyLiveness() {
         this.runAnimation('loading');
         try {
-            const formData = new FormData();
-            formData.append('trailPicturesCount', this.trailPictures.length.toString());
-            for (let i = 0; i < this.trailPictures.length; i++) {
-                formData.append('trailPicture' + i, this.trailPictures[i]);
-            }
-            let url = this.serverUrl;
-            if (!url.endsWith('/')) {
-                url += '/';
-            }
-            url += 'v1/check_liveness_3d';
-            let response: any = await fetch (url, {
-                method: 'post',
-                body: formData,
-                headers: {
-                    'Authorization': 'Bearer ' + this.apiKey
+            let response: any;
+            try {
+                const formData = new FormData();
+                formData.append('trailPicturesCount', this.trailPictures.length.toString());
+                for (let i = 0; i < this.trailPictures.length; i++) {
+                    formData.append('trailPicture' + (i+1), this.trailPictures[i]);
                 }
-            });
-            response = await response.json();
+                let url = this.serverUrl;
+                if (!url.endsWith('/')) {
+                    url += '/';
+                }
+                url += 'v1/check_liveness_3d';
+                response = await fetch(url, {
+                    method: 'post',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + this.apiKey
+                    }
+                });
+                response = await response.json();
+            } catch (e) {
+                throw new Error('Error de comunicación con el servidor');
+            }
             this.runAnimation('success');
         } catch (e) {
+            this.setCaption(e.message);
             this.runAnimation('fail');
         }
     }
