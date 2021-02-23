@@ -24,6 +24,8 @@ export class Liveness3d {
 
     @Prop() apiKey: string;
 
+    @Prop() startOnInit = true;
+
     @Prop() maxPictureWidth = 1280;
 
     @Prop() maxPictureHeight = 1280;
@@ -77,12 +79,19 @@ export class Liveness3d {
     }
 
     componentWillLoad() {
+        if (this.startOnInit) {
+            this.caption = '';
+            this.maskVisible = true;
+            this.activeAnimation = null;
+        }
     }
 
     componentDidLoad() {
         this.initializeAnimations();
         this.initializeDetector();
-        this.startSession();
+        if (this.startOnInit) {
+            this.startSession();
+        }
     }
 
     onStartButtonClick() {

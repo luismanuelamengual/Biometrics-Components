@@ -54,6 +54,7 @@ export namespace Components {
         "serverUrl": string;
         "sessionStartSeconds": number;
         "showStartButton": boolean;
+        "startOnInit": boolean;
     }
 }
 declare global {
@@ -128,6 +129,7 @@ declare namespace LocalJSX {
         "serverUrl"?: string;
         "sessionStartSeconds"?: number;
         "showStartButton"?: boolean;
+        "startOnInit"?: boolean;
     }
     interface IntrinsicElements {
         "biometrics-camera": BiometricsCamera;
