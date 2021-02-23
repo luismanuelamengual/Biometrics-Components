@@ -115,7 +115,7 @@ export class Liveness3d {
             container: this.failAnimationElement
         });
         this.failAnimation.addEventListener('complete', () => {
-            this.setStartButtonVisible(true);
+            this.stopSession();
         });
         this.successAnimation = Lottie.loadAnimation({
             renderer: 'svg',
@@ -125,7 +125,7 @@ export class Liveness3d {
             container: this.successAnimationElement
         });
         this.successAnimation.addEventListener('complete', () => {
-            this.setStartButtonVisible(true);
+            this.stopSession();
         });
     }
 
@@ -149,6 +149,8 @@ export class Liveness3d {
     }
 
     stopSession() {
+        this.setMaskVisible(false);
+        this.setStartButtonVisible(true);
         this.sessionRunning = false;
     }
 
@@ -338,7 +340,7 @@ export class Liveness3d {
             if (!url.endsWith('/')) {
                 url += '/';
             }
-            url += 'v1/check_liveness_session';
+            url += 'v1/check_liveness_3d';
             let response: any = await fetch (url, {
                 method: 'post',
                 body: formData,
