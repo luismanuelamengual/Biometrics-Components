@@ -34,7 +34,13 @@ export class Liveness3d {
 
     @Prop() maskAnimationSeconds = 3;
 
+    @Prop() maskAnimationExponent = 2;
+
     @Prop() maxTrailPictures = 8;
+
+    @Prop() maxTrailPictureWidth = 320;
+
+    @Prop() maxTrailPictureHeight = 320;
 
     @State() picture: Blob;
 
@@ -246,7 +252,7 @@ export class Liveness3d {
     animateMask() {
         if (this.maskElement) {
             this.trailPictures = [];
-            const exponent = 2;
+            const exponent = this.maskAnimationExponent;
             const left = this.maskElement.offsetLeft;
             const top = this.maskElement.offsetTop;
             const width = this.maskElement.offsetWidth;
@@ -280,6 +286,9 @@ export class Liveness3d {
                 this.maskElement.style.top = newTop + 'px';
                 this.maskElement.style.width = newWidth + 'px';
                 this.maskElement.style.height = newHeight + 'px';
+                if (this.trailPictures.length < this.maxTrailPictures) {
+                    await this.takeTrailPicture();
+                }
                 this.setMaskVisible(false);
                 this.setCaption('');
                 this.verifyLiveness();
@@ -289,7 +298,7 @@ export class Liveness3d {
     }
 
     async takeTrailPicture() {
-        this.trailPictures.push(await this.cameraElement.getSnapshot(300, 300, 'image/jpeg', 0.95));
+        this.trailPictures.push(await this.cameraElement.getSnapshot(this.maxTrailPictureWidth, this.maxTrailPictureHeight, 'image/jpeg', 0.95));
     }
 
     async verifyLiveness() {
