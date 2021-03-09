@@ -34,11 +34,11 @@ export class Liveness3d {
 
     @Prop() sessionStartSeconds = 3;
 
-    @Prop() maskAnimationSeconds = 3;
+    @Prop() maskAnimationSeconds = 2.5;
 
-    @Prop() maskAnimationExponent = 2;
+    @Prop() maskAnimationExponent = 1.6;
 
-    @Prop() maxTrailPictures = 8;
+    @Prop() maxTrailPictures = 6;
 
     @Prop() maxTrailPictureWidth = 320;
 
@@ -55,6 +55,8 @@ export class Liveness3d {
     @State() activeAnimation!: 'loading' | 'success' | 'fail';
 
     @State() maskVisible = false;
+
+    @State() maskMatch = false;
 
     @State() startButtonVisible = true;
 
@@ -140,6 +142,7 @@ export class Liveness3d {
 
     startSession() {
         this.sessionRunning = true;
+        this.maskMatch = false;
         this.setCaption('');
         this.setMaskVisible(true);
         this.setStartButtonVisible(false);
@@ -185,6 +188,7 @@ export class Liveness3d {
                 caption = 'El rostro no ha sido encontrado';
             }
             this.setCaption(caption);
+            this.maskMatch = faceMatch;
             if (faceMatch) {
                 this.startFaceMatchTimer();
             } else {
@@ -354,6 +358,9 @@ export class Liveness3d {
             } catch (e) {
                 throw new Error('Error de comunicación con el servidor');
             }
+            if (!response.data.liveness) {
+                throw new Error('No se superó la prueba de vida');
+            }
             this.runAnimation('success');
         } catch (e) {
             this.setCaption(e.message);
@@ -395,6 +402,7 @@ export class Liveness3d {
 
             <div ref={(el) => this.maskElement = el as HTMLDivElement} class={{
                 'mask': true,
+                'mask-match': this.maskMatch,
                 'hidden': !this.maskVisible
             }}/>
 

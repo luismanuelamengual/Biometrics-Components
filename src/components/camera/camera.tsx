@@ -107,7 +107,7 @@ export class Camera {
     }
 
     @Method()
-    async getSnapshot(maxWidth: number, maxHeight: number, type: string = 'image/jpeg', quality = 0.75) {
+    async getSnapshot(maxWidth: number, maxHeight: number, type: string = 'image/jpeg', quality = 0.75): Promise<Blob> {
         this.takeSnapshot(maxWidth, maxHeight);
         return new Promise<Blob>((resolve) => {
             this.canvasElement.toBlob(resolve, type, quality)
@@ -115,13 +115,13 @@ export class Camera {
     }
 
     @Method()
-    async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg') {
+    async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg'): Promise<string> {
         this.takeSnapshot(maxWidth, maxHeight);
         return this.canvasElement.toDataURL(type);
     }
 
     @Method()
-    async getSnapshotImageData(maxWidth: number, maxHeight: number) {
+    async getSnapshotImageData(maxWidth: number, maxHeight: number): Promise<ImageData> {
         this.takeSnapshot(maxWidth, maxHeight);
         const canvas = this.canvasElement;
         return canvas.width > 0 && canvas.height ? canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height) : null;
