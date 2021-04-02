@@ -50,12 +50,12 @@ $borderRadius: 30px;
     .mask {
         position: absolute;
         z-index: 2400;
-        border: 5px solid black;
+        border: 5px solid red;
         border-radius: 50%;
         box-shadow: 0 0 0 99999px rgba(255, 255, 255, .80);
 
         &.mask-match {
-            border: 8px solid greenyellow;
+            border: 8px solid gray;
         }
     }
 
