@@ -44,15 +44,10 @@ export namespace Components {
     interface BiometricsLiveness3d {
         "apiKey": string;
         "faceDetectionInterval": number;
-        "maskAnimationExponent": number;
-        "maskAnimationSeconds": number;
+        "faceDetectionSeconds": number;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
-        "maxTrailPictureHeight": number;
-        "maxTrailPictureWidth": number;
-        "maxTrailPictures": number;
         "serverUrl": string;
-        "sessionStartSeconds": number;
         "showStartButton": boolean;
         "startOnInit": boolean;
     }
@@ -119,15 +114,10 @@ declare namespace LocalJSX {
     interface BiometricsLiveness3d {
         "apiKey"?: string;
         "faceDetectionInterval"?: number;
-        "maskAnimationExponent"?: number;
-        "maskAnimationSeconds"?: number;
+        "faceDetectionSeconds"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
-        "maxTrailPictureHeight"?: number;
-        "maxTrailPictureWidth"?: number;
-        "maxTrailPictures"?: number;
         "serverUrl"?: string;
-        "sessionStartSeconds"?: number;
         "showStartButton"?: boolean;
         "startOnInit"?: boolean;
     }

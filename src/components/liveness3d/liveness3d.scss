@@ -5,7 +5,7 @@ $borderRadius: 30px;
 
 :host {
     box-sizing: border-box;
-    position: absolute;
+    position: fixed;
     background: white;
     top: 0;
     left: 0;
@@ -25,19 +25,20 @@ $borderRadius: 30px;
         display: table;
         position: absolute;
         text-align: center;
-        width: 80%;
+        width: 100%;
         z-index: 2500;
         top: 20px;
-        left: 10%;
 
         .caption {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'system-ui';
+            font-weight: bolder;
             color: white;
             background-color: rgba(12, 28, 65, 0.8);
             text-shadow: 1px 1px #000000;
-            font-size: 20px;
+            font-size: 34px;
+            border: 1px solid white;
             border-radius: 8px;
-            max-width: 300px;
+            max-width: 80%;
             margin: 0 auto;
             padding: 12px;
 
@@ -49,13 +50,45 @@ $borderRadius: 30px;
 
     .mask {
         position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        transform: translate(-50%, -50%);
         z-index: 2400;
         border: 5px solid red;
         border-radius: 50%;
-        box-shadow: 0 0 0 99999px rgba(255, 255, 255, .80);
+        box-shadow: 0 0 0 99999px rgba(0, 0, 0, .85);
+
+        &.mask-zoom {
+            -webkit-transition: width 0.5s 0s ease, height 0.5s 0s ease;
+            -moz-transition: width 0.5s 0s ease, height 0.5s 0s ease;
+            -o-transition: width 0.5s 0s ease, height 0.5s 0s ease;
+            transition: width 0.5s 0s ease, height 0.5s 0s ease;
+        }
 
         &.mask-match {
-            border: 8px solid gray;
+            border: 8px solid greenyellow;
+        }
+
+        @media (orientation: portrait) {
+            width: 70vmin;
+            height: 93vmin;
+
+            &.mask-zoom {
+                width: 100vmin;
+                height: 133vmin;
+            }
+        }
+
+        @media (orientation: landscape) {
+            width: 52vmin;
+            height: 70vmin;
+
+            &.mask-zoom {
+                width: 75vmin;
+                height: 100vmin;
+            }
         }
     }
 
@@ -96,10 +129,9 @@ $borderRadius: 30px;
             border: 2px solid white;
             border-radius: 18px;
             background: black;
-            opacity: 0.6;
             color: #ffffff;
             font-family: "Open Sans", sans-serif;
-            font-size: 15px;
+            font-size: 38px;
             font-weight: 500;
             cursor: pointer;
             padding: 10px 20px;
