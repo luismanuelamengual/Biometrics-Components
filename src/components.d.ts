@@ -117,6 +117,8 @@ declare namespace LocalJSX {
         "faceDetectionSeconds"?: number;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
+        "onSessionFailed"?: (event: CustomEvent<any>) => void;
+        "onSessionSucceded"?: (event: CustomEvent<any>) => void;
         "serverUrl"?: string;
         "showStartButton"?: boolean;
         "startOnInit"?: boolean;

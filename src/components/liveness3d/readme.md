@@ -19,6 +19,14 @@
 | `startOnInit`           | `start-on-init`           |             | `boolean` | `true`      |
 
 
+## Events
+
+| Event             | Description | Type               |
+| ----------------- | ----------- | ------------------ |
+| `sessionFailed`   |             | `CustomEvent<any>` |
+| `sessionSucceded` |             | `CustomEvent<any>` |
+
+
 ## Dependencies
 
 ### Depends on
