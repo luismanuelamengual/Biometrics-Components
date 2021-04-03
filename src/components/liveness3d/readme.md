@@ -7,16 +7,16 @@
 
 ## Properties
 
-| Property                | Attribute                 | Description | Type     | Default     |
-| ----------------------- | ------------------------- | ----------- | -------- | ----------- |
-| `apiKey`                | `api-key`                 |             | `string` | `undefined` |
-| `faceDetectionInterval` | `face-detection-interval` |             | `number` | `200`       |
-| `maskAnimationSeconds`  | `mask-animation-seconds`  |             | `number` | `3`         |
-| `maxPictureHeight`      | `max-picture-height`      |             | `number` | `1280`      |
-| `maxPictureWidth`       | `max-picture-width`       |             | `number` | `1280`      |
-| `maxTrailPictures`      | `max-trail-pictures`      |             | `number` | `8`         |
-| `serverUrl`             | `server-url`              |             | `string` | `undefined` |
-| `sessionStartSeconds`   | `session-start-seconds`   |             | `number` | `3`         |
+| Property                | Attribute                 | Description | Type      | Default     |
+| ----------------------- | ------------------------- | ----------- | --------- | ----------- |
+| `apiKey`                | `api-key`                 |             | `string`  | `undefined` |
+| `faceDetectionInterval` | `face-detection-interval` |             | `number`  | `200`       |
+| `faceDetectionSeconds`  | `face-detection-seconds`  |             | `number`  | `2`         |
+| `maxPictureHeight`      | `max-picture-height`      |             | `number`  | `1280`      |
+| `maxPictureWidth`       | `max-picture-width`       |             | `number`  | `1280`      |
+| `serverUrl`             | `server-url`              |             | `string`  | `undefined` |
+| `showStartButton`       | `show-start-button`       |             | `boolean` | `true`      |
+| `startOnInit`           | `start-on-init`           |             | `boolean` | `true`      |
 
 
 ## Dependencies

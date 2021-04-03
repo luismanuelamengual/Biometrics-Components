@@ -1,4 +1,4 @@
-import {Component, Element, getAssetPath, h, Host, Prop, State} from '@stencil/core';
+import {Component, Element, Event, EventEmitter, getAssetPath, h, Host, Prop, State} from '@stencil/core';
 import {Detector} from "../../utils/detector";
 import Lottie from "lottie-web";
 // @ts-ignore
@@ -51,6 +51,10 @@ export class Liveness3d {
     @State() startButtonVisible = true;
 
     @State() remainingFaceDetectionSeconds: number | null = null;
+
+    @Event() sessionSucceded: EventEmitter;
+
+    @Event() sessionFailed: EventEmitter;
 
     detector: Detector = new Detector();
     cameraElement: HTMLBiometricsCameraElement;
@@ -106,7 +110,7 @@ export class Liveness3d {
             container: this.failAnimationElement
         });
         this.failAnimation.addEventListener('complete', () => {
-            this.stopSession();
+            this.onSessionFail();
         });
         this.successAnimation = Lottie.loadAnimation({
             renderer: 'svg',
@@ -116,7 +120,7 @@ export class Liveness3d {
             container: this.successAnimationElement
         });
         this.successAnimation.addEventListener('complete', () => {
-            this.stopSession();
+            this.onSessionSuccess();
         });
     }
 
@@ -145,6 +149,19 @@ export class Liveness3d {
         this.setMaskVisible(false);
         this.setStartButtonVisible(true);
         this.sessionRunning = false;
+    }
+
+    onSessionFail() {
+        this.stopSession();
+        this.sessionFailed.emit();
+    }
+
+    onSessionSuccess() {
+        this.stopSession();
+        this.sessionSucceded.emit({
+            picture: this.picture,
+            zoomedPicture: this.zoomedPicture
+        });
     }
 
     startFaceDetection(interval: number) {
