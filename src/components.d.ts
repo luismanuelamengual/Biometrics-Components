@@ -43,6 +43,7 @@ export namespace Components {
     }
     interface BiometricsLiveness3d {
         "apiKey": string;
+        "debugMode": boolean;
         "faceDetectionInterval": number;
         "faceDetectionSeconds": number;
         "maxPictureHeight": number;
@@ -113,6 +114,7 @@ declare namespace LocalJSX {
     }
     interface BiometricsLiveness3d {
         "apiKey"?: string;
+        "debugMode"?: boolean;
         "faceDetectionInterval"?: number;
         "faceDetectionSeconds"?: number;
         "maxPictureHeight"?: number;

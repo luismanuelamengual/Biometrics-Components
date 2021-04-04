@@ -34,6 +34,8 @@ export class Liveness3d {
 
     @Prop() showStartButton = true;
 
+    @Prop() debugMode = false;
+
     @State() picture: Blob = null;
 
     @State() zoomedPicture: Blob = null;
@@ -291,6 +293,9 @@ export class Liveness3d {
                 const formData = new FormData();
                 formData.append('picture', this.picture);
                 formData.append('zoomedPicture', this.zoomedPicture);
+                if (this.debugMode) {
+                    formData.append('debugMode', 'true');
+                }
                 let url = this.serverUrl;
                 if (!url.endsWith('/')) {
                     url += '/';
