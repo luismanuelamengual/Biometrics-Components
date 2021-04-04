@@ -57,17 +57,16 @@ export class Camera {
     async initializeVideo() {
         const hostAspectRatio = this.host.offsetWidth / this.host.offsetHeight;
         const mediaFallbackConstraints: Array<MediaStreamConstraints> = [];
-        const videoResolutions = [4096, 2028, 1024, 960, 720];
         if (hostAspectRatio > 1) {
-            for (const videoResolution of videoResolutions) {
-                mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode, width: { ideal: videoResolution }}});
-            }
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 1200}, height: {max: 1000}}});
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 1000}, height: {max: 800}}});
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 700}, height: {max: 500}}});
         } else {
-            for (const videoResolution of videoResolutions) {
-                mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode, height: { ideal: videoResolution }}});
-            }
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 1200}, width: {max: 1000}}});
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 1000}, width: {max: 800}}});
+            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 700}, width: {max: 500}}});
         }
-        mediaFallbackConstraints.push({audio: false, video: {facingMode: this.facingMode}});
+        mediaFallbackConstraints.push({video: {facingMode: this.facingMode}});
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
             try {

@@ -190,10 +190,8 @@ export class Liveness3d {
                 } else {
                     const faceCenterX = faceRect.x + (faceRect.width / 2);
                     const faceCenterY = faceRect.y + (faceRect.height / 2);
-                    const faceMaxOffsetDifferential = maskWidth * 0.1;
-                    const faceXDifferential = Math.abs(faceCenterX - maskCenterX);
-                    const faceYDifferential = Math.abs(faceCenterY - maskCenterY);
-                    if (faceXDifferential > faceMaxOffsetDifferential || faceYDifferential > faceMaxOffsetDifferential) {
+                    const distanceToCenter = Math.sqrt(Math.pow(faceCenterX - maskCenterX, 2) + Math.pow(faceCenterY - maskCenterY, 2));
+                    if (distanceToCenter > 80) {
                         caption = 'El rostro no esta centrado';
                     } else {
                         faceMatch = true;
