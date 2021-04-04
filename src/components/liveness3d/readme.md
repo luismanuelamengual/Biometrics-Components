@@ -10,6 +10,7 @@
 | Property                | Attribute                 | Description | Type      | Default     |
 | ----------------------- | ------------------------- | ----------- | --------- | ----------- |
 | `apiKey`                | `api-key`                 |             | `string`  | `undefined` |
+| `debugMode`             | `debug-mode`              |             | `boolean` | `false`     |
 | `faceDetectionInterval` | `face-detection-interval` |             | `number`  | `200`       |
 | `faceDetectionSeconds`  | `face-detection-seconds`  |             | `number`  | `2`         |
 | `maxPictureHeight`      | `max-picture-height`      |             | `number`  | `1280`      |

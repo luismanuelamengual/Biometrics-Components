@@ -70,6 +70,7 @@ export class Liveness3d {
     loadingAnimation = null;
     successAnimation = null;
     failAnimation = null;
+    livenessDebugData = null;
 
     constructor() {
         this.onStartButtonClick = this.onStartButtonClick.bind(this);
@@ -140,6 +141,7 @@ export class Liveness3d {
         this.maskMatch = false;
         this.picture = null;
         this.zoomedPicture = null;
+        this.livenessDebugData = null;
         this.setCaption('');
         this.setMaskVisible(true);
         this.setStartButtonVisible(false);
@@ -162,7 +164,8 @@ export class Liveness3d {
         this.stopSession();
         this.sessionSucceded.emit({
             picture: this.picture,
-            zoomedPicture: this.zoomedPicture
+            zoomedPicture: this.zoomedPicture,
+            debugData: this.livenessDebugData
         });
     }
 
@@ -314,6 +317,9 @@ export class Liveness3d {
             }
             if (!response.data.liveness) {
                 throw new Error('No se superó la prueba de vida');
+            }
+            if (response.data.debugData) {
+                this.livenessDebugData = response.data.debugData;
             }
             this.successSession();
         } catch (e) {
