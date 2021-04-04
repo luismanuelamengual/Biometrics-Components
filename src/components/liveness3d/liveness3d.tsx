@@ -157,7 +157,9 @@ export class Liveness3d {
 
     onSessionFail() {
         this.stopSession();
-        this.sessionFailed.emit();
+        this.sessionFailed.emit({
+            debugData: this.livenessDebugData
+        });
     }
 
     onSessionSuccess() {
@@ -315,11 +317,11 @@ export class Liveness3d {
             } catch (e) {
                 throw new Error('Error de comunicación con el servidor');
             }
-            if (!response.data.liveness) {
-                throw new Error('No se superó la prueba de vida');
-            }
             if (response.data.debugData) {
                 this.livenessDebugData = response.data.debugData;
+            }
+            if (!response.data.liveness) {
+                throw new Error('No se superó la prueba de vida');
             }
             this.successSession();
         } catch (e) {
