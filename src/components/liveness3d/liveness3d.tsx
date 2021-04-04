@@ -200,11 +200,7 @@ export class Liveness3d {
                     }
                 }
             } else {
-                if (this.picture) {
-                    this.failSession('Prueba de vida no superada');
-                } else {
-                    caption = 'El rostro no ha sido encontrado';
-                }
+                caption = 'El rostro no ha sido encontrado';
             }
             if (caption) {
                 this.setCaption(caption);
