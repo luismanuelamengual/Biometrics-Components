@@ -44,11 +44,6 @@ $snapshotButtonSize: 50px;
 
                 canvas {
                     display: none;
-
-                    &.active {
-                        display: block;
-                        z-index: 1;
-                    }
                 }
 
                 video {
@@ -84,10 +79,6 @@ $snapshotButtonSize: 50px;
                     &.button-capture {
                         background: red;
                     }
-
-                    &.button-confirm {
-                        background: green;
-                    }
                 }
 
                 &.button-classic {
@@ -98,14 +89,6 @@ $snapshotButtonSize: 50px;
                         background-size: 80%;
                         background-repeat: no-repeat;
                         background-position: center;
-                    }
-
-                    &.button-confirm {
-                        &:after {
-                            content: "OK";
-                            color: white;
-                            font-size: 20px;
-                        }
                     }
                 }
             }

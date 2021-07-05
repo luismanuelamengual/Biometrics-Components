@@ -21,6 +21,14 @@ $borderRadius: 30px;
         display: none !important;
     }
 
+    .preview-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
     .caption-container {
         display: table;
         position: absolute;

@@ -7,6 +7,7 @@ import loadingAnimationData from './assets/animations/loading.json';
 import failAnimationData from './assets/animations/fail.json';
 // @ts-ignore
 import successAnimationData from './assets/animations/success.json';
+import {ImageUtils} from "../../utils/image-utils";
 
 @Component({
     tag: 'biometrics-liveness3d',
@@ -24,9 +25,9 @@ export class Liveness3d {
 
     @Prop() startOnInit = true;
 
-    @Prop() maxPictureWidth = 1280;
+    @Prop() maxPictureWidth = 2048;
 
-    @Prop() maxPictureHeight = 1280;
+    @Prop() maxPictureHeight = 2048;
 
     @Prop() faceDetectionInterval = 200;
 
@@ -36,9 +37,7 @@ export class Liveness3d {
 
     @Prop() debugMode = false;
 
-    @State() picture: Blob = null;
-
-    @State() zoomedPicture: Blob = null;
+    @State() pictureUrl: string;
 
     @State() caption: string;
 
@@ -64,6 +63,7 @@ export class Liveness3d {
     maskElement!: HTMLDivElement;
     faceDetectionTask: any = null;
     faceMatchTask: any = null;
+    faceMatchTaskRunning = false;
     loadingAnimationElement!: HTMLDivElement;
     successAnimationElement!: HTMLDivElement;
     failAnimationElement!: HTMLDivElement;
@@ -71,6 +71,8 @@ export class Liveness3d {
     successAnimation = null;
     failAnimation = null;
     livenessDebugData = null;
+    picture: Blob = null;
+    zoomedPicture: Blob = null;
 
     constructor() {
         this.onStartButtonClick = this.onStartButtonClick.bind(this);
@@ -141,6 +143,7 @@ export class Liveness3d {
         this.maskMatch = false;
         this.picture = null;
         this.zoomedPicture = null;
+        this.pictureUrl = null;
         this.livenessDebugData = null;
         this.setCaption('');
         this.setMaskVisible(true);
@@ -185,7 +188,7 @@ export class Liveness3d {
                 const maskCenterY = maskRect.y + (maskHeight/2);
                 if (faceRect.width < (maskWidth*0.8) || faceRect.height < (maskWidth*0.8)) {
                     caption = 'Acerque su rostro a la camara';
-                } else if (faceRect.width > (maskWidth * 1.2) || faceRect.height > (maskWidth * 1.2)) {
+                } else if (faceRect.width > (maskWidth * 1.0) || faceRect.height > (maskWidth * 1.0)) {
                     caption = 'Aleje su rostro de la camara';
                 } else {
                     const faceCenterX = faceRect.x + (faceRect.width / 2);
@@ -220,24 +223,34 @@ export class Liveness3d {
     }
 
     stopFaceMatchTimer() {
-        if (this.faceMatchTask) {
-            clearInterval(this.faceMatchTask);
+        if (this.faceMatchTaskRunning) {
+            clearTimeout(this.faceMatchTask);
             this.remainingFaceDetectionSeconds = null;
             this.faceMatchTask = null;
+            this.faceMatchTaskRunning = false;
         }
     }
 
     startFaceMatchTimer() {
-        if (!this.faceMatchTask) {
+        if (!this.faceMatchTaskRunning) {
+            this.faceMatchTaskRunning = true;
             this.setCaption('Mantenga su rostro firme durante un momento ...');
             this.remainingFaceDetectionSeconds = this.faceDetectionSeconds;
-            this.faceMatchTask = setInterval( async () => {
-                this.remainingFaceDetectionSeconds--;
-                if (this.remainingFaceDetectionSeconds <= 0) {
-                    const picture = await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', 0.95);
+            this.faceMatchTask = setTimeout( () => {
+                this.runFaceMatchTask();
+            }, 1000);
+        }
+    }
+
+    async runFaceMatchTask() {
+        if (this.faceMatchTaskRunning) {
+            this.remainingFaceDetectionSeconds--;
+            if (this.remainingFaceDetectionSeconds <= 0) {
+                const picture = await this.cameraElement.capture ({type: 'blob', maxWidth: this.maxPictureWidth, maxHeight: this.maxPictureHeight});
+                if (this.faceMatchTaskRunning) {
                     if (!this.picture) {
                         this.picture = picture;
-                    } else {
+                    } else if (!this.zoomedPicture) {
                         this.zoomedPicture = picture;
                         this.setMaskVisible(false);
                         this.stopFaceDetection();
@@ -245,7 +258,11 @@ export class Liveness3d {
                     }
                     this.stopFaceMatchTimer();
                 }
-            }, 1000);
+            } else {
+                this.faceMatchTask = setTimeout( () => {
+                    this.runFaceMatchTask();
+                }, 1000);
+            }
         }
     }
 
@@ -259,24 +276,26 @@ export class Liveness3d {
 
     async detectFaceRect(): Promise<DOMRect> {
         let faceRect: DOMRect = null;
-        const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
-        if (imageData != null) {
-            const imageWidth = imageData.width;
-            const imageHeight = imageData.height;
-            const cameraWidth = this.cameraElement.offsetWidth;
-            const cameraHeight = this.cameraElement.offsetHeight;
-            const imageXFactor = cameraWidth / imageWidth;
-            const imageYFactor = cameraHeight / imageHeight;
-            let detections = this.detector.detect('frontal_face', imageData);
-            if (detections && detections.length) {
-                detections = detections.filter((detection) => detection[3] > 5).sort((detection1, detection2) => detection1[3] - detection2[3]);
-                const bestDetection = detections[0];
-                if (bestDetection && bestDetection.length >= 3) {
-                    const centerY = bestDetection[0] * imageXFactor;
-                    const centerX = bestDetection[1] * imageYFactor;
-                    const diameter = bestDetection[2] * imageXFactor;
-                    const radius = diameter / 2;
-                    faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
+        if (this.cameraElement) {
+            const imageData = await this.cameraElement.capture ({type: 'imageData', maxWidth: 320, maxHeight: 320} );
+            if (imageData != null) {
+                const imageWidth = imageData.width;
+                const imageHeight = imageData.height;
+                const cameraWidth = this.cameraElement.offsetWidth;
+                const cameraHeight = this.cameraElement.offsetHeight;
+                const imageXFactor = cameraWidth / imageWidth;
+                const imageYFactor = cameraHeight / imageHeight;
+                let detections = this.detector.detect('frontal_face', imageData);
+                if (detections && detections.length) {
+                    detections = detections.filter((detection) => detection[3] > 5).sort((detection1, detection2) => detection1[3] - detection2[3]);
+                    const bestDetection = detections[0];
+                    if (bestDetection && bestDetection.length >= 3) {
+                        const centerY = bestDetection[0] * imageXFactor;
+                        const centerX = bestDetection[1] * imageYFactor;
+                        const diameter = bestDetection[2] * imageXFactor;
+                        const radius = diameter / 2;
+                        faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
+                    }
                 }
             }
         }
@@ -286,6 +305,7 @@ export class Liveness3d {
     async verifyLiveness() {
         this.setCaption('Verificando identidad');
         this.runAnimation('loading');
+        this.pictureUrl = await ImageUtils.convertBlobToImage(this.zoomedPicture);
         try {
             let response: any;
             try {
@@ -360,13 +380,12 @@ export class Liveness3d {
             <div ref={(el) => this.loadingAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'loading'}}/>
             <div ref={(el) => this.successAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'success'}}/>
             <div ref={(el) => this.failAnimationElement = el as HTMLDivElement} class={{'liveness-animation': true, 'hidden': this.activeAnimation !== 'fail'}}/>
-            <biometrics-camera
+            {this.sessionRunning && <biometrics-camera
                 ref={(el) => this.cameraElement = el as HTMLBiometricsCameraElement}
                 facingMode="user"
-                showCaptureButton={false}
-                maxPictureWidth={this.maxPictureWidth}
-                maxPictureHeight={this.maxPictureHeight}>
-            </biometrics-camera>
+                showCaptureButton={false}>
+            </biometrics-camera>}
+            {this.pictureUrl && <img class="preview-image" src={this.pictureUrl}/>}
             {this.maskVisible && <div ref={(el) => this.maskElement = el as HTMLDivElement} class={{
                 'mask': true,
                 'mask-zoom': this.picture != null,

@@ -8,16 +8,14 @@ import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
     interface BiometricsCamera {
         "buttonStyle": 'normal' | 'classic';
-        "capture": () => Promise<void>;
+        "capture": (options?: { type?: 'blob' | 'url' | 'imageData'; maxWidth?: number; maxHeight?: number; quality?: number; silent?: boolean; }) => Promise<any>;
+        "captureType": 'blob' | 'url' | 'imageData';
         "facingMode": 'environment' | 'user' | 'left' | 'right';
         "fullScreen": boolean;
-        "getSnapshot": (maxWidth: number, maxHeight: number, type?: string, quality?: number) => Promise<Blob>;
-        "getSnapshotImageData": (maxWidth: number, maxHeight: number) => Promise<ImageData>;
-        "getSnapshotUrl": (maxWidth: number, maxHeight: number, type?: string) => Promise<string>;
         "maxPictureHeight": number;
         "maxPictureWidth": number;
+        "pictureQuality": number;
         "showCaptureButton": boolean;
-        "showConfirmButton": boolean;
     }
     interface BiometricsLiveness {
         "apiKey": string;
@@ -81,13 +79,14 @@ declare global {
 declare namespace LocalJSX {
     interface BiometricsCamera {
         "buttonStyle"?: 'normal' | 'classic';
+        "captureType"?: 'blob' | 'url' | 'imageData';
         "facingMode"?: 'environment' | 'user' | 'left' | 'right';
         "fullScreen"?: boolean;
         "maxPictureHeight"?: number;
         "maxPictureWidth"?: number;
         "onPictureCaptured"?: (event: CustomEvent<any>) => void;
+        "pictureQuality"?: number;
         "showCaptureButton"?: boolean;
-        "showConfirmButton"?: boolean;
     }
     interface BiometricsLiveness {
         "apiKey"?: string;

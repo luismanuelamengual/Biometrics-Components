@@ -243,7 +243,7 @@ export class Liveness {
         if (this.running && !this.checkingImage) {
             this.checkingImage = true;
             try {
-                const image: Blob = await this.cameraElement.getSnapshot (this.maxInstructionPictureWidth, this.maxInstructionPictureHeight, 'image/jpeg', this.instructionPictureQuality);
+                const image: Blob = await this.cameraElement.capture ({maxWidth: this.maxInstructionPictureWidth, maxHeight: this.maxInstructionPictureHeight, quality: this.instructionPictureQuality});
                 if (image !== null) {
                     const formData = new FormData();
                     formData.append('instruction', this.instruction);
@@ -286,7 +286,7 @@ export class Liveness {
                             this.status = this.FACE_FOUND_STATUS_CODE;
                             this.instructionPictures.push(image);
                             if (this.livenessPicture === null) {
-                                this.livenessPicture = await this.cameraElement.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', this.pictureQuality);
+                                this.livenessPicture = await this.cameraElement.capture({maxWidth: this.maxPictureWidth, maxHeight: this.maxPictureHeight, quality: this.pictureQuality});
                             }
                             this.instructionsRemaining--;
                             if (!this.instructionsRemaining) {

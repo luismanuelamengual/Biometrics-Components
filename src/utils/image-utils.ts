@@ -1,6 +1,6 @@
 export class ImageUtils {
 
-    public convertImageToBlob(imageUrl, type = 'image/jpeg', quality = 0.95): Promise<Blob> {
+    public static convertImageToBlob(imageUrl, type = 'image/jpeg', quality = 0.95): Promise<Blob> {
         return new Promise((resolve, reject) => {
             const image = new Image();
             image.onload = () => {
@@ -14,6 +14,14 @@ export class ImageUtils {
             image.onerror = () => reject(null);
             image.crossOrigin = 'anonymous';
             image.src = imageUrl;
+        });
+    }
+
+    public static convertBlobToImage(image: Blob): Promise<string> {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(image);
+            reader.onloadend = () => resolve(reader.result as string);
         });
     }
 }

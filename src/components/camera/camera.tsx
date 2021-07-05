@@ -18,22 +18,22 @@ export class Camera {
     maxPictureHeight = 1280;
 
     @Prop()
+    pictureQuality = 0.95;
+
+    @Prop()
     facingMode: 'environment' | 'user' | 'left' | 'right' = 'environment';
 
     @Prop()
     buttonStyle: 'normal' | 'classic' = 'normal';
 
     @Prop()
+    captureType: 'blob' | 'url' | 'imageData' = 'url';
+
+    @Prop()
     fullScreen = true;
 
     @Prop()
     showCaptureButton = true;
-
-    @Prop()
-    showConfirmButton = true;
-
-    @State()
-    picture: Blob = null;
 
     @Event()
     pictureCaptured: EventEmitter;
@@ -43,7 +43,6 @@ export class Camera {
 
     constructor() {
         this.onCaptureButtonClick = this.onCaptureButtonClick.bind(this);
-        this.onConfirmButtonClick = this.onConfirmButtonClick.bind(this);
     }
 
     componentDidLoad() {
@@ -55,18 +54,9 @@ export class Camera {
     }
 
     async initializeVideo() {
-        const hostAspectRatio = this.host.offsetWidth / this.host.offsetHeight;
         const mediaFallbackConstraints: Array<MediaStreamConstraints> = [];
-        if (hostAspectRatio > 1) {
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 1200}, height: {max: 1000}}});
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 1000}, height: {max: 800}}});
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, width: {min: 700}, height: {max: 500}}});
-        } else {
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 1200}, width: {max: 1000}}});
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 1000}, width: {max: 800}}});
-            mediaFallbackConstraints.push({video: {facingMode: this.facingMode, height: {min: 700}, width: {max: 500}}});
-        }
         mediaFallbackConstraints.push({video: {facingMode: this.facingMode}});
+        mediaFallbackConstraints.push({video: true});
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
             try {
@@ -92,41 +82,51 @@ export class Camera {
 
     onCaptureButtonClick() {
         this.capture();
-        this.finalizeVideo();
-    }
-
-    onConfirmButtonClick() {
-        this.picture = null;
-        this.initializeVideo();
     }
 
     @Method()
-    async capture() {
-        this.setPicture(await this.getSnapshot(this.maxPictureWidth, this.maxPictureHeight, 'image/jpeg', 0.95));
+    async capture(options?: {type?: 'blob' | 'url' | 'imageData', maxWidth?: number, maxHeight?: number, quality?: number,  silent?: boolean}) {
+        const captureType = options?.type || this.captureType;
+        const maxWidth = options?.maxWidth || this.maxPictureWidth;
+        const maxHeight = options?.maxHeight || this.maxPictureHeight;
+        const quality = options?.quality || this.pictureQuality;
+        let picture = null;
+        switch(captureType) {
+            case 'blob':
+                picture = await this.getSnapshotBlob(maxWidth, maxHeight, 'image/jpeg', quality);
+                break;
+            case 'url':
+                picture = await this.getSnapshotUrl(maxWidth, maxHeight);
+                break;
+            case 'imageData':
+                picture = await this.getSnapshotImageData(maxWidth, maxHeight);
+                break;
+        }
+        if (!options?.silent) {
+            this.pictureCaptured.emit(picture);
+        }
+        return picture;
     }
 
-    @Method()
-    async getSnapshot(maxWidth: number, maxHeight: number, type: string = 'image/jpeg', quality = 0.75): Promise<Blob> {
+    private async getSnapshotBlob(maxWidth: number, maxHeight: number, type: string = 'image/jpeg', quality = 0.95): Promise<Blob> {
         this.takeSnapshot(maxWidth, maxHeight);
         return new Promise<Blob>((resolve) => {
             this.canvasElement.toBlob(resolve, type, quality)
         });
     }
 
-    @Method()
-    async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg'): Promise<string> {
+    private async getSnapshotUrl(maxWidth: number, maxHeight: number, type: string = 'image/jpeg'): Promise<string> {
         this.takeSnapshot(maxWidth, maxHeight);
         return this.canvasElement.toDataURL(type);
     }
 
-    @Method()
-    async getSnapshotImageData(maxWidth: number, maxHeight: number): Promise<ImageData> {
+    private async getSnapshotImageData(maxWidth: number, maxHeight: number): Promise<ImageData> {
         this.takeSnapshot(maxWidth, maxHeight);
         const canvas = this.canvasElement;
         return canvas.width > 0 && canvas.height ? canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height) : null;
     }
 
-    takeSnapshot(maxWidth: number, maxHeight: number) {
+    private takeSnapshot(maxWidth: number, maxHeight: number) {
         const video = this.videoElement;
         const canvas = this.canvasElement;
         const videoWidth = video.videoWidth;
@@ -170,24 +170,18 @@ export class Camera {
         context.drawImage(video, sx, sy, canvasWidth, canvasHeight, 0, 0, scaledCanvasWidth, scaledCanvasHeight);
     }
 
-    setPicture(picture: Blob) {
-        this.picture = picture;
-        this.pictureCaptured.emit(this.picture);
-    }
-
     render() {
         return <Host>
             <div class={{"camera":true, "camera-fullscreen": this.fullScreen}}>
                 <div class="camera-video-wrapper">
                     <div class="camera-video">
-                        <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true, "active": this.picture !== null}}/>
+                        <canvas ref={(el) => this.canvasElement = el as HTMLCanvasElement} class={{"video-element": true}}/>
                         <video ref={(el) => this.videoElement = el as HTMLVideoElement} class={{"video-element": true, "video-user-mode": this.facingMode === 'user'}} autoplay playsinline/>
                         <slot/>
                     </div>
                 </div>
                 <div class="camera-controls">
-                    {this.picture === null && this.showCaptureButton && <button type="button" class={{"button": true, "button-normal": this.buttonStyle === 'normal', "button-classic": this.buttonStyle === 'classic', "button-capture": true}} onClick={this.onCaptureButtonClick}/>}
-                    {this.picture !== null && this.showConfirmButton && <button type="button" class={{"button": true, "button-normal": this.buttonStyle === 'normal', "button-classic": this.buttonStyle === 'classic', "button-confirm": true}} onClick={this.onConfirmButtonClick}/>}
+                    {this.showCaptureButton && <button type="button" class={{"button": true, "button-normal": this.buttonStyle === 'normal', "button-classic": this.buttonStyle === 'classic', "button-capture": true}} onClick={this.onCaptureButtonClick}/>}
                 </div>
             </div>
         </Host>;
