@@ -1,4 +1,10 @@
 src/
+www/
+node_modules/
+tsconfig.json
+web-dev-server.config.js
+.editorconfig
+rollup.config.js
 
 *~
 *.sw[mnpcod]
@@ -6,19 +12,5 @@ src/
 *.lock
 *.tmp
 *.tmp.*
-log.txt
-*.sublime-project
-*.sublime-workspace
 
-.stencil/
 .idea/
-.vscode/
-.sass-cache/
-.versions/
-node_modules/
-$RECYCLE.BIN/
-
-.DS_Store
-Thumbs.db
-UserInterfaceState.xcuserstate
-.env

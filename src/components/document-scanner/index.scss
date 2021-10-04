@@ -1,0 +1,81 @@
+:host {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+
+    .container {
+        position: relative;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+
+        biometrics-camera {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .mask {
+            position: absolute;
+            border: 4px solid white;
+            box-shadow: rgba(0,0,0,0.6) 0 0 0 99999px;
+            z-index: 2400;
+            box-sizing: border-box;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 5%;
+            right: 5%;
+            width: 90%;
+            padding-bottom: 26%;
+
+            @media (min-width: 540px) {
+                left: 10%;
+                right: 10%;
+                width: 80%;
+                padding-bottom: 22%;
+            }
+
+            .diode {
+                box-sizing: border-box;
+
+                @media (min-width:1025px) {
+                    animation: beam .01s infinite;
+                }
+
+                .laser {
+                    box-sizing: border-box;
+                    top: 0;
+                    width: 100%;
+                    height: 2px;
+                    background-color: tomato;
+                    position: absolute;
+                    z-index: 2;
+                    box-shadow: 0 0 4px red;
+                    animation: scanning 2s infinite;
+                }
+            }
+        }
+    }
+}
+
+@keyframes beam {
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes scanning {
+    50% {
+        top: 100%;
+    }
+}

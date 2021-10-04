@@ -1,0 +1,37 @@
+biometrics-container {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+biometrics-container[fluid="true"] {
+    max-width: 100% !important;
+}
+
+@media (min-width: 576px) {
+    biometrics-container {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    biometrics-container {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    biometrics-container {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    biometrics-container {
+        max-width: 1140px;
+    }
+}

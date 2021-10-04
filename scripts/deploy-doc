@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+startTime="$(date -u +%s)"
+baseAppPath='/var/www/html'
+serverHost=$1
+baseUrl=$2
+appPath='{appPath}'
+baseHref=''
+appOutputPath="docs"
+appPath="$baseAppPath$baseUrl"
+appDirname="$(dirname $appPath)"
+appBasename="$(basename $appPath)"
+appZippedFilename="${appBasename}.$(date +%Y%m%d%H%M%S).zip"
+
+echo "server: $serverHost"
+echo "docPath: $appPath"
+echo "docZippedFile: $appZippedFilename"
+echo
+read -p "Is this ok? " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+echo
+
+echo "1) Building documentation ..."
+echo "npm run docs"
+npm run docs
+echo
+
+echo "2) Compressing documentation ..."
+echo "pushd $appOutputPath && zip -r $appZippedFilename ./ && popd"
+pushd $appOutputPath && zip -r $appZippedFilename ./ && popd
+echo
+
+echo "3) Copying documentation to server ..."
+echo "scp -rp ./$appOutputPath/$appZippedFilename $serverHost:$appDirname"
+scp -rp ./$appOutputPath/$appZippedFilename $serverHost:$appDirname
+echo
+
+echo "4) Deploying documentation in server ..."
+echo "ssh $serverHost \"rm -rf $appPath && mkdir $appPath && unzip $appDirname/$appZippedFilename -d $appPath && rm $appDirname/$appZippedFilename\""
+ssh $serverHost "rm -rf $appPath && mkdir $appPath && unzip $appDirname/$appZippedFilename -d $appPath && rm $appDirname/$appZippedFilename"
+echo
+
+endTime="$(date -u +%s)"
+elapsedTime="$(($endTime-$startTime))"
+echo "SUCCESS: Documentation deployed in $serverHost:$appPath in $elapsedTime seconds !!"
