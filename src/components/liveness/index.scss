@@ -1,4 +1,7 @@
 $mask-background-color: black;
+$mask-border-size: 6px;
+$mask-border-no-match-color: red;
+$mask-border-match-color: greenyellow;
 
 :host {
     position: fixed;
@@ -27,14 +30,26 @@ $mask-background-color: black;
             position: relative;
             width: 50%;
             z-index: 2400;
-            border: 5px solid red;
+            border: $mask-border-size solid $mask-border-no-match-color;
             border-radius: 50%;
             box-shadow: 0 0 0 99999px $mask-background-color;
+            -webkit-transition: width 0.5s 0s ease;
+            -moz-transition: width 0.5s 0s ease;
+            -o-transition: width 0.5s 0s ease;
+            transition: width 0.5s 0s ease;
 
             &:after {
                 content: "";
                 display: block;
-                padding-bottom: 130%;
+                padding-bottom: 136%;
+            }
+
+            &.mask-zoom {
+                width: 70%;
+            }
+
+            &.mask-match {
+                border: $mask-border-size solid $mask-border-match-color;
             }
         }
     }
