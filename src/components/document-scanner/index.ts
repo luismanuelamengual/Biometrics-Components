@@ -28,6 +28,9 @@ export interface DocumentData {
  */
 export class BiometricsDocumentScannerElement extends BiometricsElement {
 
+    public static readonly DOCUMENT_SCAN_EVENT = 'documentScan';
+    public static readonly DOCUMENT_SCAN_ERROR_EVENT = 'documentScanError';
+
     readonly NAME_PATTERN = '(?:[a-zA-Z]|\\s|`)+';
     readonly NUMBER_PATTERN = '\\d+';
     readonly GENDER_PATTERN = '(?:M|F)';
@@ -76,9 +79,9 @@ export class BiometricsDocumentScannerElement extends BiometricsElement {
             if (code) {
                 try {
                     const documentData = this.parseCode(code);
-                    this.triggerEvent('documentScan', documentData);
+                    this.triggerEvent(BiometricsDocumentScannerElement.DOCUMENT_SCAN_EVENT, documentData);
                 } catch (e) {
-                    this.triggerEvent('documentScanError', e);
+                    this.triggerEvent(BiometricsDocumentScannerElement.DOCUMENT_SCAN_ERROR_EVENT, e);
                 }
             }
         } catch (e) {}
