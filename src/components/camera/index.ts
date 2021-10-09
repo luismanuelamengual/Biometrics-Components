@@ -166,9 +166,9 @@ export class BiometricsCameraElement extends BiometricsElement {
     private createDeviceSelector(devices: Array<MediaDeviceInfo>): HTMLSelectElement {
         const optionElements = devices.map((device: MediaDeviceInfo, index: number) => this.createElement('option', {attributes: { value: device.deviceId}}, device.label || 'camera ' + index));
         return this.createElement('select', {classes: 'camera-selector', listeners: { change: async (e) => {
-                    this.deviceId = e.target.value;
-                    await this.startVideoStreaming();
-                }}}, optionElements);
+            this.deviceId = e.target.value;
+            await this.startVideoStreaming();
+        }}}, optionElements);
     }
 
     private async startVideoStreaming() {

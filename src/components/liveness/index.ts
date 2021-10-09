@@ -1,7 +1,10 @@
 import {BiometricsElement} from "../../element";
 import styles from "./index.scss";
+import {BiometricsCameraElement} from "../camera";
 
 export class BiometricsLivenessElement extends BiometricsElement {
+
+    private cameraElement: BiometricsCameraElement;
 
     /**
      * @internal
@@ -19,6 +22,24 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     protected createStyles(): string {
         return styles;
+    }
+
+    protected createContent(): Array<HTMLElement> {
+        return [
+            this.createCamera()
+        ];
+    }
+
+    protected createCamera(): HTMLElement {
+        this.cameraElement = this.createElement('biometrics-camera', {
+            attributes: {
+                controls: 'false',
+                fullscreen: 'false',
+                'aspect-ratio': '1',
+                'facing-mode': 'user'
+            }
+        });
+        return this.cameraElement;
     }
 }
 
