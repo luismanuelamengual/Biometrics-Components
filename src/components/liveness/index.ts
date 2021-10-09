@@ -5,6 +5,7 @@ import {BiometricsCameraElement} from "../camera";
 export class BiometricsLivenessElement extends BiometricsElement {
 
     private cameraElement: BiometricsCameraElement;
+    private maskElement: HTMLDivElement;
 
     /**
      * @internal
@@ -26,11 +27,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     protected createContent(): Array<HTMLElement> {
         return [
-            this.createCamera()
+            this.createCamera(),
+            this.createMask()
         ];
     }
 
-    protected createCamera(): HTMLElement {
+    protected createCamera(): BiometricsCameraElement {
         this.cameraElement = this.createElement('biometrics-camera', {
             attributes: {
                 controls: 'false',
@@ -40,6 +42,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
         });
         return this.cameraElement;
+    }
+
+    protected createMask(): HTMLDivElement {
+        this.maskElement = this.createElement('div', {classes: 'mask'});
+        return this.createElement('div', {classes: 'mask-container'}, [this.maskElement]);
     }
 }
 

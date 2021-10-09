@@ -1,7 +1,7 @@
 $mask-background-color: black;
 
 :host {
-    position: absolute;
+    position: fixed;
     display: block;
     box-sizing: border-box;
     top: 0;
@@ -10,4 +10,32 @@ $mask-background-color: black;
     height: 100%;
     overflow: hidden;
     background: $mask-background-color;
+
+    .mask-container {
+        display: block;
+        position: absolute;
+        width: 100vmin;
+        height: 100vmin;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+
+        .mask {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            position: relative;
+            width: 50%;
+            z-index: 2400;
+            border: 5px solid red;
+            border-radius: 50%;
+            box-shadow: 0 0 0 99999px $mask-background-color;
+
+            &:after {
+                content: "";
+                display: block;
+                padding-bottom: 130%;
+            }
+        }
+    }
 }
