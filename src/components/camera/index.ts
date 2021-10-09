@@ -10,6 +10,9 @@ export class BiometricsCameraElement extends BiometricsElement {
     public static readonly CAMERA_NOT_FOUND_EVENT = 'cameraNotFound';
     public static readonly CAMERA_INITIALIZATION_FAILED_EVENT = 'cameraInitializationFailed';
 
+    private static readonly MAX_PICTURE_WIDTH = 4096;
+    private static readonly MAX_PICTURE_HEIGHT = 4096;
+
     private _canvasElement: HTMLCanvasElement;
     private _videoElement: HTMLVideoElement;
     private _controlsElement: HTMLDivElement;
@@ -29,8 +32,18 @@ export class BiometricsCameraElement extends BiometricsElement {
         return 'biometrics-camera';
     }
 
-    protected onConnected() {
-        this.initializeVideoStreaming();
+    protected async onConnected() {
+        if (this.showDeviceSelector) {
+            const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === 'videoinput');
+            if (!devices.length) {
+                this.triggerEvent(BiometricsCameraElement.CAMERA_NOT_FOUND_EVENT);
+            } else {
+                const deviceSelector = this.createDeviceSelector(devices);
+                this.getContainer().appendChild(deviceSelector);
+                this.deviceId = deviceSelector.value;
+            }
+        }
+        await this.startVideoStreaming();
     }
 
     protected onDisconnected() {
@@ -46,7 +59,7 @@ export class BiometricsCameraElement extends BiometricsElement {
     }
 
     private createCameraElement(): HTMLDivElement {
-        return this.createElement('div', {classes: 'camera'}, [this.createCameraVideoElement(), this.createCameraControlsElement()]);
+        return this.createElement('div', {classes: {'camera': true, 'camera-fullscreen': this.fullscreen}}, [this.createCameraVideoElement(), this.createCameraControlsElement()]);
     }
 
     private createCameraVideoElement(): HTMLDivElement {
@@ -61,21 +74,56 @@ export class BiometricsCameraElement extends BiometricsElement {
         return this._controlsElement;
     }
 
-    public get facingMode(): 'environment' | 'user' | 'left' | 'right' {
-        return (this.getAttribute('facing-mode') as 'environment' | 'user' | 'left' | 'right') || 'environment';
+    public get fullscreen(): boolean {
+        return !this.hasAttribute('fullscreen') || this.getAttribute('fullscreen') === 'true';
     }
 
-    public set facingMode(facingMode: 'environment' | 'user' | 'left' | 'right') {
+    public get facingMode(): 'environment' | 'user' | 'left' | 'right' {
+        return (this.getAttribute('facing-mode') as 'environment' | 'user' | 'left' | 'right') || null;
+    }
+
+    public set facingMode(facingMode:  'environment' | 'user' | 'left' | 'right') {
         this.setAttribute('facing-mode', facingMode);
-        if (facingMode === 'user') {
-            this._videoElement.classList.add('user-facing-mode');
-        } else {
-            this._videoElement.classList.remove('user-facing-mode');
-        }
+    }
+
+    public get aspectRatio(): number {
+        return this.hasAttribute('aspect-ratio')? parseInt(this.getAttribute('aspect-ratio')) : 0;
+    }
+
+    public set aspectRatio(aspectRatio: number) {
+        this.setAttribute('aspect-ratio', String(aspectRatio));
+    }
+
+    public get videoHeight(): number {
+        return this.hasAttribute('video-height')? parseInt(this.getAttribute('video-height')) : 0;
+    }
+
+    public set videoHeight(videoHeight: number) {
+        this.setAttribute('video-height', String(videoHeight));
+    }
+
+    public get videoWidth(): number {
+        return this.hasAttribute('video-width')? parseInt(this.getAttribute('video-width')) : 0;
+    }
+
+    public set videoWidth(videoWidth: number) {
+        this.setAttribute('video-width', String(videoWidth));
+    }
+
+    public get deviceId(): string {
+        return this.hasAttribute('device-id')? this.getAttribute('device-id') : '';
+    }
+
+    public set deviceId(deviceId: string) {
+        this.setAttribute('device-id', deviceId);
+    }
+
+    public get showDeviceSelector(): boolean {
+        return this.getAttribute('show-device-selector') === 'true';
     }
 
     public get maxPictureWidth(): number {
-        return this.hasAttribute('max-picture-width') ? parseInt(this.getAttribute('max-picture-width')) : 2048;
+        return this.hasAttribute('max-picture-width') ? parseInt(this.getAttribute('max-picture-width')) : BiometricsCameraElement.MAX_PICTURE_WIDTH;
     }
 
     public set maxPictureWidth(value: number) {
@@ -83,7 +131,7 @@ export class BiometricsCameraElement extends BiometricsElement {
     }
 
     public get maxPictureHeight(): number {
-        return this.hasAttribute('max-picture-height') ? parseInt(this.getAttribute('max-picture-height')) : 2048;
+        return this.hasAttribute('max-picture-height') ? parseInt(this.getAttribute('max-picture-height')) : BiometricsCameraElement.MAX_PICTURE_HEIGHT;
     }
 
     public set maxPictureHeight(value: number) {
@@ -91,7 +139,7 @@ export class BiometricsCameraElement extends BiometricsElement {
     }
 
     public get captureType(): 'blob' | 'url' | 'imageData' {
-        return this.hasAttribute('capture-type') ? this.getAttribute('capture-type') as 'blob' | 'url' | 'imageData' : 'blob';
+        return this.hasAttribute('capture-type') ? this.getAttribute('capture-type') as 'blob' | 'url' | 'imageData' : 'url';
     }
 
     public set captureType(value: 'blob' | 'url' | 'imageData') {
@@ -100,6 +148,10 @@ export class BiometricsCameraElement extends BiometricsElement {
 
     public get controls(): boolean {
         return !this.hasAttribute('controls') || this.getAttribute('controls') == 'true';
+    }
+
+    public get videoElement(): HTMLVideoElement {
+        return this._videoElement;
     }
 
     public set controls(controls: boolean) {
@@ -111,42 +163,37 @@ export class BiometricsCameraElement extends BiometricsElement {
         }
     }
 
-    private async getVideoStreams(): Promise<Array<MediaDeviceInfo>> {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        return devices.filter((device) => device.kind === 'videoinput');
-    }
-
-    private async initializeVideoStreaming() {
-        this.removeCameraSelector();
-        const devices = await this.getVideoStreams();
-        if (!devices.length) {
-            this.triggerEvent(BiometricsCameraElement.CAMERA_NOT_FOUND_EVENT);
-        } else {
-            if (devices.length > 1) {
-                this.createCameraSelector(devices);
-            }
-            this.startVideoStreaming(devices[0].deviceId);
-        }
-    }
-
-    private removeCameraSelector() {
-        const cameraSelectorElement = this.findElement('.camera-selector');
-        if (cameraSelectorElement) {
-            cameraSelectorElement.remove();
-        }
-    }
-
-    private createCameraSelector(devices: Array<MediaDeviceInfo>) {
+    private createDeviceSelector(devices: Array<MediaDeviceInfo>): HTMLSelectElement {
         const optionElements = devices.map((device: MediaDeviceInfo, index: number) => this.createElement('option', {attributes: { value: device.deviceId}}, device.label || 'camera ' + index));
-        const selectElement = this.createElement('select', {classes: 'camera-selector', listeners: { change: (e) => this.startVideoStreaming(e.target.value)}}, optionElements);
-        this.getContainer().appendChild(selectElement);
+        return this.createElement('select', {classes: 'camera-selector', listeners: { change: async (e) => {
+                    this.deviceId = e.target.value;
+                    await this.startVideoStreaming();
+                }}}, optionElements);
     }
 
-    private async startVideoStreaming(deviceId: string) {
+    private async startVideoStreaming() {
         this.stopVideoStreaming();
         const mediaFallbackConstraints: Array<MediaStreamConstraints> = [];
-        mediaFallbackConstraints.push({video: {deviceId: {exact: deviceId}, facingMode: this.facingMode}});
-        mediaFallbackConstraints.push({video: {deviceId: {exact: deviceId}}});
+        const desiredConstraints: any = {video: {}};
+        if (this.deviceId) {
+            desiredConstraints.video.deviceId = {exact: this.deviceId};
+        }
+        if (this.videoWidth) {
+            desiredConstraints.video.width = this.videoWidth;
+        }
+        if (this.videoHeight) {
+            desiredConstraints.video.height = this.videoHeight;
+        }
+        if (this.facingMode) {
+            desiredConstraints.video.facingMode = this.facingMode;
+        }
+        if (this.aspectRatio) {
+            desiredConstraints.video.aspectRatio = this.aspectRatio;
+        }
+        mediaFallbackConstraints.push(desiredConstraints);
+        if (this.deviceId) {
+            mediaFallbackConstraints.push({video: {deviceId: {exact: this.deviceId}}});
+        }
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
             try {
@@ -165,8 +212,8 @@ export class BiometricsCameraElement extends BiometricsElement {
                     this.stopVideoStreaming();
                 }
             }
+            this._videoElement.onloadedmetadata = () => this.triggerEvent(BiometricsCameraElement.CAMERA_STARTED_EVENT);
             this._videoElement.srcObject = videoSource;
-            this.triggerEvent(BiometricsCameraElement.CAMERA_STARTED_EVENT);
         } else {
             this.triggerEvent(BiometricsCameraElement.CAMERA_INITIALIZATION_FAILED_EVENT);
         }
@@ -224,18 +271,22 @@ export class BiometricsCameraElement extends BiometricsElement {
         const canvasElement: HTMLCanvasElement = this._canvasElement;
         const videoWidth = videoElement.videoWidth;
         const videoHeight = videoElement.videoHeight;
-        const videoAspectRatio = videoWidth / videoHeight;
-        const componentWidth = videoElement.offsetWidth;
-        const componentHeight = videoElement.offsetHeight;
-        const componentAspectRatio = componentWidth / componentHeight;
-        let canvasWidth: number;
-        let canvasHeight: number;
-        if (videoAspectRatio > componentAspectRatio) {
-            canvasHeight = videoHeight;
-            canvasWidth = componentAspectRatio * canvasHeight;
-        } else {
-            canvasWidth = videoWidth;
-            canvasHeight = canvasWidth / componentAspectRatio;
+        let canvasWidth: number = videoWidth;
+        let canvasHeight: number = videoHeight;
+        let sx: number = 0;
+        let sy: number = 0;
+        if (this.fullscreen) {
+            const videoAspectRatio = videoWidth / videoHeight;
+            const componentWidth = videoElement.offsetWidth;
+            const componentHeight = videoElement.offsetHeight;
+            const componentAspectRatio = componentWidth / componentHeight;
+            if (videoAspectRatio > componentAspectRatio) {
+                canvasWidth = componentAspectRatio * canvasHeight;
+                sx = Math.max(0, (videoWidth / 2) - (canvasWidth / 2));
+            } else {
+                canvasHeight = canvasWidth / componentAspectRatio;
+                sy = Math.max(0, (videoHeight / 2) - (canvasHeight / 2));
+            }
         }
         if (maxWidth <= 0) {
             maxWidth = canvasWidth;
@@ -253,15 +304,6 @@ export class BiometricsCameraElement extends BiometricsElement {
         canvasElement.width = scaledCanvasWidth;
         canvasElement.height = scaledCanvasHeight;
         const context = canvasElement.getContext('2d');
-        let sx: number;
-        let sy: number;
-        if (videoAspectRatio > componentAspectRatio) {
-            sx = Math.max(0, (videoWidth / 2) - (canvasWidth / 2));
-            sy = 0;
-        } else {
-            sx = 0;
-            sy = Math.max(0, (videoHeight / 2) - (canvasHeight / 2));
-        }
         if (this.facingMode === 'user') {
             context.translate(canvasElement.width, 0);
             context.scale(-1, 1);

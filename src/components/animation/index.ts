@@ -4,6 +4,8 @@ import "@lottiefiles/lottie-player";
 
 export class BiometricsAnimationElement extends BiometricsElement {
 
+    public static readonly COMPLETED_EVENT = 'completed';
+
     private _player;
 
     /**
@@ -69,7 +71,7 @@ export class BiometricsAnimationElement extends BiometricsElement {
     }
 
     private onCompleted() {
-        this.triggerEvent('completed');
+        this.triggerEvent(BiometricsAnimationElement.COMPLETED_EVENT);
     }
 }
 
