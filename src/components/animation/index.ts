@@ -7,16 +7,13 @@ export class BiometricsAnimationElement extends BiometricsElement {
     public static readonly COMPLETED_EVENT = 'completed';
 
     private player;
-    private onCompleteCallback;
+    private onCompleteCallback: () => void = null;
 
     /**
      * @internal
      */
     constructor() {
         super();
-        this.onCompleteCallback = () => {
-            this.triggerEvent(BiometricsAnimationElement.COMPLETED_EVENT);
-        }
     }
 
     /**
@@ -31,7 +28,22 @@ export class BiometricsAnimationElement extends BiometricsElement {
     }
 
     protected createContent(): HTMLElement {
-        this.player = this.createElement('lottie-player', { attributes: { autoplay: this.autoPlay, loop: this.loop, src: this.getAttribute('src') }, listeners: { complete: this.onComplete }});
+        this.player = this.createElement('lottie-player', {
+            attributes: {
+                autoplay: this.autoPlay,
+                loop: this.loop,
+                src: this.getAttribute('src')
+            },
+            listeners: {
+                complete: () => {
+                    this.triggerEvent(BiometricsAnimationElement.COMPLETED_EVENT);
+                    const onCompleteCallback = this.onComplete;
+                    if (onCompleteCallback) {
+                        onCompleteCallback();
+                    }
+                }
+            }
+        });
         return this.player;
     }
 

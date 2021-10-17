@@ -19,6 +19,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
     private pictureElement: HTMLImageElement;
+    private sessionRunning = false;
     private faceDetectionTask: any;
     private faceCaptureTask: any;
     private faceDetectionRunning = false;
@@ -406,27 +407,30 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private onSessionSuccess() {
         this.setCaption('Prueba de vida superada exitosamente');
         this.playSuccessAnimation(() => {
-
+            this.sessionRunning = false;
         });
     }
 
     private onSessionFail(reasonMessage = '') {
         this.setCaption(reasonMessage);
         this.playFailureAnimation(() => {
-
+            this.sessionRunning = false;
         });
     }
 
     public async startSession() {
-        this.picture = null;
-        this.zoomedPicture = null;
-        this.clearPreviewPicture();
-        this.clearAnimation();
-        this.appendCamera();
-        this.appendMask();
-        this.setFaceZoomMode(false);
-        this.setFaceMatching(false);
-        await this.startFaceDetection();
+        if (!this.sessionRunning) {
+            this.sessionRunning = true;
+            this.picture = null;
+            this.zoomedPicture = null;
+            this.clearPreviewPicture();
+            this.clearAnimation();
+            this.appendCamera();
+            this.appendMask();
+            this.setFaceZoomMode(false);
+            this.setFaceMatching(false);
+            await this.startFaceDetection();
+        }
     }
 }
 
