@@ -14,6 +14,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private faceDetectionTask: any;
     private faceDetectionRunning = false;
     private faceMatching = false;
+    private caption = '';
 
     /**
      * @internal
@@ -41,8 +42,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     protected createContent(): Array<HTMLElement> {
         return [
             this.createCamera(),
-            this.createMask(),
-            this.createCaption()
+            this.createMask()
         ];
     }
 
@@ -69,12 +69,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
             <ellipse class="mask-siluette" cx="500" cy="500" rx="200" ry="300"></ellipse>
         `;
         return this.maskElement;
-    }
-
-    private createCaption(): HTMLElement {
-        this.captionElement = this.createElement('p', {classes: 'caption'});
-        this.captionElement.style.visibility = "hidden";
-        return this.createElement('div', {classes: 'caption-container'}, [this.captionElement]);
     }
 
     private async detectFace(): Promise<DOMRect> {
@@ -163,8 +157,22 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private setCaption(caption: string) {
-        this.captionElement.innerHTML = caption;
-        this.captionElement.style.visibility = caption ? "visible" : "hidden";
+        if (caption != this.caption) {
+            this.caption = caption;
+            if (this.caption) {
+                if (!this.captionElement) {
+                    this.captionElement = this.createElement('p', {classes: 'caption'}, caption);
+                    this.getContainer().append(this.createElement('div', {classes: 'caption-container'}, [this.captionElement]));
+                } else {
+                    this.captionElement.innerHTML = caption;
+                }
+            } else {
+                if (this.captionElement) {
+                    this.findElement('.caption-container').remove();
+                    this.captionElement = null;
+                }
+            }
+        }
     }
 }
 
