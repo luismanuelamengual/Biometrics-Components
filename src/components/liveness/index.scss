@@ -50,4 +50,31 @@ $mask-background-color: black;
             }
         }
     }
+
+    .caption-container {
+        display: table;
+        position: absolute;
+        text-align: center;
+        width: 100%;
+        z-index: 8000;
+        top: 20px;
+
+        .caption {
+            font-family: 'system-ui', sans-serif;
+            font-weight: bolder;
+            color: white;
+            background-color: rgba(12, 28, 65, 0.8);
+            text-shadow: 1px 1px #000000;
+            font-size: 23px;
+            border: 1px solid white;
+            border-radius: 8px;
+            max-width: 80%;
+            margin: 0 auto;
+            padding: 8px;
+
+            &.caption-danger {
+                background-color: rgba(180, 0, 0, 0.8);
+            }
+        }
+    }
 }

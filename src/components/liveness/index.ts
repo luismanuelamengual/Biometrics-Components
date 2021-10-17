@@ -10,8 +10,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private detector: Detector;
     private cameraElement: BiometricsCameraElement;
     private maskElement: HTMLElement;
+    private captionElement: HTMLParagraphElement;
     private faceDetectionTask: any;
     private faceDetectionRunning = false;
+    private faceMatching = false;
 
     /**
      * @internal
@@ -39,7 +41,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
     protected createContent(): Array<HTMLElement> {
         return [
             this.createCamera(),
-            this.createMask()
+            this.createMask(),
+            this.createCaption()
         ];
     }
 
@@ -68,22 +71,28 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return this.maskElement;
     }
 
+    private createCaption(): HTMLElement {
+        this.captionElement = this.createElement('p', {classes: 'caption'});
+        this.captionElement.style.visibility = "hidden";
+        return this.createElement('div', {classes: 'caption-container'}, [this.captionElement]);
+    }
+
     private async detectFace(): Promise<DOMRect> {
         let faceRect: DOMRect = null;
         const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
         if (imageData != null) {
             const imageWidth = imageData.width;
             const imageHeight = imageData.height;
-            const cameraWidth = this.cameraElement.offsetWidth;
-            const cameraHeight = this.cameraElement.offsetHeight;
-            const cameraSize = Math.min(cameraHeight, cameraWidth);
+            const elementWidth = this.offsetWidth;
+            const elementHeight = this.offsetHeight;
+            const cameraSize = Math.min(elementHeight, elementWidth);
             const imageXFactor = cameraSize / imageWidth;
             const imageYFactor = cameraSize / imageHeight;
             const detectedItems = this.detector.detect('frontal_face', imageData);
             if (detectedItems && detectedItems.length > 0) {
                 const detectedItem = detectedItems[0];
-                const centerX = ((cameraWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
-                const centerY = ((cameraHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor;
+                const centerX = ((elementWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
+                const centerY = ((elementHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor;
                 const radius = detectedItem.radius * imageXFactor;
                 const diameter = radius * 2;
                 faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
@@ -101,8 +110,18 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private async executeFaceDetection() {
+        let faceMatching = true;
+        let caption = null;
         const faceRect = await this.detectFace();
-        console.log(faceRect);
+        if (!faceRect) {
+            faceMatching = false;
+            caption = 'Rostro no encontrado';
+        } else {
+            /*const elementWidth = this.offsetWidth;
+            const elementHeight = this.offsetHeight;*/
+        }
+        this.setFaceMatching(faceMatching);
+        this.setCaption(caption);
     }
 
     public stopFaceDetection() {
@@ -130,6 +149,22 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
             faceExecutionTask();
         }
+    }
+
+    private setFaceMatching(faceMatching: boolean) {
+        if (this.faceMatching != faceMatching) {
+            this.faceMatching = faceMatching;
+            if (this.faceMatching) {
+                this.maskElement.classList.add('mask-match');
+            } else {
+                this.maskElement.classList.remove('mask-match');
+            }
+        }
+    }
+
+    private setCaption(caption: string) {
+        this.captionElement.innerHTML = caption;
+        this.captionElement.style.visibility = caption ? "visible" : "hidden";
     }
 }
 
