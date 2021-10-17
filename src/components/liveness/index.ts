@@ -383,13 +383,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private startSessionTimer() {
         this.clearSessionTimer();
-        this.sessionTimeoutTask = setTimeout(() => {
-            this.stopFaceDetection();
-            this.stopFaceCaptureTimer();
-            this.removeCamera();
-            this.removeMask();
-            this.onSessionFail('Se ha agotado el tiempo de sesión');
-        }, this.timeoutSeconds * 1000);
+        if (this.timeoutSeconds > 0) {
+            this.sessionTimeoutTask = setTimeout(() => {
+                this.stopFaceDetection();
+                this.stopFaceCaptureTimer();
+                this.removeCamera();
+                this.removeMask();
+                this.onSessionFail('Se ha agotado el tiempo de sesión');
+            }, this.timeoutSeconds * 1000);
+        }
     }
 
     private async onPictureCaptured(picture: Blob) {
