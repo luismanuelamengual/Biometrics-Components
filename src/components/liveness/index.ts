@@ -397,16 +397,24 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (!response.data.liveness) {
                 throw new Error('No se superó la prueba de vida');
             }
-            this.setCaption('Prueba de vida superada exitosamente');
-            this.playSuccessAnimation(() => {
-
-            });
+            this.onSessionSuccess();
         } catch (e) {
-            this.setCaption(e.message);
-            this.playFailureAnimation(() => {
-
-            });
+            this.onSessionFail(e.message);
         }
+    }
+
+    private onSessionSuccess() {
+        this.setCaption('Prueba de vida superada exitosamente');
+        this.playSuccessAnimation(() => {
+
+        });
+    }
+
+    private onSessionFail(reasonMessage = '') {
+        this.setCaption(reasonMessage);
+        this.playFailureAnimation(() => {
+
+        });
     }
 
     public async startSession() {
