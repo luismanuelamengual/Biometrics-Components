@@ -42,35 +42,53 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return styles;
     }
 
-    private createCamera(): BiometricsCameraElement {
-        this.cameraElement = this.createElement('biometrics-camera', {
-            attributes: {
-                controls: 'false',
-                fullscreen: 'false',
-                'aspect-ratio': '1',
-                'facing-mode': 'user'
-            }
-        });
-        return this.cameraElement;
+    private removeCamera() {
+        if (this.cameraElement) {
+            this.cameraElement.remove();
+            this.cameraElement = null;
+        }
     }
 
-    private createMask(): HTMLElement {
-        this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
-        this.maskElement.classList.add('mask');
-        if (this.faceMatching) {
-            this.maskElement.classList.add('mask-match');
+    private appendCamera() {
+        if (!this.cameraElement) {
+            this.cameraElement = this.createElement('biometrics-camera', {
+                attributes: {
+                    controls: 'false',
+                    fullscreen: 'false',
+                    'aspect-ratio': '1',
+                    'facing-mode': 'user'
+                }
+            });
+            this.appendElement(this.cameraElement);
         }
-        if (this.faceZoomMode) {
-            this.maskElement.classList.add('mask-zoom');
+    }
+
+    private removeMask() {
+        if (this.maskElement) {
+            this.maskElement.remove();
+            this.maskElement = null;
         }
-        this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
-        this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-        this.maskElement.innerHTML = `
-            <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="200" ry="300"></ellipse></mask></defs>
-            <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
-            <ellipse class="mask-siluette" cx="500" cy="500" rx="200" ry="300"></ellipse>
-        `;
-        return this.maskElement;
+    }
+
+    private appendMask() {
+        if (!this.maskElement) {
+            this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
+            this.maskElement.classList.add('mask');
+            if (this.faceMatching) {
+                this.maskElement.classList.add('mask-match');
+            }
+            if (this.faceZoomMode) {
+                this.maskElement.classList.add('mask-zoom');
+            }
+            this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
+            this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            this.maskElement.innerHTML = `
+                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="200" ry="300"></ellipse></mask></defs>
+                <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
+                <ellipse class="mask-siluette" cx="500" cy="500" rx="200" ry="300"></ellipse>
+            `;
+            this.appendElement(this.maskElement);
+        }
     }
 
     private async detectFace(): Promise<DOMRect> {
@@ -187,10 +205,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private setFaceMatching(faceMatching: boolean) {
         if (this.faceMatching != faceMatching) {
             this.faceMatching = faceMatching;
-            if (this.faceMatching) {
-                this.maskElement.classList.add('mask-match');
-            } else {
-                this.maskElement.classList.remove('mask-match');
+            if (this.maskElement) {
+                if (this.faceMatching) {
+                    this.maskElement.classList.add('mask-match');
+                } else {
+                    this.maskElement.classList.remove('mask-match');
+                }
             }
         }
     }
@@ -198,10 +218,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private setFaceZoomMode(faceZoomMode: boolean) {
         if (this.faceZoomMode != faceZoomMode) {
             this.faceZoomMode = faceZoomMode;
-            if (this.faceZoomMode) {
-                this.maskElement.classList.add('mask-zoom');
-            } else {
-                this.maskElement.classList.remove('mask-zoom');
+            if (this.maskElement) {
+                if (this.faceZoomMode) {
+                    this.maskElement.classList.add('mask-zoom');
+                } else {
+                    this.maskElement.classList.remove('mask-zoom');
+                }
             }
         }
     }
@@ -261,29 +283,19 @@ export class BiometricsLivenessElement extends BiometricsElement {
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
             this.stopFaceDetection();
-            if (this.cameraElement) {
-                this.cameraElement.remove();
-                this.cameraElement = null;
-            }
-            if (this.maskElement) {
-                this.maskElement.remove();
-                this.maskElement = null;
-            }
+            this.removeCamera();
+            this.removeMask();
             this.setCaption('Analizando ...');
         }
     }
 
     public async startSession() {
-        this.setFaceZoomMode(false);
-        this.setFaceMatching(false);
         this.picture = null;
         this.zoomedPicture = null;
-        if (!this.cameraElement) {
-            this.appendElement(this.createCamera());
-        }
-        if (!this.maskElement) {
-            this.appendElement(this.createMask());
-        }
+        this.appendCamera();
+        this.appendMask();
+        this.setFaceZoomMode(false);
+        this.setFaceMatching(false);
         await this.startFaceDetection();
     }
 }
