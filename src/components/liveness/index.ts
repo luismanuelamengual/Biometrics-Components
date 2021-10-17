@@ -6,16 +6,21 @@ import {Detector, FrontalFaceClassifier} from "cascade-classifier-detector";
 export class BiometricsLivenessElement extends BiometricsElement {
 
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
+    private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 3;
 
     private detector: Detector;
     private cameraElement: BiometricsCameraElement;
     private maskElement: HTMLElement;
     private captionElement: HTMLParagraphElement;
+    private timerElement: HTMLDivElement;
     private faceDetectionTask: any;
+    private faceCaptureTask: any;
     private faceDetectionRunning = false;
     private faceMatching = false;
     private faceZoomMode = false;
     private caption = '';
+    private picture: Blob = null;
+    private zoomedPicture: Blob = null;
 
     /**
      * @internal
@@ -110,6 +115,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.setAttribute('detection-interval', String(detectionInterval));
     }
 
+    public get captureDelaySeconds(): number {
+        return this.hasAttribute('capture-delay-seconds')? parseInt(this.getAttribute('capture-delay-seconds')) : BiometricsLivenessElement.DEFAULT_CAPTURE_DELAY_SECONDS;
+    }
+
+    public set captureDelaySeconds(captureDelaySeconds: number) {
+        this.setAttribute('capture-delay-seconds', String(captureDelaySeconds));
+    }
+
     private async executeFaceDetection() {
         let faceMatching = true;
         let caption = null;
@@ -131,8 +144,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 faceMatching = false;
                 caption = 'Rostro no centrado';
             } else {
-                const minFaceScalePercentage = this.faceZoomMode ? 80 : 60;
-                const maxFaceScalePercentage = this.faceZoomMode ? 90 : 70;
+                const minFaceScalePercentage = this.faceZoomMode ? 70 : 50;
+                const maxFaceScalePercentage = this.faceZoomMode ? 85 : 65;
                 const faceScaleInPercentage = faceRect.width * 100 / elementSize;
                 if (faceScaleInPercentage < minFaceScalePercentage) {
                     faceMatching = false;
@@ -145,6 +158,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
         this.setFaceMatching(faceMatching);
         this.setCaption(caption);
+        if (faceMatching) {
+            this.startFaceCaptureTimer();
+        } else {
+            this.stopFaceCaptureTimer();
+        }
     }
 
     public stopFaceDetection() {
@@ -202,7 +220,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (this.caption) {
                 if (!this.captionElement) {
                     this.captionElement = this.createElement('p', {classes: 'caption'}, caption);
-                    this.getContainer().append(this.createElement('div', {classes: 'caption-container'}, [this.captionElement]));
+                    this.appendElement(this.createElement('div', {classes: 'caption-container'}, [this.captionElement]));
                 } else {
                     this.captionElement.innerHTML = caption;
                 }
@@ -212,6 +230,47 @@ export class BiometricsLivenessElement extends BiometricsElement {
                     this.captionElement = null;
                 }
             }
+        }
+    }
+
+    private stopFaceCaptureTimer() {
+        if (this.faceCaptureTask) {
+            clearInterval(this.faceCaptureTask);
+            this.faceCaptureTask = null;
+        }
+        if (this.timerElement) {
+            this.timerElement.remove();
+            this.timerElement = null;
+        }
+    }
+
+    private startFaceCaptureTimer() {
+        if (!this.faceCaptureTask) {
+            let remainingSeconds = this.captureDelaySeconds;
+            this.timerElement = this.createElement('div', {classes: 'timer'}, '');
+            this.appendElement(this.timerElement);
+            this.timerElement.innerText = remainingSeconds.toString();
+            this.faceCaptureTask = setInterval(async () => {
+                remainingSeconds--;
+                if (remainingSeconds <= 0) {
+                    this.stopFaceCaptureTimer();
+                    this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
+                } else {
+                    this.timerElement.innerText = remainingSeconds.toString();
+                }
+            }, 1000);
+        }
+    }
+
+    private onPictureCaptured(picture: Blob) {
+        if (!this.picture) {
+            this.picture = picture;
+            this.setFaceZoomMode(true);
+        } else if (!this.zoomedPicture) {
+            this.zoomedPicture = picture;
+
+            console.log('YES OPTUS !!');
+            this.stopFaceDetection();
         }
     }
 }
