@@ -6,14 +6,17 @@ export class BiometricsAnimationElement extends BiometricsElement {
 
     public static readonly COMPLETED_EVENT = 'completed';
 
-    private _player;
+    private player;
+    private onCompleteCallback;
 
     /**
      * @internal
      */
     constructor() {
         super();
-        this.onCompleted = this.onCompleted.bind(this);
+        this.onCompleteCallback = () => {
+            this.triggerEvent(BiometricsAnimationElement.COMPLETED_EVENT);
+        }
     }
 
     /**
@@ -27,9 +30,9 @@ export class BiometricsAnimationElement extends BiometricsElement {
         return styles;
     }
 
-    protected createContent(): string | HTMLElement | Array<HTMLElement> {
-        this._player = this.createElement('lottie-player', { attributes: { autoplay: this.autoPlay, loop: this.loop, src: this.getAttribute('src') }, listeners: { complete: this.onCompleted }});
-        return this._player;
+    protected createContent(): HTMLElement {
+        this.player = this.createElement('lottie-player', { attributes: { autoplay: this.autoPlay, loop: this.loop, src: this.getAttribute('src') }, listeners: { complete: this.onComplete }});
+        return this.player;
     }
 
     public get autoPlay(): boolean {
@@ -38,7 +41,7 @@ export class BiometricsAnimationElement extends BiometricsElement {
 
     public set autoPlay(autoPlay: boolean) {
         this.setAttribute('auto-play', String(autoPlay));
-        this._player.autoplay = autoPlay;
+        this.player.autoplay = autoPlay;
     }
 
     public get loop(): boolean {
@@ -47,31 +50,35 @@ export class BiometricsAnimationElement extends BiometricsElement {
 
     public set loop(loop: boolean) {
         this.setAttribute('loop', String(loop));
-        this._player.loop = loop;
+        this.player.loop = loop;
     }
 
     public get src(): object | string {
-        return this._player.src;
+        return this.player.src;
     }
 
     public set src(src: object | string) {
-        this._player.load(src);
+        this.player.load(src);
     }
 
     public play() {
-        this._player.play();
+        this.player.play();
     }
 
     public pause() {
-        this._player.pause();
+        this.player.pause();
     }
 
     public stop() {
-        this._player.stop();
+        this.player.stop();
     }
 
-    private onCompleted() {
-        this.triggerEvent(BiometricsAnimationElement.COMPLETED_EVENT);
+    public get onComplete(): () => void {
+        return this.onCompleteCallback;
+    }
+
+    public set onComplete(callback: () => void) {
+        this.onCompleteCallback = callback;
     }
 }
 

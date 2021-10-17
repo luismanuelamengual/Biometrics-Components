@@ -17,6 +17,14 @@ $mask-background-color: black;
     overflow: hidden;
     background: $mask-background-color;
 
+    .animation {
+        position: absolute;
+        left: 30%;
+        top: 30%;
+        right: 30%;
+        bottom: 30%;
+    }
+
     .mask {
         position: absolute;
         top: 0;

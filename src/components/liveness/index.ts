@@ -2,6 +2,10 @@ import {BiometricsElement} from "../../element";
 import styles from "./index.scss";
 import {BiometricsCameraElement} from "../camera";
 import {Detector, FrontalFaceClassifier} from "cascade-classifier-detector";
+import {BiometricsAnimationElement} from "../animation";
+import loadingAnimationData from './animations/loading-animation-data';
+import successAnimationData from './animations/success-animation-data';
+import failureAnimationData from './animations/failure-animation-data';
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
@@ -9,6 +13,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
 
     private detector: Detector;
+    private animationElement: BiometricsAnimationElement;
     private cameraElement: BiometricsCameraElement;
     private maskElement: HTMLElement;
     private captionElement: HTMLParagraphElement;
@@ -272,6 +277,40 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private clearAnimation() {
+        if (this.animationElement) {
+            this.animationElement.remove();
+            this.animationElement = null;
+        }
+    }
+
+    private playAnimation(animationData: object, loop = true, onComplete: () => void | null = null) {
+        if (!this.animationElement) {
+            this.animationElement = this.createElement('biometrics-animation', {classes: 'animation'});
+            this.appendElement(this.animationElement);
+        } else {
+            this.animationElement.stop();
+        }
+        setTimeout(() => {
+            this.animationElement.src = animationData;
+            this.animationElement.loop = loop;
+            this.animationElement.onComplete = onComplete;
+            this.animationElement.play();
+        }, 100);
+    }
+
+    private playLoadingAnimation() {
+        this.playAnimation(loadingAnimationData, true);
+    }
+
+    private playSuccessAnimation(onComplete: () => void | null = null) {
+        this.playAnimation(successAnimationData, false, onComplete);
+    }
+
+    private playFailureAnimation(onComplete: () => void | null = null) {
+        this.playAnimation(failureAnimationData, false, onComplete);
+    }
+
     private stopFaceCaptureTimer() {
         if (this.faceCaptureTask) {
             clearInterval(this.faceCaptureTask);
@@ -310,8 +349,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.stopFaceDetection();
             this.setPreviewPicture(await this.convertBlobToImage(this.zoomedPicture));
             this.removeCamera();
-            this.removeMask();
             this.setCaption('Analizando ...');
+            this.playLoadingAnimation();
         }
     }
 
@@ -327,6 +366,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.picture = null;
         this.zoomedPicture = null;
         this.clearPreviewPicture();
+        this.clearAnimation();
         this.appendCamera();
         this.appendMask();
         this.setFaceZoomMode(false);
