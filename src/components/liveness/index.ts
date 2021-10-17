@@ -7,7 +7,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private detector: Detector;
     private cameraElement: BiometricsCameraElement;
-    private maskElement: HTMLDivElement;
+    private maskElement: HTMLElement;
 
     /**
      * @internal
@@ -51,9 +51,17 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return this.cameraElement;
     }
 
-    private createMask(): HTMLDivElement {
-        this.maskElement = this.createElement('div', {classes: 'mask'});
-        return this.createElement('div', {classes: 'mask-container'}, [this.maskElement]);
+    private createMask(): HTMLElement {
+        this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
+        this.maskElement.classList.add('mask');
+        this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
+        this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        this.maskElement.innerHTML = `
+            <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="200" ry="300"></ellipse></mask></defs>
+            <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
+            <ellipse class="mask-siluette" cx="500" cy="500" rx="200" ry="300"></ellipse>
+        `;
+        return this.maskElement;
     }
 
     private async detectFaceRect(): Promise<DOMRect> {

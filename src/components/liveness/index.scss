@@ -1,10 +1,13 @@
+$mask-start-zoom: 1.1;
+$mask-end-zoom: 1.6;
+$mask-zoom-delay: 0.5s;
+$mask-border-size: 10;
+$mask-border-color: red;
+$mask-match-border-color: #45ff54;
 $mask-background-color: black;
-$mask-border-size: 6px;
-$mask-border-no-match-color: red;
-$mask-border-match-color: greenyellow;
 
 :host {
-    position: fixed;
+    position: absolute;
     display: block;
     box-sizing: border-box;
     top: 0;
@@ -14,42 +17,36 @@ $mask-border-match-color: greenyellow;
     overflow: hidden;
     background: $mask-background-color;
 
-    .mask-container {
-        display: block;
+    .mask {
         position: absolute;
-        width: 100vmin;
-        height: 100vmin;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: scale($mask-start-zoom);
+        z-index: 8000;
+        -webkit-transition: transform $mask-zoom-delay 0s linear;
+        -moz-transition: transform $mask-zoom-delay 0s linear;
+        -o-transition: transform $mask-zoom-delay 0s linear;
+        transition: transform $mask-zoom-delay 0s linear;
 
-        .mask {
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            position: relative;
-            width: 50%;
-            z-index: 2400;
-            border: $mask-border-size solid $mask-border-no-match-color;
-            border-radius: 50%;
-            box-shadow: 0 0 0 99999px $mask-background-color;
-            -webkit-transition: width 0.5s 0s ease;
-            -moz-transition: width 0.5s 0s ease;
-            -o-transition: width 0.5s 0s ease;
-            transition: width 0.5s 0s ease;
+        .mask-background {
+            fill: $mask-background-color;
+        }
 
-            &:after {
-                content: "";
-                display: block;
-                padding-bottom: 136%;
-            }
+        .mask-siluette {
+            stroke: $mask-border-color;
+            stroke-width: $mask-border-size;
+            fill: none;
+        }
 
-            &.mask-zoom {
-                width: 70%;
-            }
+        &.mask-zoom {
+            transform: scale($mask-end-zoom);
+        }
 
-            &.mask-match {
-                border: $mask-border-size solid $mask-border-match-color;
+        &.mask-match {
+            .mask-siluette {
+                stroke: $mask-match-border-color;
             }
         }
     }
