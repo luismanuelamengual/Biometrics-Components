@@ -13,6 +13,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private maskElement: HTMLElement;
     private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
+    private pictureElement: HTMLImageElement;
     private faceDetectionTask: any;
     private faceCaptureTask: any;
     private faceDetectionRunning = false;
@@ -21,6 +22,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private caption = '';
     private picture: Blob = null;
     private zoomedPicture: Blob = null;
+    private previewPicture: string = null;
 
     /**
      * @internal
@@ -247,6 +249,29 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private clearPreviewPicture() {
+        this.setPreviewPicture(null);
+    }
+
+    private setPreviewPicture(pictureUrl: string) {
+        if (this.previewPicture != pictureUrl) {
+            this.previewPicture = pictureUrl;
+            if (this.previewPicture) {
+                if (this.pictureElement) {
+                    this.pictureElement.setAttribute('src', this.previewPicture);
+                } else {
+                    this.pictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: this.previewPicture}});
+                    this.appendElement(this.pictureElement);
+                }
+            } else {
+                if (this.pictureElement) {
+                    this.pictureElement.remove();
+                    this.pictureElement = null;
+                }
+            }
+        }
+    }
+
     private stopFaceCaptureTimer() {
         if (this.faceCaptureTask) {
             clearInterval(this.faceCaptureTask);
@@ -268,7 +293,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 remainingSeconds--;
                 if (remainingSeconds <= 0) {
                     this.stopFaceCaptureTimer();
-                    this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
+                    await this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
                 } else {
                     this.timerElement.innerText = remainingSeconds.toString();
                 }
@@ -276,22 +301,32 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private onPictureCaptured(picture: Blob) {
+    private async onPictureCaptured(picture: Blob) {
         if (!this.picture) {
             this.picture = picture;
             this.setFaceZoomMode(true);
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
             this.stopFaceDetection();
+            this.setPreviewPicture(await this.convertBlobToImage(this.zoomedPicture));
             this.removeCamera();
             this.removeMask();
             this.setCaption('Analizando ...');
         }
     }
 
+    private convertBlobToImage(picture: Blob): Promise<string> {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(picture);
+            reader.onloadend = () => resolve(reader.result as string);
+        });
+    }
+
     public async startSession() {
         this.picture = null;
         this.zoomedPicture = null;
+        this.clearPreviewPicture();
         this.appendCamera();
         this.appendMask();
         this.setFaceZoomMode(false);
