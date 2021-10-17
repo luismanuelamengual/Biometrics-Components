@@ -6,7 +6,7 @@ import {Detector, FrontalFaceClassifier} from "cascade-classifier-detector";
 export class BiometricsLivenessElement extends BiometricsElement {
 
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
-    private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 3;
+    private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
 
     private detector: Detector;
     private cameraElement: BiometricsCameraElement;
@@ -40,13 +40,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     protected createStyles(): string {
         return styles;
-    }
-
-    protected createContent(): Array<HTMLElement> {
-        return [
-            this.createCamera(),
-            this.createMask()
-        ];
     }
 
     private createCamera(): BiometricsCameraElement {
@@ -122,7 +115,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private async executeFaceDetection() {
         let faceMatching = true;
-        let caption = null;
+        let caption = 'Aguarde un momento ...';
         const faceRect = await this.detectFace();
         if (this.faceDetectionRunning) {
             if (!faceRect) {
@@ -268,6 +261,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
             this.stopFaceDetection();
+            if (this.cameraElement) {
+                this.cameraElement.remove();
+                this.cameraElement = null;
+            }
+            if (this.maskElement) {
+                this.maskElement.remove();
+                this.maskElement = null;
+            }
+            this.setCaption('Analizando ...');
         }
     }
 
@@ -276,6 +278,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.setFaceMatching(false);
         this.picture = null;
         this.zoomedPicture = null;
+        if (!this.cameraElement) {
+            this.appendElement(this.createCamera());
+        }
+        if (!this.maskElement) {
+            this.appendElement(this.createMask());
+        }
         await this.startFaceDetection();
     }
 }
