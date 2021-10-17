@@ -14,6 +14,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private faceDetectionTask: any;
     private faceDetectionRunning = false;
     private faceMatching = false;
+    private faceZoomMode = false;
     private caption = '';
 
     /**
@@ -61,6 +62,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private createMask(): HTMLElement {
         this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
         this.maskElement.classList.add('mask');
+        if (this.faceMatching) {
+            this.maskElement.classList.add('mask-match');
+        }
+        if (this.faceZoomMode) {
+            this.maskElement.classList.add('mask-zoom');
+        }
         this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
         this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
         this.maskElement.innerHTML = `
@@ -124,8 +131,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 faceMatching = false;
                 caption = 'Rostro no centrado';
             } else {
-                const minFaceScalePercentage = 60;
-                const maxFaceScalePercentage = 70;
+                const minFaceScalePercentage = this.faceZoomMode ? 80 : 60;
+                const maxFaceScalePercentage = this.faceZoomMode ? 90 : 70;
                 const faceScaleInPercentage = faceRect.width * 100 / elementSize;
                 if (faceScaleInPercentage < minFaceScalePercentage) {
                     faceMatching = false;
@@ -174,6 +181,17 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 this.maskElement.classList.add('mask-match');
             } else {
                 this.maskElement.classList.remove('mask-match');
+            }
+        }
+    }
+
+    private setFaceZoomMode(faceZoomMode: boolean) {
+        if (this.faceZoomMode != faceZoomMode) {
+            this.faceZoomMode = faceZoomMode;
+            if (this.faceZoomMode) {
+                this.maskElement.classList.add('mask-zoom');
+            } else {
+                this.maskElement.classList.remove('mask-zoom');
             }
         }
     }
