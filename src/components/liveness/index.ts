@@ -85,10 +85,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
             const detectedItems = this.detector.detect('frontal_face', imageData);
             if (detectedItems && detectedItems.length > 0) {
                 const detectedItem = detectedItems[0];
-                const centerX = ((elementWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
-                const centerY = ((elementHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor;
                 const radius = detectedItem.radius * imageXFactor;
                 const diameter = radius * 2;
+                const centerX = ((elementWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
+                const centerY = ((elementHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor + (radius * 0.2);
                 faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
             }
         }
@@ -120,9 +120,20 @@ export class BiometricsLivenessElement extends BiometricsElement {
             const faceCenterY = faceRect.y + (faceRect.height / 2);
             const distanceToCenterInPixels = Math.sqrt(Math.pow(elementCenterX - faceCenterX, 2) + Math.pow(elementCenterY - faceCenterY, 2));
             const distanceToCenterInPercentage = distanceToCenterInPixels * 100 / elementSize;
-            if (distanceToCenterInPercentage > 3.5) {
+            if (distanceToCenterInPercentage > 5) {
                 faceMatching = false;
                 caption = 'Rostro no centrado';
+            } else {
+                const minFaceScalePercentage = 60;
+                const maxFaceScalePercentage = 70;
+                const faceScaleInPercentage = faceRect.width * 100 / elementSize;
+                if (faceScaleInPercentage < minFaceScalePercentage) {
+                    faceMatching = false;
+                    caption = 'El rostro está demasiado lejos';
+                } else if (faceScaleInPercentage > maxFaceScalePercentage) {
+                    faceMatching = false;
+                    caption = 'El rostro está demasiado cerca';
+                }
             }
         }
         this.setFaceMatching(faceMatching);
