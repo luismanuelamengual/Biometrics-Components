@@ -37,6 +37,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.detector.loadClassifier('frontal_face', FrontalFaceClassifier);
     }
 
+    protected onConnected() {
+        if (this.autoStartSession) {
+            this.startSession();
+        }
+    }
+
     /**
      * @internal
      */
@@ -112,6 +118,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
         }
         return faceRect;
+    }
+
+    public get autoStartSession(): boolean {
+        return !this.hasAttribute('auto-start-session') || this.getAttribute('auto-start-session') === 'true';
     }
 
     public get detectionInterval(): number {
