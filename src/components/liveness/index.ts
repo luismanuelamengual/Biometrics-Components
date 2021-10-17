@@ -111,8 +111,19 @@ export class BiometricsLivenessElement extends BiometricsElement {
             faceMatching = false;
             caption = 'Rostro no encontrado';
         } else {
-            /*const elementWidth = this.offsetWidth;
-            const elementHeight = this.offsetHeight;*/
+            const elementWidth = this.offsetWidth;
+            const elementHeight = this.offsetHeight;
+            const elementSize = Math.min(elementWidth, elementHeight);
+            const elementCenterX = elementWidth / 2;
+            const elementCenterY = elementHeight / 2;
+            const faceCenterX = faceRect.x + (faceRect.width / 2);
+            const faceCenterY = faceRect.y + (faceRect.height / 2);
+            const distanceToCenterInPixels = Math.sqrt(Math.pow(elementCenterX - faceCenterX, 2) + Math.pow(elementCenterY - faceCenterY, 2));
+            const distanceToCenterInPercentage = distanceToCenterInPixels * 100 / elementSize;
+            if (distanceToCenterInPercentage > 3.5) {
+                faceMatching = false;
+                caption = 'Rostro no centrado';
+            }
         }
         this.setFaceMatching(faceMatching);
         this.setCaption(caption);
