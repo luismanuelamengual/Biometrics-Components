@@ -165,7 +165,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    public stopFaceDetection() {
+    private stopFaceDetection() {
         if (this.faceDetectionRunning) {
             this.faceDetectionRunning = false;
             if (this.faceDetectionTask) {
@@ -175,7 +175,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    public startFaceDetection() {
+    private startFaceDetection() {
         if (!this.faceDetectionRunning) {
             this.faceDetectionRunning = true;
             const faceExecutionTask = async () => {
@@ -268,10 +268,16 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.setFaceZoomMode(true);
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
-
-            console.log('YES OPTUS !!');
             this.stopFaceDetection();
         }
+    }
+
+    public startSession() {
+        this.setFaceZoomMode(false);
+        this.setFaceMatching(false);
+        this.picture = null;
+        this.zoomedPicture = null;
+        this.startFaceDetection();
     }
 }
 
