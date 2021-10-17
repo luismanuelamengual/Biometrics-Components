@@ -27,7 +27,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private caption = '';
     private picture: Blob = null;
     private zoomedPicture: Blob = null;
-    private previewPicture: string = null;
 
     /**
      * @internal
@@ -67,13 +66,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             });
             this.appendElement(this.cameraElement);
-        }
-    }
-
-    private removeMask() {
-        if (this.maskElement) {
-            this.maskElement.remove();
-            this.maskElement = null;
         }
     }
 
@@ -255,25 +247,23 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private clearPreviewPicture() {
-        this.setPreviewPicture(null);
+        if (this.pictureElement) {
+            this.pictureElement.remove();
+            this.pictureElement = null;
+        }
     }
 
-    private setPreviewPicture(pictureUrl: string) {
-        if (this.previewPicture != pictureUrl) {
-            this.previewPicture = pictureUrl;
-            if (this.previewPicture) {
-                if (this.pictureElement) {
-                    this.pictureElement.setAttribute('src', this.previewPicture);
-                } else {
-                    this.pictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: this.previewPicture}});
-                    this.appendElement(this.pictureElement);
-                }
-            } else {
-                if (this.pictureElement) {
-                    this.pictureElement.remove();
-                    this.pictureElement = null;
-                }
-            }
+    private async setPreviewPicture(picture: Blob) {
+        const pictureUrl: string = await (new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(picture);
+            reader.onloadend = () => resolve(reader.result as string);
+        }));
+        if (this.pictureElement) {
+            this.pictureElement.setAttribute('src', pictureUrl);
+        } else {
+            this.pictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: pictureUrl}});
+            this.appendElement(this.pictureElement);
         }
     }
 
@@ -347,19 +337,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
             this.stopFaceDetection();
-            this.setPreviewPicture(await this.convertBlobToImage(this.zoomedPicture));
+            await this.setPreviewPicture(this.zoomedPicture);
             this.removeCamera();
-            this.setCaption('Analizando ...');
-            this.playLoadingAnimation();
+            this.analysePictures();
         }
     }
 
-    private convertBlobToImage(picture: Blob): Promise<string> {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(picture);
-            reader.onloadend = () => resolve(reader.result as string);
-        });
+    private async analysePictures() {
+        this.setCaption('Analizando ...');
+        this.playLoadingAnimation();
     }
 
     public async startSession() {
