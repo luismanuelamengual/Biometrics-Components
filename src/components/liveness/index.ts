@@ -31,9 +31,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.detector.loadClassifier('frontal_face', FrontalFaceClassifier);
     }
 
-    protected onConnected() {
-    }
-
     /**
      * @internal
      */
@@ -175,7 +172,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private startFaceDetection() {
+    private async startFaceDetection() {
         if (!this.faceDetectionRunning) {
             this.faceDetectionRunning = true;
             const faceExecutionTask = async () => {
@@ -188,7 +185,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                     this.faceDetectionTask = setTimeout(async () => faceExecutionTask(), this.detectionInterval);
                 }
             }
-            faceExecutionTask();
+            await faceExecutionTask();
         }
     }
 
@@ -272,12 +269,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    public startSession() {
+    public async startSession() {
         this.setFaceZoomMode(false);
         this.setFaceMatching(false);
         this.picture = null;
         this.zoomedPicture = null;
-        this.startFaceDetection();
+        await this.startFaceDetection();
     }
 }
 
