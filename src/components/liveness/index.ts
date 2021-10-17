@@ -124,41 +124,43 @@ export class BiometricsLivenessElement extends BiometricsElement {
         let faceMatching = true;
         let caption = null;
         const faceRect = await this.detectFace();
-        if (!faceRect) {
-            faceMatching = false;
-            caption = 'Rostro no encontrado';
-        } else {
-            const elementWidth = this.offsetWidth;
-            const elementHeight = this.offsetHeight;
-            const elementSize = Math.min(elementWidth, elementHeight);
-            const elementCenterX = elementWidth / 2;
-            const elementCenterY = elementHeight / 2;
-            const faceCenterX = faceRect.x + (faceRect.width / 2);
-            const faceCenterY = faceRect.y + (faceRect.height / 2);
-            const distanceToCenterInPixels = Math.sqrt(Math.pow(elementCenterX - faceCenterX, 2) + Math.pow(elementCenterY - faceCenterY, 2));
-            const distanceToCenterInPercentage = distanceToCenterInPixels * 100 / elementSize;
-            if (distanceToCenterInPercentage > 5) {
+        if (this.faceDetectionRunning) {
+            if (!faceRect) {
                 faceMatching = false;
-                caption = 'Rostro no centrado';
+                caption = 'Rostro no encontrado';
             } else {
-                const minFaceScalePercentage = this.faceZoomMode ? 70 : 50;
-                const maxFaceScalePercentage = this.faceZoomMode ? 85 : 65;
-                const faceScaleInPercentage = faceRect.width * 100 / elementSize;
-                if (faceScaleInPercentage < minFaceScalePercentage) {
+                const elementWidth = this.offsetWidth;
+                const elementHeight = this.offsetHeight;
+                const elementSize = Math.min(elementWidth, elementHeight);
+                const elementCenterX = elementWidth / 2;
+                const elementCenterY = elementHeight / 2;
+                const faceCenterX = faceRect.x + (faceRect.width / 2);
+                const faceCenterY = faceRect.y + (faceRect.height / 2);
+                const distanceToCenterInPixels = Math.sqrt(Math.pow(elementCenterX - faceCenterX, 2) + Math.pow(elementCenterY - faceCenterY, 2));
+                const distanceToCenterInPercentage = distanceToCenterInPixels * 100 / elementSize;
+                if (distanceToCenterInPercentage > 5) {
                     faceMatching = false;
-                    caption = 'El rostro está demasiado lejos';
-                } else if (faceScaleInPercentage > maxFaceScalePercentage) {
-                    faceMatching = false;
-                    caption = 'El rostro está demasiado cerca';
+                    caption = 'Rostro no centrado';
+                } else {
+                    const minFaceScalePercentage = this.faceZoomMode ? 70 : 50;
+                    const maxFaceScalePercentage = this.faceZoomMode ? 85 : 65;
+                    const faceScaleInPercentage = faceRect.width * 100 / elementSize;
+                    if (faceScaleInPercentage < minFaceScalePercentage) {
+                        faceMatching = false;
+                        caption = 'El rostro está demasiado lejos';
+                    } else if (faceScaleInPercentage > maxFaceScalePercentage) {
+                        faceMatching = false;
+                        caption = 'El rostro está demasiado cerca';
+                    }
                 }
             }
-        }
-        this.setFaceMatching(faceMatching);
-        this.setCaption(caption);
-        if (faceMatching) {
-            this.startFaceCaptureTimer();
-        } else {
-            this.stopFaceCaptureTimer();
+            this.setFaceMatching(faceMatching);
+            this.setCaption(caption);
+            if (faceMatching) {
+                this.startFaceCaptureTimer();
+            } else {
+                this.stopFaceCaptureTimer();
+            }
         }
     }
 
