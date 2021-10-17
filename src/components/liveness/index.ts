@@ -120,6 +120,22 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return faceRect;
     }
 
+    public get serverUrl(): string {
+        return this.getAttribute('server-url');
+    }
+
+    public set serverUrl(serverUrl: string) {
+        this.setAttribute('server-url', serverUrl);
+    }
+
+    public get apiKey(): string {
+        return this.getAttribute('api-key');
+    }
+
+    public set apiKey(apiKey: string) {
+        this.setAttribute('api-key', apiKey);
+    }
+
     public get autoStartSession(): boolean {
         return !this.hasAttribute('auto-start-session') || this.getAttribute('auto-start-session') === 'true';
     }
@@ -349,13 +365,48 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.stopFaceDetection();
             await this.setPreviewPicture(this.zoomedPicture);
             this.removeCamera();
-            this.analysePictures();
+            await this.verifyLiveness();
         }
     }
 
-    private async analysePictures() {
+    private async verifyLiveness() {
         this.setCaption('Analizando ...');
         this.playLoadingAnimation();
+        try {
+            let response: any;
+            try {
+                const formData = new FormData();
+                formData.append('picture', this.picture);
+                formData.append('zoomedPicture', this.zoomedPicture);
+                let url = this.serverUrl;
+                if (!url.endsWith('/')) {
+                    url += '/';
+                }
+                url += 'v1/check_liveness_3d';
+                response = await fetch(url, {
+                    method: 'post',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + this.apiKey
+                    }
+                });
+                response = await response.json();
+            } catch (e) {
+                throw new Error('Error de comunicación con el servidor');
+            }
+            if (!response.data.liveness) {
+                throw new Error('No se superó la prueba de vida');
+            }
+            this.setCaption('Prueba de vida superada exitosamente');
+            this.playSuccessAnimation(() => {
+
+            });
+        } catch (e) {
+            this.setCaption(e.message);
+            this.playFailureAnimation(() => {
+
+            });
+        }
     }
 
     public async startSession() {
