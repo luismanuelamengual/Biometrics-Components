@@ -11,6 +11,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
+    private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
 
     private detector: Detector;
     private animationElement: BiometricsAnimationElement;
@@ -19,6 +20,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
     private pictureElement: HTMLImageElement;
+    private sessionTimeoutTask: any;
     private sessionRunning = false;
     private faceDetectionTask: any;
     private faceCaptureTask: any;
@@ -73,6 +75,13 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             });
             this.appendElement(this.cameraElement);
+        }
+    }
+
+    private removeMask() {
+        if (this.maskElement) {
+            this.maskElement.remove();
+            this.maskElement = null;
         }
     }
 
@@ -155,6 +164,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     public set captureDelaySeconds(captureDelaySeconds: number) {
         this.setAttribute('capture-delay-seconds', String(captureDelaySeconds));
+    }
+
+    public get timeoutSeconds(): number {
+        return this.hasAttribute('timeout-seconds')? parseInt(this.getAttribute('capture-delay-seconds')) : BiometricsLivenessElement.DEFAULT_TIMEOUT_SECONDS;
+    }
+
+    public set timeoutSeconds(timeoutSeconds: number) {
+        this.setAttribute('timeout-seconds', String(timeoutSeconds));
     }
 
     private async executeFaceDetection() {
@@ -357,12 +374,31 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private clearSessionTimer() {
+        if (this.sessionTimeoutTask) {
+            clearTimeout(this.sessionTimeoutTask);
+            this.sessionTimeoutTask = null;
+        }
+    }
+
+    private startSessionTimer() {
+        this.clearSessionTimer();
+        this.sessionTimeoutTask = setTimeout(() => {
+            this.stopFaceDetection();
+            this.stopFaceCaptureTimer();
+            this.removeCamera();
+            this.removeMask();
+            this.onSessionFail('Se ha agotado el tiempo de sesión');
+        }, this.timeoutSeconds * 1000);
+    }
+
     private async onPictureCaptured(picture: Blob) {
         if (!this.picture) {
             this.picture = picture;
             this.setFaceZoomMode(true);
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
+            this.clearSessionTimer();
             this.stopFaceDetection();
             await this.setPreviewPicture(this.zoomedPicture);
             this.removeCamera();
@@ -429,6 +465,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.appendMask();
             this.setFaceZoomMode(false);
             this.setFaceMatching(false);
+            this.startSessionTimer();
             await this.startFaceDetection();
         }
     }
