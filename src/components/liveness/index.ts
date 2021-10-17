@@ -5,9 +5,13 @@ import {Detector, FrontalFaceClassifier} from "cascade-classifier-detector";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
+    private static readonly DEFAULT_DETECTION_INTERVAL = 100;
+
     private detector: Detector;
     private cameraElement: BiometricsCameraElement;
     private maskElement: HTMLElement;
+    private faceDetectionTask: any;
+    private faceDetectionRunning = false;
 
     /**
      * @internal
@@ -64,7 +68,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return this.maskElement;
     }
 
-    private async detectFaceRect(): Promise<DOMRect> {
+    private async detectFace(): Promise<DOMRect> {
         let faceRect: DOMRect = null;
         const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
         if (imageData != null) {
@@ -75,16 +79,57 @@ export class BiometricsLivenessElement extends BiometricsElement {
             const cameraSize = Math.min(cameraHeight, cameraWidth);
             const imageXFactor = cameraSize / imageWidth;
             const imageYFactor = cameraSize / imageHeight;
-            const detectedObject = this.detector.detect('frontal_face', imageData);
-            if (detectedObject) {
-                const centerX = ((cameraWidth / 2) - (cameraSize / 2)) + detectedObject.center.x * imageXFactor;
-                const centerY = ((cameraHeight / 2) - (cameraSize / 2)) + detectedObject.center.y * imageYFactor;
-                const radius = detectedObject.radius * imageXFactor;
+            const detectedItems = this.detector.detect('frontal_face', imageData);
+            if (detectedItems && detectedItems.length > 0) {
+                const detectedItem = detectedItems[0];
+                const centerX = ((cameraWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
+                const centerY = ((cameraHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor;
+                const radius = detectedItem.radius * imageXFactor;
                 const diameter = radius * 2;
                 faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
             }
         }
         return faceRect;
+    }
+
+    public get detectionInterval(): number {
+        return this.hasAttribute('detection-interval')? parseInt(this.getAttribute('detection-interval')) : BiometricsLivenessElement.DEFAULT_DETECTION_INTERVAL;
+    }
+
+    public set detectionInterval(detectionInterval: number) {
+        this.setAttribute('detection-interval', String(detectionInterval));
+    }
+
+    private async executeFaceDetection() {
+        const faceRect = await this.detectFace();
+        console.log(faceRect);
+    }
+
+    public stopFaceDetection() {
+        if (this.faceDetectionRunning) {
+            this.faceDetectionRunning = false;
+            if (this.faceDetectionTask) {
+                clearTimeout(this.faceDetectionTask);
+                this.faceDetectionTask = null;
+            }
+        }
+    }
+
+    public startFaceDetection() {
+        if (!this.faceDetectionRunning) {
+            this.faceDetectionRunning = true;
+            const faceExecutionTask = async () => {
+                await this.executeFaceDetection();
+                if (this.faceDetectionRunning) {
+                    if (this.faceDetectionTask) {
+                        clearTimeout(this.faceDetectionTask);
+                        this.faceDetectionTask = null;
+                    }
+                    this.faceDetectionTask = setTimeout(async () => faceExecutionTask(), this.detectionInterval);
+                }
+            }
+            faceExecutionTask();
+        }
     }
 }
 
