@@ -188,7 +188,7 @@ export class BiometricsCameraElement extends BiometricsElement {
             desiredConstraints.video.facingMode = this.facingMode;
         }
         if (this.aspectRatio) {
-            desiredConstraints.video.aspectRatio = this.aspectRatio;
+            desiredConstraints.video.aspectRatio = {exact: this.aspectRatio};
         }
         mediaFallbackConstraints.push(desiredConstraints);
         if (this.deviceId) {

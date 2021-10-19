@@ -71,7 +71,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
                     controls: 'false',
                     fullscreen: 'false',
                     'aspect-ratio': '1',
-                    'facing-mode': 'user'
+                    'facing-mode': 'user',
+                    'video-width': 2048,
+                    'video-height': 2048
                 }
             });
             this.appendElement(this.cameraElement);
