@@ -20,6 +20,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
     private pictureElement: HTMLImageElement;
+    private faceIndicatorElement: HTMLDivElement;
     private sessionTimeoutTask: any;
     private sessionRunning = false;
     private faceDetectionTask: any;
@@ -36,8 +37,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
      */
     constructor() {
         super(true);
-        this.detector = new Detector();
-        this.detector.loadClassifier('frontal_face', FrontalFaceClassifier);
+        this.detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
     }
 
     protected onConnected() {
@@ -100,11 +100,31 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
             this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
             this.maskElement.innerHTML = `
-                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="200" ry="300"></ellipse></mask></defs>
+                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="220" ry="300"></ellipse></mask></defs>
                 <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
-                <ellipse class="mask-siluette" cx="500" cy="500" rx="200" ry="300"></ellipse>
+                <ellipse class="mask-siluette" cx="500" cy="500" rx="220" ry="300"></ellipse>
             `;
             this.appendElement(this.maskElement);
+        }
+    }
+
+    private showFaceIndicator(rect: DOMRect) {
+        if (this.faceIndicatorEnabled) {
+            if (!this.faceIndicatorElement) {
+                this.faceIndicatorElement = this.createElement('div', {classes: 'face-indicator'});
+                this.appendElement(this.faceIndicatorElement);
+            }
+            this.faceIndicatorElement.style.left = rect.left + 'px';
+            this.faceIndicatorElement.style.top = rect.top + 'px';
+            this.faceIndicatorElement.style.width = rect.width + 'px';
+            this.faceIndicatorElement.style.height = rect.height + 'px';
+        }
+    }
+
+    private clearFaceIndicator() {
+        if (this.faceIndicatorElement) {
+            this.faceIndicatorElement.remove();
+            this.faceIndicatorElement = null;
         }
     }
 
@@ -119,7 +139,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             const cameraSize = Math.min(elementHeight, elementWidth);
             const imageXFactor = cameraSize / imageWidth;
             const imageYFactor = cameraSize / imageHeight;
-            const detectedItems = this.detector.detect('frontal_face', imageData);
+            const detectedItems = this.detector.detect(imageData);
             if (detectedItems && detectedItems.length > 0) {
                 const detectedItem = detectedItems[0];
                 const radius = detectedItem.radius * imageXFactor;
@@ -146,6 +166,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     public set apiKey(apiKey: string) {
         this.setAttribute('api-key', apiKey);
+    }
+
+    public get faceIndicatorEnabled(): boolean {
+        return this.getAttribute('face-indicator-enabled') === 'true';
+    }
+
+    public set faceIndicatorEnabled(faceIndicatorEnabled: boolean) {
+        this.setAttribute('face-indicator-enabled', String(faceIndicatorEnabled));
     }
 
     public get autoStartSession(): boolean {
@@ -184,6 +212,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (!faceRect) {
                 faceMatching = false;
                 caption = 'Rostro no encontrado';
+                this.clearFaceIndicator();
             } else {
                 const elementWidth = this.offsetWidth;
                 const elementHeight = this.offsetHeight;
@@ -209,6 +238,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         caption = 'El rostro está demasiado cerca';
                     }
                 }
+                this.showFaceIndicator(faceRect);
             }
             this.setFaceMatching(faceMatching);
             this.setCaption(caption);
@@ -223,6 +253,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private stopFaceDetection() {
         if (this.faceDetectionRunning) {
             this.faceDetectionRunning = false;
+            this.clearFaceIndicator();
             if (this.faceDetectionTask) {
                 clearTimeout(this.faceDetectionTask);
                 this.faceDetectionTask = null;
