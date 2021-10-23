@@ -207,7 +207,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     public get faceIndicatorEnabled(): boolean {
-        return this.getAttribute('face-indicator-enabled') === 'true';
+        return !this.hasAttribute('face-indicator-enabled') || this.getAttribute('face-indicator-enabled') === 'true';
     }
 
     public set faceIndicatorEnabled(faceIndicatorEnabled: boolean) {
