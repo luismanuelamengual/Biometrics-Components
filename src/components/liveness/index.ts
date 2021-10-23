@@ -227,7 +227,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (!faceRect) {
                 faceMatching = false;
                 caption = 'Rostro no encontrado';
-                this.clearFaceIndicator();
             } else {
                 const elementWidth = this.offsetWidth;
                 const elementHeight = this.offsetHeight;
@@ -253,10 +252,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         caption = 'El rostro está demasiado cerca';
                     }
                 }
-                this.showFaceIndicator(faceRect);
             }
             this.setFaceMaskMode(faceMatching? BiometricsLivenessElement.MATCH_MASK_MODE : BiometricsLivenessElement.NO_MATCH_MASK_MODE);
             this.setCaption(caption);
+            if (!faceMatching && faceRect) {
+                this.showFaceIndicator(faceRect);
+            } else {
+                this.clearFaceIndicator();
+            }
             if (faceMatching) {
                 this.startFaceCaptureTimer();
             } else {
@@ -416,11 +419,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.timerElement.innerText = remainingSeconds.toString();
             this.faceCaptureTask = setInterval(async () => {
                 remainingSeconds--;
-                if (remainingSeconds <= 0) {
-                    this.stopFaceCaptureTimer();
-                    await this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
-                } else {
+                if (remainingSeconds > 0) {
                     this.timerElement.innerText = remainingSeconds.toString();
+                } else {
+                    this.timerElement.innerText = '';
+                    if (remainingSeconds === 0) {
+                        await this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
+                    } if (remainingSeconds < 0) {
+                        this.stopFaceCaptureTimer();
+                    }
                 }
             }, 1000);
         }
