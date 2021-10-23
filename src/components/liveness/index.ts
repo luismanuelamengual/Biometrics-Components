@@ -282,7 +282,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         clearTimeout(this.faceDetectionTask);
                         this.faceDetectionTask = null;
                     }
-                    this.faceDetectionTask = setTimeout(async () => faceExecutionTask(), this.detectionInterval);
+                    this.faceDetectionTask = setTimeout(async () => this.faceDetectionRunning && faceExecutionTask(), this.detectionInterval);
                 }
             }
             await faceExecutionTask();
