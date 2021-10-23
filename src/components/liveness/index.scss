@@ -2,8 +2,9 @@ $mask-start-zoom: 1.1;
 $mask-end-zoom: 1.6;
 $mask-zoom-delay: 0.5s;
 $mask-border-size: 10;
-$mask-border-color: red;
+$mask-border-color: gray;
 $mask-match-border-color: #45ff54;
+$mask-no-match-border-color: red;
 $mask-background-color: black;
 
 :host {
@@ -55,6 +56,12 @@ $mask-background-color: black;
         &.mask-match {
             .mask-siluette {
                 stroke: $mask-match-border-color;
+            }
+        }
+
+        &.mask-no-match {
+            .mask-siluette {
+                stroke: $mask-no-match-border-color;
             }
         }
     }
