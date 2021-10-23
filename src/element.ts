@@ -119,11 +119,14 @@ export abstract class BiometricsElement extends HTMLElement {
     protected createElement<Type extends HTMLElement>(tagName: string, options: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}): Type;
     protected createElement<Type extends HTMLElement>(tagName: string, options: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}, content: string): Type;
     protected createElement<Type extends HTMLElement>(tagName: string, options: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}, chidren: Array<HTMLElement>): Type;
-    protected createElement<Type extends HTMLElement>(tagName: string, options?: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}, content?: string | Array<HTMLElement>): Type {
+    protected createElement<Type extends HTMLElement>(tagName: string, options: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}, chidren: HTMLElement): Type;
+    protected createElement<Type extends HTMLElement>(tagName: string, options?: string | Array<HTMLElement> | {classes?: string|Array<string>|{[key: string]: boolean}, attributes?: {[key: string]: any;}, listeners?: {[key: string]: (Event) => void}}, content?: string | HTMLElement | Array<HTMLElement>): Type {
         const element = document.createElement(tagName);
-        function insertContent(content: string|Array<HTMLElement>) {
+        function insertContent(content: string|HTMLElement|Array<HTMLElement>) {
             if (typeof content === 'string') {
                 element.innerHTML = content;
+            } else if (content instanceof HTMLElement) {
+                element.appendChild(content);
             } else if (content instanceof Array) {
                 for (const childElement of content) {
                     element.appendChild(childElement);

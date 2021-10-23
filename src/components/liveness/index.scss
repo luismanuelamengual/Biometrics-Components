@@ -125,4 +125,32 @@ $mask-background-color: black;
         height: 100%;
         object-fit: contain;
     }
+
+    .start-button-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 24000;
+
+        .start-button {
+            border: 2px solid white;
+            border-radius: 18px;
+            background: black;
+            color: #ffffff;
+            font-family: "Open Sans", sans-serif;
+            font-size: 23px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 10px 20px;
+
+            &:focus {
+                outline: none;
+            }
+        }
+    }
 }
