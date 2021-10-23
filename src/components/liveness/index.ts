@@ -253,7 +253,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private stopFaceDetection() {
         if (this.faceDetectionRunning) {
             this.faceDetectionRunning = false;
-            this.clearFaceIndicator();
             if (this.faceDetectionTask) {
                 clearTimeout(this.faceDetectionTask);
                 this.faceDetectionTask = null;
@@ -420,6 +419,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.sessionTimeoutTask = setTimeout(() => {
                 this.stopFaceDetection();
                 this.stopFaceCaptureTimer();
+                this.clearFaceIndicator();
                 this.removeCamera();
                 this.removeMask();
                 this.onSessionFail('Se ha agotado el tiempo de sesión');
@@ -435,6 +435,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.zoomedPicture = picture;
             this.clearSessionTimer();
             this.stopFaceDetection();
+            this.stopFaceCaptureTimer();
+            this.clearFaceIndicator();
             await this.setPreviewPicture(this.zoomedPicture);
             this.removeCamera();
             await this.verifyLiveness();
