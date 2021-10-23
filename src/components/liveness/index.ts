@@ -9,6 +9,7 @@ import failureAnimationData from './animations/failure-animation-data';
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
+    private static readonly FACE_ASPECT_RATIO = 0.73333;
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
@@ -99,10 +100,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
             this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
             this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            const faceWidth = 220;
+            const faceHeight = Math.round(faceWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO);
             this.maskElement.innerHTML = `
-                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="220" ry="300"></ellipse></mask></defs>
+                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse></mask></defs>
                 <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
-                <ellipse class="mask-siluette" cx="500" cy="500" rx="220" ry="300"></ellipse>
+                <ellipse class="mask-siluette" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse>
             `;
             this.appendElement(this.maskElement);
         }
@@ -114,10 +117,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 this.faceIndicatorElement = this.createElement('div', {classes: 'face-indicator'});
                 this.appendElement(this.faceIndicatorElement);
             }
-            this.faceIndicatorElement.style.left = rect.left + 'px';
-            this.faceIndicatorElement.style.top = rect.top + 'px';
-            this.faceIndicatorElement.style.width = rect.width + 'px';
-            this.faceIndicatorElement.style.height = rect.height + 'px';
+            const newWidth = rect.width * 0.9;
+            const newHeight = newWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO;
+            const newLeft = rect.left + (rect.width - newWidth) / 2;
+            const newTop = rect.top + (rect.height - newHeight) / 2;
+            this.faceIndicatorElement.style.left = newLeft + 'px';
+            this.faceIndicatorElement.style.top = newTop + 'px';
+            this.faceIndicatorElement.style.width = newWidth + 'px';
+            this.faceIndicatorElement.style.height = newHeight + 'px';
         }
     }
 
