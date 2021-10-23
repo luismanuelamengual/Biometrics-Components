@@ -151,8 +151,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             const cameraSize = Math.min(elementHeight, elementWidth);
             const imageXFactor = cameraSize / imageWidth;
             const imageYFactor = cameraSize / imageHeight;
-            const detectedItems = this.detector.detect(imageData);
+            let detectedItems = this.detector.detect(imageData);
             if (detectedItems && detectedItems.length > 0) {
+                if (detectedItems.length > 1) {
+                    detectedItems = detectedItems.sort((detection1, detection2) => detection2.radius - detection1.radius);
+                }
                 const detectedItem = detectedItems[0];
                 const radius = detectedItem.radius * imageXFactor;
                 const diameter = radius * 2;
