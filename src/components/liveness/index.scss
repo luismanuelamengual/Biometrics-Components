@@ -71,10 +71,15 @@ $mask-background-color: black;
         border: 3px solid lightgray;
         border-radius: 50%;
         z-index: 10000;
-        -webkit-transition: all 0.5s 0s ease-out;
-        -moz-transition: all 0.5s 0s ease-out;
-        -o-transition: all 0.5s 0s ease-out;
-        transition: all 0.5s 0s ease-out;
+
+        @media (min-width: 1000px) {
+            & {
+                -webkit-transition: all 0.5s 0s ease-out;
+                -moz-transition: all 0.5s 0s ease-out;
+                -o-transition: all 0.5s 0s ease-out;
+                transition: all 0.5s 0s ease-out;
+            }
+        }
     }
 
     .caption-container {
