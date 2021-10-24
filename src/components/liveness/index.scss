@@ -106,6 +106,12 @@ $mask-background-color: black;
             &.caption-danger {
                 background-color: rgba(180, 0, 0, 0.8);
             }
+
+            @media (min-width: 1000px) {
+                & {
+                    font-size: 35px;
+                }
+            }
         }
     }
 
@@ -160,7 +166,7 @@ $mask-background-color: black;
                 & {
                     padding: 10px 35px;
                     border-radius: 30px;
-                    font-size: 40px;
+                    font-size: 35px;
                 }
             }
         }
