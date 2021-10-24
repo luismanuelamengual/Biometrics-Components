@@ -383,14 +383,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private clearPreviewPicture() {
+    private removePreviewPicture() {
         if (this.pictureElement) {
             this.pictureElement.remove();
             this.pictureElement = null;
         }
     }
 
-    private async setPreviewPicture(picture: Blob) {
+    private async showPreviewPicture(picture: Blob) {
         const pictureUrl: string = await (new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(picture);
@@ -404,7 +404,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private clearAnimation() {
+    private removeAnimation() {
         if (this.animationElement) {
             this.animationElement.remove();
             this.animationElement = null;
@@ -495,7 +495,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.stopFaceDetection();
             this.stopFaceCaptureTimer();
             this.clearFaceIndicator();
-            await this.setPreviewPicture(this.zoomedPicture);
+            await this.showPreviewPicture(this.zoomedPicture);
             this.removeCamera();
             await this.verifyLiveness();
         }
@@ -571,8 +571,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.picture = null;
             this.zoomedPicture = null;
             this.removeStartButton();
-            this.clearPreviewPicture();
-            this.clearAnimation();
+            this.removePreviewPicture();
+            this.removeAnimation();
             this.appendCamera();
             this.appendMask();
             this.setFaceZoomMode(false);
