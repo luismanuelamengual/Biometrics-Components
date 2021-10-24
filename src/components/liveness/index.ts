@@ -7,15 +7,18 @@ import loadingAnimationData from './animations/loading-animation-data';
 import successAnimationData from './animations/success-animation-data';
 import failureAnimationData from './animations/failure-animation-data';
 
+enum MaskMode {
+    NORMAL,
+    SUCCESS,
+    FAILURE
+}
+
 export class BiometricsLivenessElement extends BiometricsElement {
 
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
-    private static readonly NEUTRAL_MASK_MODE = 0;
-    private static readonly MATCH_MASK_MODE = 1;
-    private static readonly NO_MATCH_MASK_MODE = 2;
 
     private detector: Detector;
     private animationElement: BiometricsAnimationElement;
@@ -31,7 +34,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private faceDetectionTask: any;
     private faceCaptureTask: any;
     private faceDetectionRunning = false;
-    private faceMaskMode: number = BiometricsLivenessElement.NEUTRAL_MASK_MODE;
+    private faceMaskMode: MaskMode = MaskMode.NORMAL;
     private faceZoomMode = false;
     private caption = '';
     private picture: Blob = null;
@@ -118,9 +121,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (!this.maskElement) {
             this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
             this.maskElement.classList.add('mask');
-            if (this.faceMaskMode === BiometricsLivenessElement.MATCH_MASK_MODE) {
+            if (this.faceMaskMode === MaskMode.SUCCESS) {
                 this.maskElement.classList.add('mask-match');
-            } else if (this.faceMaskMode === BiometricsLivenessElement.NO_MATCH_MASK_MODE) {
+            } else if (this.faceMaskMode === MaskMode.FAILURE) {
                 this.maskElement.classList.add('mask-no-match');
             }
             if (this.faceZoomMode) {
@@ -291,7 +294,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                     }
                 }
             }
-            this.setFaceMaskMode(faceMatching? BiometricsLivenessElement.MATCH_MASK_MODE : BiometricsLivenessElement.NO_MATCH_MASK_MODE);
+            this.setFaceMaskMode(faceMatching? MaskMode.SUCCESS : MaskMode.FAILURE);
             this.setCaption(caption);
             if (this.faceIndicatorEnabled) {
                 if (!faceMatching && faceRect) {
@@ -339,12 +342,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (this.faceMaskMode != faceMaskMode) {
             this.faceMaskMode = faceMaskMode;
             if (this.maskElement) {
-                if (this.faceMaskMode === BiometricsLivenessElement.MATCH_MASK_MODE) {
+                if (this.faceMaskMode === MaskMode.SUCCESS) {
                     this.maskElement.classList.add('mask-match');
                 } else {
                     this.maskElement.classList.remove('mask-match');
                 }
-                if (this.faceMaskMode === BiometricsLivenessElement.NO_MATCH_MASK_MODE) {
+                if (this.faceMaskMode === MaskMode.FAILURE) {
                     this.maskElement.classList.add('mask-no-match');
                 } else {
                     this.maskElement.classList.remove('mask-no-match');
@@ -505,7 +508,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private async verifyLiveness() {
         this.setCaption('Analizando ...');
-        this.setFaceMaskMode(BiometricsLivenessElement.NEUTRAL_MASK_MODE);
+        this.setFaceMaskMode(MaskMode.NORMAL);
         this.playLoadingAnimation();
         try {
             let response: any;
@@ -550,13 +553,13 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private onSessionSuccess() {
         this.setCaption('Prueba de vida superada exitosamente');
-        this.setFaceMaskMode(BiometricsLivenessElement.MATCH_MASK_MODE);
+        this.setFaceMaskMode(MaskMode.SUCCESS);
         this.playSuccessAnimation(() => this.endSession());
     }
 
     private onSessionFail(reasonMessage = '') {
         this.setCaption(reasonMessage);
-        this.setFaceMaskMode(BiometricsLivenessElement.NO_MATCH_MASK_MODE);
+        this.setFaceMaskMode(MaskMode.FAILURE);
         this.playFailureAnimation(() => this.endSession());
     }
 
@@ -578,7 +581,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.appendCamera();
             this.appendMask();
             this.setFaceZoomMode(false);
-            this.setFaceMaskMode(BiometricsLivenessElement.NEUTRAL_MASK_MODE);
+            this.setFaceMaskMode(MaskMode.NORMAL);
             this.startSessionTimer();
             await this.startFaceDetection();
         }
