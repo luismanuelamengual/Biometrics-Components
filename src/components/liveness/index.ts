@@ -10,6 +10,11 @@ import {MaskMode} from "./mask-mode";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
+    private static readonly MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE = 6;
+    private static readonly MIN_FACE_SCALE_PERCENTAGE = 50;
+    private static readonly MAX_FACE_SCALE_PERCENTAGE = 65;
+    private static readonly MIN_ZOOMED_FACE_SCALE_PERCENTAGE = 70;
+    private static readonly MAX_ZOOMED_FACE_SCALE_PERCENTAGE = 85;
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
@@ -273,12 +278,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 const faceCenterY = faceRect.y + (faceRect.height / 2);
                 const distanceToCenterInPixels = Math.sqrt(Math.pow(elementCenterX - faceCenterX, 2) + Math.pow(elementCenterY - faceCenterY, 2));
                 const distanceToCenterInPercentage = distanceToCenterInPixels * 100 / elementSize;
-                if (distanceToCenterInPercentage > 5) {
+                if (distanceToCenterInPercentage > BiometricsLivenessElement.MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE) {
                     faceMatching = false;
                     caption = 'Rostro no centrado';
                 } else {
-                    const minFaceScalePercentage = this.faceZoomMode ? 70 : 50;
-                    const maxFaceScalePercentage = this.faceZoomMode ? 85 : 65;
+                    const minFaceScalePercentage = this.faceZoomMode ? BiometricsLivenessElement.MIN_ZOOMED_FACE_SCALE_PERCENTAGE : BiometricsLivenessElement.MIN_FACE_SCALE_PERCENTAGE;
+                    const maxFaceScalePercentage = this.faceZoomMode ? BiometricsLivenessElement.MAX_ZOOMED_FACE_SCALE_PERCENTAGE : BiometricsLivenessElement.MAX_FACE_SCALE_PERCENTAGE;
                     const faceScaleInPercentage = faceRect.width * 100 / elementSize;
                     if (faceScaleInPercentage < minFaceScalePercentage) {
                         faceMatching = false;
