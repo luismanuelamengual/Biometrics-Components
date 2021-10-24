@@ -6,12 +6,7 @@ import {BiometricsAnimationElement} from "../animation";
 import loadingAnimationData from './animations/loading-animation-data';
 import successAnimationData from './animations/success-animation-data';
 import failureAnimationData from './animations/failure-animation-data';
-
-enum MaskMode {
-    NORMAL,
-    SUCCESS,
-    FAILURE
-}
+import {MaskMode} from "./mask-mode";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
