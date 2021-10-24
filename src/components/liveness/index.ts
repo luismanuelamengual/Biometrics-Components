@@ -10,6 +10,12 @@ import {MaskMode} from "./mask-mode";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
+    public static readonly SESSION_STARTED_EVENT = 'sessionStarted';
+    public static readonly SESSION_ENDED_EVENT = 'sessionEnded';
+    public static readonly SESSION_SUCCESS_EVENT = 'sessionSuccess';
+    public static readonly SESSION_FAIL_EVENT = 'sessionFail';
+    public static readonly SESSION_TIMEOUT_EVENT = 'sessionTimeout';
+
     private static readonly MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE = 6;
     private static readonly MIN_FACE_SCALE_PERCENTAGE = 40;
     private static readonly MAX_FACE_SCALE_PERCENTAGE = 55;
@@ -547,26 +553,35 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.clearFaceIndicator();
         this.removeCamera();
         this.removeMask();
-        this.setCaption('Se ha agotado el tiempo de sesión');
-        this.playFailureAnimation(() => this.endSession());
+        this.triggerEvent(BiometricsLivenessElement.SESSION_TIMEOUT_EVENT);
+        this.onSessionFail('Se ha agotado el tiempo de sesión');
     }
 
     private onSessionSuccess() {
         this.setCaption('Prueba de vida superada exitosamente');
         this.setFaceMaskMode(MaskMode.SUCCESS);
-        this.playSuccessAnimation(() => this.endSession());
+        this.playSuccessAnimation(() => {
+            this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
+            this.endSession();
+        });
     }
 
     private onSessionFail(reasonMessage = '') {
         this.setCaption(reasonMessage);
         this.setFaceMaskMode(MaskMode.FAILURE);
-        this.playFailureAnimation(() => this.endSession());
+        this.playFailureAnimation(() => {
+            this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
+            this.endSession();
+        });
     }
 
     private endSession() {
-        this.sessionRunning = false;
-        if (this.showStartButton) {
-            this.appendStartButton();
+        if (this.sessionRunning) {
+            this.sessionRunning = false;
+            if (this.showStartButton) {
+                this.appendStartButton();
+            }
+            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
         }
     }
 
@@ -584,6 +599,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.setFaceMaskMode(MaskMode.NORMAL);
             this.startSessionTimer();
             await this.startFaceDetection();
+            this.triggerEvent(BiometricsLivenessElement.SESSION_STARTED_EVENT);
         }
     }
 }
