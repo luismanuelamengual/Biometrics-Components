@@ -165,7 +165,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private clearFaceIndicator() {
+    private removeFaceIndicator() {
         if (this.faceIndicatorElement) {
             this.faceIndicatorElement.remove();
             this.faceIndicatorElement = null;
@@ -306,7 +306,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 if (!faceMatching && faceRect) {
                     this.showFaceIndicator(faceRect);
                 } else {
-                    this.clearFaceIndicator();
+                    this.removeFaceIndicator();
                 }
             }
             if (faceMatching) {
@@ -505,7 +505,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.clearSessionTimer();
             this.stopFaceDetection();
             this.stopFaceCaptureTimer();
-            this.clearFaceIndicator();
+            this.removeFaceIndicator();
             await this.showPreviewPicture(this.zoomedPicture);
             this.removeCamera();
             await this.verifyLiveness();
@@ -550,7 +550,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private onSessionTimeout() {
         this.stopFaceDetection();
         this.stopFaceCaptureTimer();
-        this.clearFaceIndicator();
+        this.removeFaceIndicator();
         this.removeCamera();
         this.removeMask();
         this.triggerEvent(BiometricsLivenessElement.SESSION_TIMEOUT_EVENT);
