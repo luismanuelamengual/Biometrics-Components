@@ -11,10 +11,10 @@ import {MaskMode} from "./mask-mode";
 export class BiometricsLivenessElement extends BiometricsElement {
 
     private static readonly MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE = 6;
-    private static readonly MIN_FACE_SCALE_PERCENTAGE = 47;
-    private static readonly MAX_FACE_SCALE_PERCENTAGE = 62;
-    private static readonly MIN_ZOOMED_FACE_SCALE_PERCENTAGE = 67;
-    private static readonly MAX_ZOOMED_FACE_SCALE_PERCENTAGE = 82;
+    private static readonly MIN_FACE_SCALE_PERCENTAGE = 40;
+    private static readonly MAX_FACE_SCALE_PERCENTAGE = 55;
+    private static readonly MIN_ZOOMED_FACE_SCALE_PERCENTAGE = 60;
+    private static readonly MAX_ZOOMED_FACE_SCALE_PERCENTAGE = 75;
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
