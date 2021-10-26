@@ -82,13 +82,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private appendStartButton() {
         if (!this.startButtonElement) {
-            const buttonElement = this.createElement('button', {classes: 'start-button'}, 'Iniciar');
-            this.startButtonElement = this.createElement('div', {
-                classes: 'start-button-container',
+            this.startButtonElement = this.createElement('button', {
+                classes: 'start-button',
                 listeners: {
                     click: () => this.startSession()
                 }
-            }, buttonElement);
+            }, 'Iniciar');
             this.appendElement(this.startButtonElement);
         }
     }
