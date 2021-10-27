@@ -18,7 +18,11 @@ export abstract class BiometricsElement extends HTMLElement {
         if (content) {
             const container = this.getContainer();
             if (typeof content === 'string') {
-                container.innerHTML = content;
+                if (container.innerHTML) {
+                    container.innerHTML += content;
+                } else {
+                    container.innerHTML = content;
+                }
             } else if (content instanceof Array) {
                 for(const contentElement of content) {
                     container.appendChild(contentElement);
