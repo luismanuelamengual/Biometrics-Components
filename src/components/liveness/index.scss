@@ -137,15 +137,15 @@ $mask-background-color: black;
         object-fit: contain;
     }
 
-    .start-button {
+    .retry-button {
         position: absolute;
         bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 24000;
-        border: 2px solid white;
+        border: 5px solid white;
         border-radius: 18px;
-        background: black;
+        background: gray;
         color: #ffffff;
         font-family: "Open Sans", sans-serif;
         font-size: 23px;

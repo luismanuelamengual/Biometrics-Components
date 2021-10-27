@@ -27,21 +27,27 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
-    private api: BiometricsApi;
-    private detector: Detector;
+    private _api: BiometricsApi;
+    private _detector: Detector;
+    private _showRetryButton = false;
+    private _showCamera = false;
+    private _showMask = false;
+    private _showFaceIndicator = false;
+    private _faceRect: DOMRect = null;
+    private _cameraElement: BiometricsCameraElement;
+    private _maskElement: HTMLElement;
+    private _faceIndicatorElement: HTMLDivElement;
+    private _faceDetectionRunning = false;
+    private _faceDetectionTask: any;
+
+
     private animationElement: BiometricsAnimationElement;
-    private cameraElement: BiometricsCameraElement;
-    private maskElement: HTMLElement;
     private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
     private pictureElement: HTMLImageElement;
-    private faceIndicatorElement: HTMLDivElement;
-    private startButtonElement: HTMLDivElement;
     private sessionTimeoutTask: any;
     private sessionRunning = false;
-    private faceDetectionTask: any;
     private faceCaptureTask: any;
-    private faceDetectionRunning = false;
     private faceMaskMode: MaskMode = MaskMode.NORMAL;
     private faceZoomMode = false;
     private caption = '';
@@ -53,8 +59,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
      */
     constructor() {
         super(true);
-        this.api = new BiometricsApi();
-        this.detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
+        this._api = new BiometricsApi();
+        this._detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
     }
 
     protected onConnected() {
@@ -64,11 +70,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (this.hasAttribute('api-key')) {
             this.apiKey = this.getAttribute('api-key');
         }
-        if (this.autoStartSession) {
-            this.startSession();
-        } else if (this.showStartButton) {
-            this.appendStartButton();
-        }
+
+        // BORRAR EL INICIO AUTOMATICO
+        this.startSession();
     }
 
     /**
@@ -82,145 +86,20 @@ export class BiometricsLivenessElement extends BiometricsElement {
         return styles;
     }
 
-    private removeCamera() {
-        if (this.cameraElement) {
-            this.cameraElement.remove();
-            this.cameraElement = null;
-        }
-    }
-
-    private appendStartButton() {
-        if (!this.startButtonElement) {
-            this.startButtonElement = this.createElement('button', {
-                classes: 'start-button',
-                listeners: {
-                    click: () => this.startSession()
-                }
-            }, 'Iniciar');
-            this.appendElement(this.startButtonElement);
-        }
-    }
-
-    private removeStartButton() {
-        if (this.startButtonElement) {
-            this.startButtonElement.remove();
-            this.startButtonElement = null;
-        }
-    }
-
-    private appendCamera() {
-        if (!this.cameraElement) {
-            this.cameraElement = this.createElement('biometrics-camera', {
-                attributes: {
-                    controls: 'false',
-                    fullscreen: 'false',
-                    'aspect-ratio': '1',
-                    'facing-mode': 'user',
-                    'video-width': 2048,
-                    'video-height': 2048
-                }
-            });
-            this.appendElement(this.cameraElement);
-        }
-    }
-
-    private removeMask() {
-        if (this.maskElement) {
-            this.maskElement.remove();
-            this.maskElement = null;
-        }
-    }
-
-    private appendMask() {
-        if (!this.maskElement) {
-            this.maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
-            this.maskElement.classList.add('mask');
-            if (this.faceMaskMode === MaskMode.SUCCESS) {
-                this.maskElement.classList.add('mask-match');
-            } else if (this.faceMaskMode === MaskMode.FAILURE) {
-                this.maskElement.classList.add('mask-no-match');
-            }
-            if (this.faceZoomMode) {
-                this.maskElement.classList.add('mask-zoom');
-            }
-            this.maskElement.setAttribute('viewBox', '0 0 1000 1000');
-            this.maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-            const faceWidth = 220;
-            const faceHeight = Math.round(faceWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO);
-            this.maskElement.innerHTML = `
-                <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse></mask></defs>
-                <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
-                <ellipse class="mask-siluette" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse>
-            `;
-            this.appendElement(this.maskElement);
-        }
-    }
-
-    private showFaceIndicator(rect: DOMRect) {
-        if (this.faceIndicatorEnabled) {
-            if (!this.faceIndicatorElement) {
-                this.faceIndicatorElement = this.createElement('div', {classes: 'face-indicator'});
-                this.appendElement(this.faceIndicatorElement);
-            }
-            const newWidth = rect.width * 0.9;
-            const newHeight = newWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO;
-            const newLeft = rect.left + (rect.width - newWidth) / 2;
-            const newTop = rect.top + (rect.height - newHeight) / 2;
-            this.faceIndicatorElement.style.left = newLeft + 'px';
-            this.faceIndicatorElement.style.top = newTop + 'px';
-            this.faceIndicatorElement.style.width = newWidth + 'px';
-            this.faceIndicatorElement.style.height = newHeight + 'px';
-        }
-    }
-
-    private removeFaceIndicator() {
-        if (this.faceIndicatorElement) {
-            this.faceIndicatorElement.remove();
-            this.faceIndicatorElement = null;
-        }
-    }
-
-    private async detectFace(): Promise<DOMRect> {
-        let faceRect: DOMRect = null;
-        const imageData = await this.cameraElement.getSnapshotImageData (320, 320);
-        if (imageData != null) {
-            const imageWidth = imageData.width;
-            const imageHeight = imageData.height;
-            const elementWidth = this.offsetWidth;
-            const elementHeight = this.offsetHeight;
-            const cameraSize = Math.min(elementHeight, elementWidth);
-            const imageXFactor = cameraSize / imageWidth;
-            const imageYFactor = cameraSize / imageHeight;
-            let detectedItems = this.detector.detect(imageData);
-            if (detectedItems && detectedItems.length > 0) {
-                if (detectedItems.length > 1) {
-                    detectedItems = detectedItems.sort((detection1, detection2) => detection2.radius - detection1.radius);
-                }
-                const detectedItem = detectedItems[0];
-                const radius = detectedItem.radius * imageXFactor;
-                const diameter = radius * 2;
-                const centerX = ((elementWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
-                const centerY = ((elementHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor + (radius * 0.2);
-                faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
-            }
-        }
-        return faceRect;
-    }
-
     public get serverUrl(): string {
-        return this.api.baseUrl;
+        return this._api.baseUrl;
     }
 
     public set serverUrl(serverUrl: string) {
-        this.api.baseUrl = serverUrl;
+        this._api.baseUrl = serverUrl;
     }
 
     public get apiKey(): string {
-        return this.api.apiKey;
+        return this._api.apiKey;
     }
 
     public set apiKey(apiKey: string) {
-        this.api.apiKey = apiKey;
+        this._api.apiKey = apiKey;
     }
 
     public get faceIndicatorEnabled(): boolean {
@@ -229,25 +108,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     public set faceIndicatorEnabled(faceIndicatorEnabled: boolean) {
         this.setAttribute('face-indicator-enabled', String(faceIndicatorEnabled));
-    }
-
-    public get showStartButton(): boolean {
-        return !this.hasAttribute('show-start-button') || this.getAttribute('show-start-button') === 'true';
-    }
-
-    public set showStartButton(showStartButton: boolean) {
-        this.setAttribute('show-start-button', String(showStartButton));
-        if (showStartButton) {
-            if (!this.sessionRunning) {
-                this.appendStartButton();
-            }
-        } else {
-            this.removeStartButton();
-        }
-    }
-
-    public get autoStartSession(): boolean {
-        return !this.hasAttribute('auto-start-session') || this.getAttribute('auto-start-session') === 'true';
     }
 
     public get detectionInterval(): number {
@@ -274,11 +134,161 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.setAttribute('timeout-seconds', String(timeoutSeconds));
     }
 
+    private get showRetryButton(): boolean {
+        return this._showRetryButton;
+    }
+
+    private set showRetryButton(showRetryButton: boolean) {
+        if (showRetryButton != this._showRetryButton) {
+            this._showRetryButton = showRetryButton;
+            if (this._showRetryButton) {
+                this.appendElement(this.createElement('button', {
+                    classes: ['button', 'retry-button'],
+                    listeners: {
+                        click: () => this.startSession()
+                    }
+                }, 'Reintentar'));
+            } else {
+                this.findElement('.retry-button').remove();
+            }
+        }
+    }
+
+    private get showCamera(): boolean {
+        return this._showCamera;
+    }
+
+    private set showCamera(showCamera: boolean) {
+        if (showCamera != this._showCamera) {
+            this._showCamera = showCamera;
+            if (this._showCamera) {
+                this._cameraElement = this.createElement('biometrics-camera', {
+                    attributes: {
+                        controls: 'false',
+                        fullscreen: 'false',
+                        'aspect-ratio': '1',
+                        'facing-mode': 'user',
+                        'video-width': 2048,
+                        'video-height': 2048
+                    }
+                });
+                this.appendElement(this._cameraElement);
+            } else {
+                this._cameraElement.remove();
+                this._cameraElement = null;
+            }
+        }
+    }
+
+    private get showMask(): boolean {
+        return this._showMask;
+    }
+
+    private set showMask(showMask: boolean) {
+        if (showMask != this._showMask) {
+            this._showMask = showMask;
+            if (this._showMask) {
+                this._maskElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as unknown as HTMLElement;
+                this._maskElement.classList.add('mask');
+                if (this.faceMaskMode === MaskMode.SUCCESS) {
+                    this._maskElement.classList.add('mask-match');
+                } else if (this.faceMaskMode === MaskMode.FAILURE) {
+                    this._maskElement.classList.add('mask-no-match');
+                }
+                if (this.faceZoomMode) {
+                    this._maskElement.classList.add('mask-zoom');
+                }
+                this._maskElement.setAttribute('viewBox', '0 0 1000 1000');
+                this._maskElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                const faceWidth = 220;
+                const faceHeight = Math.round(faceWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO);
+                this._maskElement.innerHTML = `
+                    <defs><mask id="faceMask"><rect width="1000" height="1000" fill="white"></rect><ellipse fill="black" stroke="none" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse></mask></defs>
+                    <rect class="mask-background" width="1000" height="1000" mask="url(#faceMask)"></rect>
+                    <ellipse class="mask-siluette" cx="500" cy="500" rx="${faceWidth}" ry="${faceHeight}"></ellipse>
+                `;
+                this.appendElement(this._maskElement);
+            } else {
+                this._maskElement.remove();
+                this._maskElement = null;
+            }
+        }
+    }
+
+    private get showFaceIndicator(): boolean {
+        return this._showFaceIndicator;
+    }
+
+    private set showFaceIndicator(showFaceIndicator: boolean) {
+        if (showFaceIndicator != this._showFaceIndicator) {
+            this._showFaceIndicator = showFaceIndicator;
+            if (this._showFaceIndicator) {
+                this._faceIndicatorElement = this.createElement('div', {classes: 'face-indicator'});
+                this.appendElement(this._faceIndicatorElement);
+            } else {
+                this._faceIndicatorElement.remove();
+                this._faceIndicatorElement = null;
+            }
+        }
+    }
+
+    private get faceRect(): DOMRect {
+        return this._faceRect;
+    }
+
+    private set faceRect(rect: DOMRect) {
+        this._faceRect = rect;
+        if (this._faceIndicatorElement) {
+            if (this._faceRect) {
+                const faceWidth = this._faceRect.width * 0.9;
+                const faceHeight = faceWidth / BiometricsLivenessElement.FACE_ASPECT_RATIO;
+                const faceLeft = this._faceRect.left + (this._faceRect.width - faceWidth) / 2;
+                const faceTop = this._faceRect.top + (this._faceRect.height - faceHeight) / 2;
+                this._faceIndicatorElement.style.left = faceLeft+ 'px';
+                this._faceIndicatorElement.style.top = faceTop + 'px';
+                this._faceIndicatorElement.style.width = faceWidth + 'px';
+                this._faceIndicatorElement.style.height = faceHeight + 'px';
+                this._faceIndicatorElement.style.visibility = "visible";
+            } else {
+                this._faceIndicatorElement.style.visibility = "hidden";
+            }
+        }
+    }
+
+    private async detectFace(): Promise<DOMRect> {
+        let faceRect: DOMRect = null;
+        if (this._cameraElement) {
+            const imageData = await this._cameraElement.getSnapshotImageData (320, 320);
+            if (imageData != null) {
+                const imageWidth = imageData.width;
+                const imageHeight = imageData.height;
+                const elementWidth = this.offsetWidth;
+                const elementHeight = this.offsetHeight;
+                const cameraSize = Math.min(elementHeight, elementWidth);
+                const imageXFactor = cameraSize / imageWidth;
+                const imageYFactor = cameraSize / imageHeight;
+                let detectedItems = this._detector.detect(imageData);
+                if (detectedItems && detectedItems.length > 0) {
+                    if (detectedItems.length > 1) {
+                        detectedItems = detectedItems.sort((detection1, detection2) => detection2.radius - detection1.radius);
+                    }
+                    const detectedItem = detectedItems[0];
+                    const radius = detectedItem.radius * imageXFactor;
+                    const diameter = radius * 2;
+                    const centerX = ((elementWidth / 2) - (cameraSize / 2)) + detectedItem.center.x * imageXFactor;
+                    const centerY = ((elementHeight / 2) - (cameraSize / 2)) + detectedItem.center.y * imageYFactor + (radius * 0.2);
+                    faceRect = new DOMRect(centerX - radius,centerY - radius, diameter, diameter);
+                }
+            }
+        }
+        return faceRect;
+    }
+
     private async executeFaceDetection() {
         let faceMatching = true;
         let caption = 'Aguarde un momento ...';
         const faceRect = await this.detectFace();
-        if (this.faceDetectionRunning) {
+        if (this._faceDetectionRunning) {
             if (!faceRect) {
                 faceMatching = false;
                 caption = 'Rostro no encontrado';
@@ -310,13 +320,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
             this.setFaceMaskMode(faceMatching? MaskMode.SUCCESS : MaskMode.FAILURE);
             this.setCaption(caption);
-            if (this.faceIndicatorEnabled) {
-                if (!faceMatching && faceRect) {
-                    this.showFaceIndicator(faceRect);
-                } else {
-                    this.removeFaceIndicator();
-                }
-            }
+            this.faceRect = faceRect;
             if (faceMatching) {
                 this.startFaceCaptureTimer();
             } else {
@@ -326,26 +330,29 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private stopFaceDetection() {
-        if (this.faceDetectionRunning) {
-            this.faceDetectionRunning = false;
-            if (this.faceDetectionTask) {
-                clearTimeout(this.faceDetectionTask);
-                this.faceDetectionTask = null;
+        if (this._faceDetectionRunning) {
+            this._faceDetectionRunning = false;
+            if (this._faceDetectionTask) {
+                clearTimeout(this._faceDetectionTask);
+                this._faceDetectionTask = null;
             }
         }
     }
 
     private async startFaceDetection() {
-        if (!this.faceDetectionRunning) {
-            this.faceDetectionRunning = true;
+        if (!this._faceDetectionRunning) {
+            this._faceDetectionRunning = true;
+            if (this.faceIndicatorEnabled) {
+                this.showFaceIndicator = true;
+            }
             const faceExecutionTask = async () => {
                 await this.executeFaceDetection();
-                if (this.faceDetectionRunning) {
-                    if (this.faceDetectionTask) {
-                        clearTimeout(this.faceDetectionTask);
-                        this.faceDetectionTask = null;
+                if (this._faceDetectionRunning) {
+                    if (this._faceDetectionTask) {
+                        clearTimeout(this._faceDetectionTask);
+                        this._faceDetectionTask = null;
                     }
-                    this.faceDetectionTask = setTimeout(async () => this.faceDetectionRunning && faceExecutionTask(), this.detectionInterval);
+                    this._faceDetectionTask = setTimeout(async () => this._faceDetectionRunning && faceExecutionTask(), this.detectionInterval);
                 }
             }
             await faceExecutionTask();
@@ -355,16 +362,16 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private setFaceMaskMode(faceMaskMode: number) {
         if (this.faceMaskMode != faceMaskMode) {
             this.faceMaskMode = faceMaskMode;
-            if (this.maskElement) {
+            if (this._maskElement) {
                 if (this.faceMaskMode === MaskMode.SUCCESS) {
-                    this.maskElement.classList.add('mask-match');
+                    this._maskElement.classList.add('mask-match');
                 } else {
-                    this.maskElement.classList.remove('mask-match');
+                    this._maskElement.classList.remove('mask-match');
                 }
                 if (this.faceMaskMode === MaskMode.FAILURE) {
-                    this.maskElement.classList.add('mask-no-match');
+                    this._maskElement.classList.add('mask-no-match');
                 } else {
-                    this.maskElement.classList.remove('mask-no-match');
+                    this._maskElement.classList.remove('mask-no-match');
                 }
             }
         }
@@ -373,11 +380,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private setFaceZoomMode(faceZoomMode: boolean) {
         if (this.faceZoomMode != faceZoomMode) {
             this.faceZoomMode = faceZoomMode;
-            if (this.maskElement) {
+            if (this._maskElement) {
                 if (this.faceZoomMode) {
-                    this.maskElement.classList.add('mask-zoom');
+                    this._maskElement.classList.add('mask-zoom');
                 } else {
-                    this.maskElement.classList.remove('mask-zoom');
+                    this._maskElement.classList.remove('mask-zoom');
                 }
             }
         }
@@ -481,7 +488,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 } else {
                     this.timerElement.innerText = '';
                     if (remainingSeconds === 0) {
-                        await this.onPictureCaptured(await this.cameraElement.getSnapshotBlob());
+                        await this.onPictureCaptured(await this._cameraElement.getSnapshotBlob());
                     } if (remainingSeconds < 0) {
                         this.stopFaceCaptureTimer();
                     }
@@ -513,9 +520,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.clearSessionTimer();
             this.stopFaceDetection();
             this.stopFaceCaptureTimer();
-            this.removeFaceIndicator();
+            this.showFaceIndicator = false;
             await this.showPreviewPicture(this.zoomedPicture);
-            this.removeCamera();
+            this.showCamera = false;
             await this.verifyLiveness();
         }
     }
@@ -527,7 +534,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         try {
             let response;
             try {
-                response = await this.api.checkLiveness3d(this.picture, this.zoomedPicture);
+                response = await this._api.checkLiveness3d(this.picture, this.zoomedPicture);
             } catch (e) {
                 throw new CodeError(-1, 'Error de comunicación con el servidor');
             }
@@ -543,9 +550,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private onSessionTimeout() {
         this.stopFaceDetection();
         this.stopFaceCaptureTimer();
-        this.removeFaceIndicator();
-        this.removeCamera();
-        this.removeMask();
+        this.showFaceIndicator = false;
+        this.showCamera = false;
+        this.showMask = false;
         this.triggerEvent(BiometricsLivenessElement.SESSION_TIMEOUT_EVENT);
         this.onSessionFail('Se ha agotado el tiempo de sesión');
     }
@@ -571,9 +578,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private endSession() {
         if (this.sessionRunning) {
             this.sessionRunning = false;
-            if (this.showStartButton) {
-                this.appendStartButton();
-            }
+            this.showRetryButton = true;
             this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
         }
     }
@@ -583,11 +588,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.sessionRunning = true;
             this.picture = null;
             this.zoomedPicture = null;
-            this.removeStartButton();
+            this.showRetryButton = false;
             this.removePreviewPicture();
             this.removeAnimation();
-            this.appendCamera();
-            this.appendMask();
+            this.showCamera = true;
+            this.showMask = true;
             this.setFaceZoomMode(false);
             this.setFaceMaskMode(MaskMode.NORMAL);
             this.startSessionTimer();
