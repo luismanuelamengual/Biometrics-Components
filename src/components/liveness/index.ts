@@ -39,6 +39,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _faceIndicatorElement: HTMLDivElement;
     private _faceDetectionRunning = false;
     private _faceDetectionTask: any;
+    private _faceZoomMode = false;
     private _faceMaskMode: MaskMode = MaskMode.NORMAL;
 
     private animationElement: BiometricsAnimationElement;
@@ -48,7 +49,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private sessionTimeoutTask: any;
     private sessionRunning = false;
     private faceCaptureTask: any;
-    private faceZoomMode = false;
     private caption = '';
     private picture: Blob = null;
     private zoomedPicture: Blob = null;
@@ -276,6 +276,23 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private get faceZoomMode(): boolean {
+        return this._faceZoomMode;
+    }
+
+    private set faceZoomMode(faceZoomMode: boolean) {
+        if (this._faceZoomMode != faceZoomMode) {
+            this._faceZoomMode = faceZoomMode;
+            if (this._maskElement) {
+                if (this._faceZoomMode) {
+                    this._maskElement.classList.add('mask-zoom');
+                } else {
+                    this._maskElement.classList.remove('mask-zoom');
+                }
+            }
+        }
+    }
+
     private async detectFace(): Promise<DOMRect> {
         let faceRect: DOMRect = null;
         if (this._cameraElement) {
@@ -377,19 +394,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             }
             await faceExecutionTask();
-        }
-    }
-
-    private setFaceZoomMode(faceZoomMode: boolean) {
-        if (this.faceZoomMode != faceZoomMode) {
-            this.faceZoomMode = faceZoomMode;
-            if (this._maskElement) {
-                if (this.faceZoomMode) {
-                    this._maskElement.classList.add('mask-zoom');
-                } else {
-                    this._maskElement.classList.remove('mask-zoom');
-                }
-            }
         }
     }
 
@@ -517,7 +521,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private async onPictureCaptured(picture: Blob) {
         if (!this.picture) {
             this.picture = picture;
-            this.setFaceZoomMode(true);
+            this.faceZoomMode = true;
         } else if (!this.zoomedPicture) {
             this.zoomedPicture = picture;
             this.clearSessionTimer();
@@ -596,7 +600,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.removeAnimation();
             this.showCamera = true;
             this.showMask = true;
-            this.setFaceZoomMode(false);
+            this.faceZoomMode = false;
             this.faceMaskMode = MaskMode.NORMAL;
             this.startSessionTimer();
             await this.startFaceDetection();
