@@ -7,6 +7,7 @@ import loadingAnimationData from './animations/loading-animation-data';
 import successAnimationData from './animations/success-animation-data';
 import failureAnimationData from './animations/failure-animation-data';
 import {MaskMode} from "./mask-mode";
+import {CodeError, BiometricsApi} from "biometrics-core";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
@@ -26,6 +27,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
+    private api: BiometricsApi;
     private detector: Detector;
     private animationElement: BiometricsAnimationElement;
     private cameraElement: BiometricsCameraElement;
@@ -51,10 +53,17 @@ export class BiometricsLivenessElement extends BiometricsElement {
      */
     constructor() {
         super(true);
+        this.api = new BiometricsApi();
         this.detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
     }
 
     protected onConnected() {
+        if (this.hasAttribute('server-url')) {
+            this.serverUrl = this.getAttribute('server-url');
+        }
+        if (this.hasAttribute('api-key')) {
+            this.apiKey = this.getAttribute('api-key');
+        }
         if (this.autoStartSession) {
             this.startSession();
         } else if (this.showStartButton) {
@@ -199,19 +208,19 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     public get serverUrl(): string {
-        return this.getAttribute('server-url');
+        return this.api.baseUrl;
     }
 
     public set serverUrl(serverUrl: string) {
-        this.setAttribute('server-url', serverUrl);
+        this.api.baseUrl = serverUrl;
     }
 
     public get apiKey(): string {
-        return this.getAttribute('api-key');
+        return this.api.apiKey;
     }
 
     public set apiKey(apiKey: string) {
-        this.setAttribute('api-key', apiKey);
+        this.api.apiKey = apiKey;
     }
 
     public get faceIndicatorEnabled(): boolean {
@@ -516,29 +525,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.setFaceMaskMode(MaskMode.NORMAL);
         this.playLoadingAnimation();
         try {
-            let response: any;
+            let response;
             try {
-                const formData = new FormData();
-                formData.append('picture', this.picture);
-                formData.append('zoomedPicture', this.zoomedPicture);
-                let url = this.serverUrl;
-                if (!url.endsWith('/')) {
-                    url += '/';
-                }
-                url += 'v1/check_liveness_3d';
-                response = await fetch(url, {
-                    method: 'post',
-                    body: formData,
-                    headers: {
-                        'Authorization': 'Bearer ' + this.apiKey
-                    }
-                });
-                response = await response.json();
+                response = await this.api.checkLiveness3d(this.picture, this.zoomedPicture);
             } catch (e) {
-                throw new Error('Error de comunicación con el servidor');
+                throw new CodeError(-1, 'Error de comunicación con el servidor');
             }
-            if (!response.data.liveness) {
-                throw new Error('No se superó la prueba de vida');
+            if (!response || !response.liveness) {
+                throw new CodeError(-1, 'No se superó la prueba de vida');
             }
             this.onSessionSuccess();
         } catch (e) {
