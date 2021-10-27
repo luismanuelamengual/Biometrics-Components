@@ -43,17 +43,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _faceDetectionTask: any;
     private _faceZoomMode = false;
     private _faceMaskMode: MaskMode = MaskMode.NORMAL;
-
-
-
-    private animationElement: BiometricsAnimationElement;
-    private timerElement: HTMLDivElement;
-    private pictureElement: HTMLImageElement;
-    private sessionTimeoutTask: any;
-    private sessionRunning = false;
-    private faceCaptureTask: any;
-    private picture: Blob = null;
-    private zoomedPicture: Blob = null;
+    private _previewPicture: Blob = null;
+    private _previewPictureElement: HTMLImageElement;
+    private _animationElement: BiometricsAnimationElement;
+    private _timerElement: HTMLDivElement;
+    private _sessionTimeoutTask: any;
+    private _faceCaptureTask: any;
+    private _sessionRunning = false;
+    private _picture: Blob = null;
+    private _zoomedPicture: Blob = null;
 
     /**
      * @internal
@@ -318,6 +316,32 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private get previewPicture(): Blob {
+        return this._previewPicture;
+    }
+
+    private set previewPicture(previewPicture: Blob) {
+        if (previewPicture != this._previewPicture) {
+            this._previewPicture = previewPicture;
+            if (this._previewPicture) {
+                const reader = new FileReader();
+                reader.readAsDataURL(this._previewPicture);
+                reader.onloadend = () => {
+                    const pictureUrl = reader.result as string;
+                    if (this._previewPictureElement) {
+                        this._previewPictureElement.setAttribute('src', pictureUrl);
+                    } else {
+                        this._previewPictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: pictureUrl}});
+                        this.appendElement(this._previewPictureElement);
+                    }
+                }
+            } else {
+                this._previewPictureElement.remove();
+                this._previewPictureElement = null;
+            }
+        }
+    }
+
     private async detectFace(): Promise<DOMRect> {
         let faceRect: DOMRect = null;
         if (this._cameraElement) {
@@ -422,46 +446,25 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private removePreviewPicture() {
-        if (this.pictureElement) {
-            this.pictureElement.remove();
-            this.pictureElement = null;
-        }
-    }
-
-    private async showPreviewPicture(picture: Blob) {
-        const pictureUrl: string = await (new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(picture);
-            reader.onloadend = () => resolve(reader.result as string);
-        }));
-        if (this.pictureElement) {
-            this.pictureElement.setAttribute('src', pictureUrl);
-        } else {
-            this.pictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: pictureUrl}});
-            this.appendElement(this.pictureElement);
-        }
-    }
-
     private removeAnimation() {
-        if (this.animationElement) {
-            this.animationElement.remove();
-            this.animationElement = null;
+        if (this._animationElement) {
+            this._animationElement.remove();
+            this._animationElement = null;
         }
     }
 
     private playAnimation(animationData: object, loop = true, onComplete: () => void | null = null) {
-        if (!this.animationElement) {
-            this.animationElement = this.createElement('biometrics-animation', {classes: 'animation'});
-            this.appendElement(this.animationElement);
+        if (!this._animationElement) {
+            this._animationElement = this.createElement('biometrics-animation', {classes: 'animation'});
+            this.appendElement(this._animationElement);
         } else {
-            this.animationElement.stop();
+            this._animationElement.stop();
         }
         setTimeout(() => {
-            this.animationElement.src = animationData;
-            this.animationElement.loop = loop;
-            this.animationElement.onComplete = onComplete;
-            this.animationElement.play();
+            this._animationElement.src = animationData;
+            this._animationElement.loop = loop;
+            this._animationElement.onComplete = onComplete;
+            this._animationElement.play();
         }, 100);
     }
 
@@ -478,28 +481,28 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private stopFaceCaptureTimer() {
-        if (this.faceCaptureTask) {
-            clearInterval(this.faceCaptureTask);
-            this.faceCaptureTask = null;
+        if (this._faceCaptureTask) {
+            clearInterval(this._faceCaptureTask);
+            this._faceCaptureTask = null;
         }
-        if (this.timerElement) {
-            this.timerElement.remove();
-            this.timerElement = null;
+        if (this._timerElement) {
+            this._timerElement.remove();
+            this._timerElement = null;
         }
     }
 
     private startFaceCaptureTimer() {
-        if (!this.faceCaptureTask) {
+        if (!this._faceCaptureTask) {
             let remainingSeconds = this.captureDelaySeconds;
-            this.timerElement = this.createElement('div', {classes: 'timer'}, '');
-            this.appendElement(this.timerElement);
-            this.timerElement.innerText = remainingSeconds.toString();
-            this.faceCaptureTask = setInterval(async () => {
+            this._timerElement = this.createElement('div', {classes: 'timer'}, '');
+            this.appendElement(this._timerElement);
+            this._timerElement.innerText = remainingSeconds.toString();
+            this._faceCaptureTask = setInterval(async () => {
                 remainingSeconds--;
                 if (remainingSeconds > 0) {
-                    this.timerElement.innerText = remainingSeconds.toString();
+                    this._timerElement.innerText = remainingSeconds.toString();
                 } else {
-                    this.timerElement.innerText = '';
+                    this._timerElement.innerText = '';
                     if (remainingSeconds === 0) {
                         await this.onPictureCaptured(await this._cameraElement.getSnapshotBlob());
                     } if (remainingSeconds < 0) {
@@ -511,30 +514,30 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private clearSessionTimer() {
-        if (this.sessionTimeoutTask) {
-            clearTimeout(this.sessionTimeoutTask);
-            this.sessionTimeoutTask = null;
+        if (this._sessionTimeoutTask) {
+            clearTimeout(this._sessionTimeoutTask);
+            this._sessionTimeoutTask = null;
         }
     }
 
     private startSessionTimer() {
         this.clearSessionTimer();
         if (this.timeoutSeconds > 0) {
-            this.sessionTimeoutTask = setTimeout(() => this.onSessionTimeout(), this.timeoutSeconds * 1000);
+            this._sessionTimeoutTask = setTimeout(() => this.onSessionTimeout(), this.timeoutSeconds * 1000);
         }
     }
 
     private async onPictureCaptured(picture: Blob) {
-        if (!this.picture) {
-            this.picture = picture;
+        if (!this._picture) {
+            this._picture = picture;
             this.faceZoomMode = true;
-        } else if (!this.zoomedPicture) {
-            this.zoomedPicture = picture;
+        } else if (!this._zoomedPicture) {
+            this._zoomedPicture = picture;
             this.clearSessionTimer();
             this.stopFaceDetection();
             this.stopFaceCaptureTimer();
             this.showFaceIndicator = false;
-            await this.showPreviewPicture(this.zoomedPicture);
+            this.previewPicture = this._zoomedPicture;
             this.showCamera = false;
             await this.verifyLiveness();
         }
@@ -547,7 +550,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         try {
             let response;
             try {
-                response = await this._api.checkLiveness3d(this.picture, this.zoomedPicture);
+                response = await this._api.checkLiveness3d(this._picture, this._zoomedPicture);
             } catch (e) {
                 throw new CodeError(-1, 'Error de comunicación con el servidor');
             }
@@ -589,20 +592,20 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private endSession() {
-        if (this.sessionRunning) {
-            this.sessionRunning = false;
+        if (this._sessionRunning) {
+            this._sessionRunning = false;
             this.showRetryButton = true;
             this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
         }
     }
 
-    public async startSession() {
-        if (!this.sessionRunning) {
-            this.sessionRunning = true;
-            this.picture = null;
-            this.zoomedPicture = null;
+    private async startSession() {
+        if (!this._sessionRunning) {
+            this._sessionRunning = true;
+            this._picture = null;
+            this._zoomedPicture = null;
             this.showRetryButton = false;
-            this.removePreviewPicture();
+            this.previewPicture = null;
             this.removeAnimation();
             this.showCamera = true;
             this.showMask = true;
