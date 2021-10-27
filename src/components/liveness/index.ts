@@ -29,6 +29,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private _api: BiometricsApi;
     private _detector: Detector;
+    private _caption = '';
     private _showRetryButton = false;
     private _showCamera = false;
     private _showMask = false;
@@ -37,19 +38,20 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _cameraElement: BiometricsCameraElement;
     private _maskElement: HTMLElement;
     private _faceIndicatorElement: HTMLDivElement;
+    private _captionElement: HTMLParagraphElement;
     private _faceDetectionRunning = false;
     private _faceDetectionTask: any;
     private _faceZoomMode = false;
     private _faceMaskMode: MaskMode = MaskMode.NORMAL;
 
+
+
     private animationElement: BiometricsAnimationElement;
-    private captionElement: HTMLParagraphElement;
     private timerElement: HTMLDivElement;
     private pictureElement: HTMLImageElement;
     private sessionTimeoutTask: any;
     private sessionRunning = false;
     private faceCaptureTask: any;
-    private caption = '';
     private picture: Blob = null;
     private zoomedPicture: Blob = null;
 
@@ -131,6 +133,29 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     public set timeoutSeconds(timeoutSeconds: number) {
         this.setAttribute('timeout-seconds', String(timeoutSeconds));
+    }
+
+    private get caption(): string {
+        return this._caption;
+    }
+
+    private set caption(caption: string) {
+        if (caption != this._caption) {
+            this._caption = caption;
+            if (this._caption) {
+                if (!this._captionElement) {
+                    this._captionElement = this.createElement('p', {classes: 'caption'}, caption);
+                    this.appendElement(this.createElement('div', {classes: 'caption-container'}, [this._captionElement]));
+                } else {
+                    this._captionElement.innerHTML = caption;
+                }
+            } else {
+                if (this._captionElement) {
+                    this.findElement('.caption-container').remove();
+                    this._captionElement = null;
+                }
+            }
+        }
     }
 
     private get showRetryButton(): boolean {
@@ -357,7 +382,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             }
             this.faceMaskMode = faceMatching? MaskMode.SUCCESS : MaskMode.FAILURE;
-            this.setCaption(caption);
+            this.caption = caption;
             this.faceRect = faceRect;
             if (faceMatching) {
                 this.startFaceCaptureTimer();
@@ -394,25 +419,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             }
             await faceExecutionTask();
-        }
-    }
-
-    private setCaption(caption: string) {
-        if (caption != this.caption) {
-            this.caption = caption;
-            if (this.caption) {
-                if (!this.captionElement) {
-                    this.captionElement = this.createElement('p', {classes: 'caption'}, caption);
-                    this.appendElement(this.createElement('div', {classes: 'caption-container'}, [this.captionElement]));
-                } else {
-                    this.captionElement.innerHTML = caption;
-                }
-            } else {
-                if (this.captionElement) {
-                    this.findElement('.caption-container').remove();
-                    this.captionElement = null;
-                }
-            }
         }
     }
 
@@ -535,7 +541,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private async verifyLiveness() {
-        this.setCaption('Analizando ...');
+        this.caption = 'Analizando ...';
         this.faceMaskMode = MaskMode.NORMAL;
         this.playLoadingAnimation();
         try {
@@ -565,7 +571,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private onSessionSuccess() {
-        this.setCaption('Prueba de vida superada exitosamente');
+        this.caption = 'Prueba de vida superada exitosamente';
         this.faceMaskMode = MaskMode.SUCCESS;
         this.playSuccessAnimation(() => {
             this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
@@ -574,7 +580,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private onSessionFail(reasonMessage = '') {
-        this.setCaption(reasonMessage);
+        this.caption = reasonMessage;
         this.faceMaskMode = MaskMode.FAILURE;
         this.playFailureAnimation(() => {
             this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
