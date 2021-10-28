@@ -52,7 +52,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _animationElement: BiometricsAnimationElement;
     private _timerElement: HTMLDivElement;
     private _faceDetectionTask: any;
-    private _sessionTimeoutTask: any;
+    private _faceDetectionTimeoutTask: any;
     private _faceCaptureTask: any;
 
     /**
@@ -443,8 +443,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 clearTimeout(this._faceDetectionTask);
                 this._faceDetectionTask = null;
             }
+            this.stopFaceCaptureTimer();
+            this.stopFaceDetectionTimer();
         }
-        this.stopFaceCaptureTimer();
     }
 
     private async startFaceDetection() {
@@ -464,6 +465,21 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 }
             }
             await faceExecutionTask();
+            this.startFaceDetectionTimer();
+        }
+    }
+
+    private stopFaceDetectionTimer() {
+        if (this._faceDetectionTimeoutTask) {
+            clearTimeout(this._faceDetectionTimeoutTask);
+            this._faceDetectionTimeoutTask = null;
+        }
+    }
+
+    private startFaceDetectionTimer() {
+        this.stopFaceDetectionTimer();
+        if (this.timeoutSeconds > 0) {
+            this._faceDetectionTimeoutTask = setTimeout(() => this.onSessionTimeout(), this.timeoutSeconds * 1000);
         }
     }
 
@@ -534,27 +550,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private clearSessionTimer() {
-        if (this._sessionTimeoutTask) {
-            clearTimeout(this._sessionTimeoutTask);
-            this._sessionTimeoutTask = null;
-        }
-    }
-
-    private startSessionTimer() {
-        this.clearSessionTimer();
-        if (this.timeoutSeconds > 0) {
-            this._sessionTimeoutTask = setTimeout(() => this.onSessionTimeout(), this.timeoutSeconds * 1000);
-        }
-    }
-
     private async onPictureCaptured(picture: Blob) {
         if (!this._picture) {
             this._picture = picture;
             this.faceZoomMode = true;
         } else if (!this._zoomedPicture) {
             this._zoomedPicture = picture;
-            this.clearSessionTimer();
             this.stopFaceDetection();
             this.showFaceIndicator = false;
             this.previewPicture = this._zoomedPicture;
@@ -631,7 +632,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.showMask = true;
             this.faceZoomMode = false;
             this.faceMaskMode = MaskMode.NORMAL;
-            this.startSessionTimer();
             await this.startFaceDetection();
             this.triggerEvent(BiometricsLivenessElement.SESSION_STARTED_EVENT);
         }
