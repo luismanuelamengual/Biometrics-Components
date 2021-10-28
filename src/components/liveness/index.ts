@@ -27,31 +27,32 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
-    private _api: BiometricsApi;
-    private _detector: Detector;
     private _caption = '';
     private _showRetryButton = false;
     private _showCamera = false;
     private _showMask = false;
     private _showFaceIndicator = false;
     private _faceRect: DOMRect = null;
+    private _faceMaskMode: MaskMode = MaskMode.NORMAL;
+    private _faceZoomMode = false;
+    private _faceDetectionRunning = false;
+    private _sessionRunning = false;
+    private _picture: Blob = null;
+    private _zoomedPicture: Blob = null;
+    private _previewPicture: Blob = null;
+
+    private _api: BiometricsApi;
+    private _detector: Detector;
     private _cameraElement: BiometricsCameraElement;
     private _maskElement: HTMLElement;
     private _faceIndicatorElement: HTMLDivElement;
     private _captionElement: HTMLParagraphElement;
-    private _faceDetectionRunning = false;
-    private _faceDetectionTask: any;
-    private _faceZoomMode = false;
-    private _faceMaskMode: MaskMode = MaskMode.NORMAL;
-    private _previewPicture: Blob = null;
     private _previewPictureElement: HTMLImageElement;
     private _animationElement: BiometricsAnimationElement;
     private _timerElement: HTMLDivElement;
+    private _faceDetectionTask: any;
     private _sessionTimeoutTask: any;
     private _faceCaptureTask: any;
-    private _sessionRunning = false;
-    private _picture: Blob = null;
-    private _zoomedPicture: Blob = null;
 
     /**
      * @internal
