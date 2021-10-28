@@ -444,6 +444,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 this._faceDetectionTask = null;
             }
         }
+        this.stopFaceCaptureTimer();
     }
 
     private async startFaceDetection() {
@@ -555,7 +556,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this._zoomedPicture = picture;
             this.clearSessionTimer();
             this.stopFaceDetection();
-            this.stopFaceCaptureTimer();
             this.showFaceIndicator = false;
             this.previewPicture = this._zoomedPicture;
             this.showCamera = false;
@@ -585,7 +585,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private onSessionTimeout() {
         this.stopFaceDetection();
-        this.stopFaceCaptureTimer();
         this.showFaceIndicator = false;
         this.showCamera = false;
         this.showMask = false;
