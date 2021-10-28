@@ -138,31 +138,64 @@ $mask-background-color: black;
         object-fit: contain;
     }
 
-    .retry-button {
+    button {
         position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
         z-index: 24000;
         border: 5px solid white;
-        border-radius: 18px;
         background: gray;
         color: #ffffff;
         font-family: "Open Sans", sans-serif;
-        font-size: 23px;
         font-weight: 500;
         cursor: pointer;
-        padding: 10px 20px;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color:transparent;
 
         &:focus {
             outline: none;
         }
 
-        @media (min-width: 1000px) {
-            & {
-                padding: 10px 35px;
-                border-radius: 30px;
-                font-size: 35px;
+        &:active {
+            background: #444444;
+        }
+
+        &.retry-button {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 18px;
+            font-size: 23px;
+            padding: 10px 20px;
+
+            @media (min-width: 1000px) {
+                & {
+                    padding: 10px 35px;
+                    border-radius: 30px;
+                    font-size: 35px;
+                }
+            }
+        }
+
+        &.start-button {
+            padding: 0;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 26px;
+
+            @media (min-width: 1000px) {
+                & {
+                    padding: 0;
+                    width: 220px;
+                    height: 220px;
+                    font-size: 40px;
+                }
             }
         }
     }

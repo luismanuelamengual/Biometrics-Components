@@ -28,6 +28,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
     private _caption = '';
+    private _showStartButton = false;
     private _showRetryButton = false;
     private _showCamera = false;
     private _showMask = false;
@@ -70,9 +71,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (this.hasAttribute('api-key')) {
             this.apiKey = this.getAttribute('api-key');
         }
-
-        // BORRAR EL INICIO AUTOMATICO
-        this.startSession();
+        this.showStartButton = true;
     }
 
     /**
@@ -157,6 +156,26 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private get showStartButton(): boolean {
+        return this._showStartButton;
+    }
+
+    private set showStartButton(showStartButton: boolean) {
+        if (showStartButton != this._showStartButton) {
+            this._showStartButton = showStartButton;
+            if (this._showStartButton) {
+                this.appendElement(this.createElement('button', {
+                    classes: ['start-button'],
+                    listeners: {
+                        click: () => this.startSession()
+                    }
+                }, 'INICIAR'));
+            } else {
+                this.findElement('.start-button').remove();
+            }
+        }
+    }
+
     private get showRetryButton(): boolean {
         return this._showRetryButton;
     }
@@ -166,11 +185,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this._showRetryButton = showRetryButton;
             if (this._showRetryButton) {
                 this.appendElement(this.createElement('button', {
-                    classes: ['button', 'retry-button'],
+                    classes: ['retry-button'],
                     listeners: {
                         click: () => this.startSession()
                     }
-                }, 'Reintentar'));
+                }, 'INICIAR'));
             } else {
                 this.findElement('.retry-button').remove();
             }
@@ -605,6 +624,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this._sessionRunning = true;
             this._picture = null;
             this._zoomedPicture = null;
+            this.showStartButton = false;
             this.showRetryButton = false;
             this.previewPicture = null;
             this.removeAnimation();
