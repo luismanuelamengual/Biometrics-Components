@@ -556,15 +556,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.faceZoomMode = true;
         } else if (!this._zoomedPicture) {
             this._zoomedPicture = picture;
-            this.stopFaceDetection();
-            this.showFaceIndicator = false;
-            this.previewPicture = this._zoomedPicture;
-            this.showCamera = false;
-            await this.verifyLiveness();
+            await this.onPicturesCaptured();
         }
     }
 
-    private async verifyLiveness() {
+    private async onPicturesCaptured() {
+        this.stopFaceDetection();
+        this.showFaceIndicator = false;
+        this.previewPicture = this._zoomedPicture;
+        this.showCamera = false;
         this.caption = 'Analizando ...';
         this.faceMaskMode = MaskMode.NORMAL;
         this.playLoadingAnimation();
