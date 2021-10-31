@@ -43,6 +43,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _faceMaskMode: MaskMode = MaskMode.NORMAL;
     private _faceZoomMode = false;
     private _faceDetectionRunning = false;
+    private _anomalyDetectionRunning = false;
     private _sessionRunning = false;
     private _picture: Blob = null;
     private _zoomedPicture: Blob = null;
@@ -113,6 +114,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     public set faceIndicatorEnabled(faceIndicatorEnabled: boolean) {
         this.setAttribute('face-indicator-enabled', String(faceIndicatorEnabled));
+    }
+
+    public get anomalyDetectionEnabled(): boolean {
+        return !this.hasAttribute('anomaly-detection-enabled') || this.getAttribute('anomaly-detection-enabled') === 'true';
+    }
+
+    public set anomalyDetectionEnabled(anomalyDetectionEnabled: boolean) {
+        this.setAttribute('anomaly-detection-enabled', String(anomalyDetectionEnabled));
     }
 
     public get detectionInterval(): number {
@@ -593,15 +602,21 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private startAnomalyDetection() {
-        window.addEventListener('focusin', this.onSessionAnomalyDetected);
-        window.addEventListener('focusout', this.onSessionAnomalyDetected);
-        window.addEventListener('blur', this.onSessionAnomalyDetected);
+        if (!this._anomalyDetectionRunning) {
+            window.addEventListener('focusin', this.onSessionAnomalyDetected);
+            window.addEventListener('focusout', this.onSessionAnomalyDetected);
+            window.addEventListener('blur', this.onSessionAnomalyDetected);
+            this._anomalyDetectionRunning = true;
+        }
     }
 
     private stopAnomalyDetection() {
-        window.removeEventListener('focusin', this.onSessionAnomalyDetected);
-        window.removeEventListener('focusout', this.onSessionAnomalyDetected);
-        window.removeEventListener('blur', this.onSessionAnomalyDetected);
+        if (this._anomalyDetectionRunning) {
+            window.removeEventListener('focusin', this.onSessionAnomalyDetected);
+            window.removeEventListener('focusout', this.onSessionAnomalyDetected);
+            window.removeEventListener('blur', this.onSessionAnomalyDetected);
+            this._anomalyDetectionRunning = false;
+        }
     }
 
     private async onPictureCaptured(picture: Blob) {
@@ -684,7 +699,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.showMask = true;
             this.faceZoomMode = false;
             this.faceMaskMode = MaskMode.NORMAL;
-            this.startAnomalyDetection();
+            if (this.anomalyDetectionEnabled) {
+                this.startAnomalyDetection();
+            }
             this.startFaceDetection();
         }
     }
