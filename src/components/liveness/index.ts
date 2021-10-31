@@ -15,8 +15,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
     public static readonly SESSION_ENDED_EVENT = 'sessionEnded';
     public static readonly SESSION_SUCCESS_EVENT = 'sessionSuccess';
     public static readonly SESSION_FAIL_EVENT = 'sessionFail';
-    public static readonly SESSION_TIMEOUT_EVENT = 'sessionTimeout';
-    public static readonly SESSION_ANOMALY_DETECTED_EVENT = 'sessionAnomalyDetected';
 
     private static readonly MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE = 6;
     private static readonly MIN_FACE_SCALE_PERCENTAGE = 40;
@@ -587,59 +585,45 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (!response || !response.liveness) {
                 throw new CodeError(-1, 'No se superó la prueba de vida');
             }
-            this.onSessionSuccess();
+            this.endSession(0, 'Prueba de vida superada exitosamente');
         } catch (e) {
-            this.onSessionFail(e.message);
+            this.endSession(e.code, e.message);
         }
     }
 
     private onSessionAnomalyDetected() {
-        this.triggerEvent(BiometricsLivenessElement.SESSION_ANOMALY_DETECTED_EVENT);
-        this.onSessionFail('La sesión ha sido cerrada por seguridad');
+        this.endSession(-1, 'La sesión ha sido cerrada por seguridad');
     }
 
     private onSessionTimeout() {
-        this.triggerEvent(BiometricsLivenessElement.SESSION_TIMEOUT_EVENT);
-        this.onSessionFail('Se ha agotado el tiempo de sesión');
+        this.endSession(-1, 'Se ha agotado el tiempo de sesión');
     }
 
-    private onSessionSuccess() {
+    private endSession(code: number = 0, message: string = '') {
         if (this._sessionRunning) {
             this._sessionRunning = false;
-            this.caption = 'Prueba de vida superada exitosamente';
+            this.caption = message;
+            this.showCamera = false;
             if (this.previewPicture && this.showMask) {
-                this.faceMaskMode = MaskMode.SUCCESS;
+                this.faceMaskMode = code === 0 ? MaskMode.SUCCESS : MaskMode.FAILURE;
             } else {
-                this.showCamera = false;
                 this.showMask = false;
             }
             this.stopAnomalyDetection();
             this.stopFaceDetection();
-            this.playSuccessAnimation(() => {
-                this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
-                this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
-                this.showRetryButton = true;
-            });
-        }
-    }
-
-    private onSessionFail(reasonMessage = '') {
-        if (this._sessionRunning) {
-            this._sessionRunning = false;
-            this.caption = reasonMessage;
-            if (this.previewPicture && this.showMask) {
-                this.faceMaskMode = MaskMode.FAILURE;
+            if (code === 0) {
+                this.playSuccessAnimation(() => {
+                    this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
+                    this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+                    this.showRetryButton = true;
+                });
             } else {
-                this.showCamera = false;
-                this.showMask = false;
+                this.playFailureAnimation(() => {
+                    this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT, { code, message });
+                    this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+                    this.showRetryButton = true;
+                });
             }
-            this.stopAnomalyDetection();
-            this.stopFaceDetection();
-            this.playFailureAnimation(() => {
-                this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
-                this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
-                this.showRetryButton = true;
-            });
         }
     }
 
