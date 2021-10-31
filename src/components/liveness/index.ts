@@ -139,6 +139,21 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.setAttribute('timeout-seconds', String(timeoutSeconds));
     }
 
+    private get sessionRunning(): boolean {
+        return this._sessionRunning;
+    }
+
+    private set sessionRunning(sessionRunning: boolean) {
+        if (this._sessionRunning != sessionRunning) {
+            this._sessionRunning = sessionRunning;
+            if (this._sessionRunning) {
+                this.triggerEvent(BiometricsLivenessElement.SESSION_STARTED_EVENT);
+            } else {
+                this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+            }
+        }
+    }
+
     private get caption(): string {
         return this._caption;
     }
@@ -611,8 +626,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private endSession(code: number = 0, message: string = '') {
-        if (this._sessionRunning) {
-            this._sessionRunning = false;
+        if (this.sessionRunning) {
+            this.sessionRunning = false;
             this.caption = message;
             this.showCamera = false;
             if (this.previewPicture && this.showMask) {
@@ -625,13 +640,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (code === 0) {
                 this.playSuccessAnimation(() => {
                     this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
-                    this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
                     this.showRetryButton = true;
                 });
             } else {
                 this.playFailureAnimation(() => {
                     this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT, { code, message });
-                    this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
                     this.showRetryButton = true;
                 });
             }
@@ -639,8 +652,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private async startSession() {
-        if (!this._sessionRunning) {
-            this._sessionRunning = true;
+        if (!this.sessionRunning) {
+            this.sessionRunning = true;
             this._picture = null;
             this._zoomedPicture = null;
             this.showStartButton = false;
@@ -653,7 +666,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.faceMaskMode = MaskMode.NORMAL;
             this.startAnomalyDetection();
             this.startFaceDetection();
-            this.triggerEvent(BiometricsLivenessElement.SESSION_STARTED_EVENT);
         }
     }
 }
