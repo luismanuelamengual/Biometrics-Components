@@ -7,7 +7,7 @@ import loadingAnimationData from './animations/loading-animation-data';
 import successAnimationData from './animations/success-animation-data';
 import failureAnimationData from './animations/failure-animation-data';
 import {MaskMode} from "./mask-mode";
-import {CodeError, BiometricsApi} from "biometrics-core";
+import {CodeError, BiometricsApi, convertBlobToImageUrl} from "biometrics-core";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
@@ -394,17 +394,14 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (previewPicture != this._previewPicture) {
             this._previewPicture = previewPicture;
             if (this._previewPicture) {
-                const reader = new FileReader();
-                reader.readAsDataURL(this._previewPicture);
-                reader.onloadend = () => {
-                    const pictureUrl = reader.result as string;
+                convertBlobToImageUrl(this._previewPicture).then((pictureUrl) => {
                     if (this._previewPictureElement) {
                         this._previewPictureElement.setAttribute('src', pictureUrl);
                     } else {
                         this._previewPictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: pictureUrl}});
                         this.appendElement(this._previewPictureElement);
                     }
-                }
+                });
             } else {
                 this._previewPictureElement.remove();
                 this._previewPictureElement = null;
