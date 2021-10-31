@@ -17,17 +17,11 @@ export class BiometricsCameraElement extends BiometricsElement {
     private _videoElement: HTMLVideoElement;
     private _controlsElement: HTMLDivElement;
 
-    /**
-     * @internal
-     */
     constructor() {
         super(true);
         this.onCaptureButtonClick = this.onCaptureButtonClick.bind(this);
     }
 
-    /**
-     * @internal
-     */
     public static getTagName(): string {
         return 'biometrics-camera';
     }
@@ -234,7 +228,7 @@ export class BiometricsCameraElement extends BiometricsElement {
         this.capture();
     }
 
-    async capture() {
+    public async capture() {
         let picture;
         switch(this.captureType) {
             case 'blob':
@@ -250,17 +244,17 @@ export class BiometricsCameraElement extends BiometricsElement {
         this.triggerEvent(BiometricsCameraElement.CAPTURE_EVENT, picture);
     }
 
-    async getSnapshotBlob(maxWidth: number = 0, maxHeight: number = 0, type: string = 'image/jpeg', quality = 0.95): Promise<Blob> {
+    public async getSnapshotBlob(maxWidth: number = 0, maxHeight: number = 0, type: string = 'image/jpeg', quality = 0.95): Promise<Blob> {
         this.takeSnapshot(maxWidth, maxHeight);
         return new Promise<Blob>((resolve) => this._canvasElement.toBlob(resolve, type, quality));
     }
 
-    async getSnapshotUrl(maxWidth: number = 0, maxHeight: number = 0, type: string = 'image/jpeg'): Promise<string> {
+    public async getSnapshotUrl(maxWidth: number = 0, maxHeight: number = 0, type: string = 'image/jpeg'): Promise<string> {
         this.takeSnapshot(maxWidth, maxHeight);
         return this._canvasElement.toDataURL(type);
     }
 
-    async getSnapshotImageData(maxWidth: number = 0, maxHeight: number = 0): Promise<ImageData> {
+    public async getSnapshotImageData(maxWidth: number = 0, maxHeight: number = 0): Promise<ImageData> {
         this.takeSnapshot(maxWidth, maxHeight);
         const canvas = this._canvasElement;
         return canvas.width > 0 && canvas.height ? canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height) : null;
