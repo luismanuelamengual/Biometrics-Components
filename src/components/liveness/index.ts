@@ -14,9 +14,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
     public static readonly SUCCESS_STATUS_CODE = 0;
     public static readonly FAILED_STATUS_CODE = 1;
     public static readonly CONNECTION_FAILED_STATUS_CODE = 2;
-    public static readonly TIMEOUT_STATUS_CODE = 3;
-    public static readonly ANOMALY_DETECTED_STATUS_CODE = 4;
-    public static readonly ABRUPT_CLOSE_STATUS_CODE = 5;
+    public static readonly AUTHORIZATION_FAILED_STATUS_CODE = 3;
+    public static readonly TIMEOUT_STATUS_CODE = 4;
+    public static readonly ANOMALY_DETECTED_STATUS_CODE = 5;
+    public static readonly ABRUPT_CLOSE_STATUS_CODE = 6;
 
     public static readonly SESSION_STARTED_EVENT = 'sessionStarted';
     public static readonly SESSION_ENDED_EVENT = 'sessionEnded';
@@ -636,7 +637,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
             try {
                 response = await this._api.checkLiveness3d(this.picture, this.zoomedPicture);
             } catch (e) {
-                throw new CodeError(BiometricsLivenessElement.CONNECTION_FAILED_STATUS_CODE, 'Error de comunicación con el servidor');
+                if (e.code && (e.code === BiometricsApi.AUTHORIZATION_KEY_MISSING_ERROR_CODE || e.code === BiometricsApi.AUTHORIZATION_FAILED_ERROR_CODE)) {
+                    throw new CodeError(BiometricsLivenessElement.AUTHORIZATION_FAILED_STATUS_CODE, 'Error de autenticación con el servidor');
+                } else {
+                    throw new CodeError(BiometricsLivenessElement.CONNECTION_FAILED_STATUS_CODE, 'Error de comunicación con el servidor');
+                }
             }
             if (!response || !response.liveness) {
                 throw new CodeError(BiometricsLivenessElement.FAILED_STATUS_CODE, 'No se superó la prueba de vida');
