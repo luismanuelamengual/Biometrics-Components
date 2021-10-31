@@ -11,6 +11,13 @@ import {CodeError, BiometricsApi} from "biometrics-core";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
+    public static readonly SUCCESS_STATUS_CODE = 0;
+    public static readonly FAILED_STATUS_CODE = 1;
+    public static readonly CONNECTION_FAILED_STATUS_CODE = 2;
+    public static readonly TIMEOUT_STATUS_CODE = 3;
+    public static readonly ANOMALY_DETECTED_STATUS_CODE = 4;
+    public static readonly ABRUPT_CLOSE_STATUS_CODE = 5;
+
     public static readonly SESSION_STARTED_EVENT = 'sessionStarted';
     public static readonly SESSION_ENDED_EVENT = 'sessionEnded';
     public static readonly SESSION_SUCCESS_EVENT = 'sessionSuccess';
@@ -70,6 +77,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.apiKey = this.getAttribute('api-key');
         }
         this.showStartButton = true;
+    }
+
+    protected onDisconnected() {
+        this.endSession(BiometricsLivenessElement.ABRUPT_CLOSE_STATUS_CODE);
     }
 
     public static getTagName(): string {
@@ -580,23 +591,23 @@ export class BiometricsLivenessElement extends BiometricsElement {
             try {
                 response = await this._api.checkLiveness3d(this._picture, this._zoomedPicture);
             } catch (e) {
-                throw new CodeError(-1, 'Error de comunicación con el servidor');
+                throw new CodeError(BiometricsLivenessElement.CONNECTION_FAILED_STATUS_CODE, 'Error de comunicación con el servidor');
             }
             if (!response || !response.liveness) {
-                throw new CodeError(-1, 'No se superó la prueba de vida');
+                throw new CodeError(BiometricsLivenessElement.FAILED_STATUS_CODE, 'No se superó la prueba de vida');
             }
-            this.endSession(0, 'Prueba de vida superada exitosamente');
+            this.endSession(BiometricsLivenessElement.SUCCESS_STATUS_CODE, 'Prueba de vida superada exitosamente');
         } catch (e) {
             this.endSession(e.code, e.message);
         }
     }
 
     private onSessionAnomalyDetected() {
-        this.endSession(-1, 'La sesión ha sido cerrada por seguridad');
+        this.endSession(BiometricsLivenessElement.ANOMALY_DETECTED_STATUS_CODE, 'La sesión ha sido cerrada por seguridad');
     }
 
     private onSessionTimeout() {
-        this.endSession(-1, 'Se ha agotado el tiempo de sesión');
+        this.endSession(BiometricsLivenessElement.TIMEOUT_STATUS_CODE, 'Se ha agotado el tiempo de sesión');
     }
 
     private endSession(code: number = 0, message: string = '') {
