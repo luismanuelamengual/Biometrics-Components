@@ -16,8 +16,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
     public static readonly CONNECTION_FAILED_STATUS_CODE = 2;
     public static readonly AUTHORIZATION_FAILED_STATUS_CODE = 3;
     public static readonly TIMEOUT_STATUS_CODE = 4;
-    public static readonly ANOMALY_DETECTED_STATUS_CODE = 5;
-    public static readonly ABRUPT_CLOSE_STATUS_CODE = 6;
+    public static readonly CAMERA_FAILURE_STATUS_CODE = 5
+    public static readonly ANOMALY_DETECTED_STATUS_CODE = 6;
+    public static readonly ABRUPT_CLOSE_STATUS_CODE = 7;
 
     public static readonly SESSION_STARTED_EVENT = 'sessionStarted';
     public static readonly SESSION_ENDED_EVENT = 'sessionEnded';
@@ -69,6 +70,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this._detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
         this.onSessionTimeout = this.onSessionTimeout.bind(this);
         this.onSessionAnomalyDetected = this.onSessionAnomalyDetected.bind(this);
+        this.onCameraNotFound = this.onCameraNotFound.bind(this);
+        this.onCameraDisconnected = this.onCameraDisconnected.bind(this);
+        this.onCameraInitializationFailed = this.onCameraInitializationFailed.bind(this);
     }
 
     protected onConnected() {
@@ -243,6 +247,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         'facing-mode': 'user',
                         'video-width': 2048,
                         'video-height': 2048
+                    },
+                    listeners: {
+                        [BiometricsCameraElement.CAMERA_INITIALIZATION_FAILED_EVENT]: this.onCameraInitializationFailed,
+                        [BiometricsCameraElement.CAMERA_NOT_FOUND_EVENT]: this.onCameraNotFound,
+                        [BiometricsCameraElement.CAMERA_DISCONNECTED_EVENT]: this.onCameraDisconnected
                     }
                 });
                 this.appendElement(this._cameraElement);
@@ -650,6 +659,18 @@ export class BiometricsLivenessElement extends BiometricsElement {
         } catch (e) {
             this.endSession(e.code, e.message);
         }
+    }
+
+    private onCameraNotFound() {
+        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'No se encontró cámara web');
+    }
+
+    private onCameraDisconnected() {
+        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'Se desconectó la cámara web');
+    }
+
+    private onCameraInitializationFailed() {
+        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'Error en la inicialización de la cámara web');
     }
 
     private onSessionAnomalyDetected() {
