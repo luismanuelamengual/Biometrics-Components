@@ -612,32 +612,32 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private onSessionSuccess() {
-        this.caption = 'Prueba de vida superada exitosamente';
-        this.faceMaskMode = MaskMode.SUCCESS;
-        this.endSession();
-        this.playSuccessAnimation(() => {
-            this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
-            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
-            this.showRetryButton = true;
-        });
+        if (this._sessionRunning) {
+            this._sessionRunning = false;
+            this.caption = 'Prueba de vida superada exitosamente';
+            this.faceMaskMode = MaskMode.SUCCESS;
+            this.stopAnomalyDetection();
+            this.stopFaceDetection();
+            this.playSuccessAnimation(() => {
+                this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
+                this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+                this.showRetryButton = true;
+            });
+        }
     }
 
     private onSessionFail(reasonMessage = '') {
-        this.caption = reasonMessage;
-        this.faceMaskMode = MaskMode.FAILURE;
-        this.endSession();
-        this.playFailureAnimation(() => {
-            this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
-            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
-            this.showRetryButton = true;
-        });
-    }
-
-    private endSession() {
         if (this._sessionRunning) {
             this._sessionRunning = false;
+            this.caption = reasonMessage;
+            this.faceMaskMode = MaskMode.FAILURE;
             this.stopAnomalyDetection();
             this.stopFaceDetection();
+            this.playFailureAnimation(() => {
+                this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
+                this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+                this.showRetryButton = true;
+            });
         }
     }
 
