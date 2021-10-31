@@ -442,6 +442,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             }
             this.stopFaceCaptureTimer();
             this.stopFaceDetectionTimer();
+            this.showFaceIndicator = false;
         }
     }
 
@@ -571,7 +572,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private async onPicturesCaptured() {
         this.stopFaceDetection();
-        this.showFaceIndicator = false;
         this.previewPicture = this._zoomedPicture;
         this.showCamera = false;
         this.caption = 'Analizando ...';
@@ -594,19 +594,11 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private onSessionAnomalyDetected() {
-        this.stopFaceDetection();
-        this.showFaceIndicator = false;
-        this.showCamera = false;
-        this.showMask = false;
         this.triggerEvent(BiometricsLivenessElement.SESSION_ANOMALY_DETECTED_EVENT);
         this.onSessionFail('La sesión ha sido cerrada por seguridad');
     }
 
     private onSessionTimeout() {
-        this.stopFaceDetection();
-        this.showFaceIndicator = false;
-        this.showCamera = false;
-        this.showMask = false;
         this.triggerEvent(BiometricsLivenessElement.SESSION_TIMEOUT_EVENT);
         this.onSessionFail('Se ha agotado el tiempo de sesión');
     }
@@ -615,7 +607,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (this._sessionRunning) {
             this._sessionRunning = false;
             this.caption = 'Prueba de vida superada exitosamente';
-            this.faceMaskMode = MaskMode.SUCCESS;
+            if (this.previewPicture && this.showMask) {
+                this.faceMaskMode = MaskMode.SUCCESS;
+            } else {
+                this.showCamera = false;
+                this.showMask = false;
+            }
             this.stopAnomalyDetection();
             this.stopFaceDetection();
             this.playSuccessAnimation(() => {
@@ -630,7 +627,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         if (this._sessionRunning) {
             this._sessionRunning = false;
             this.caption = reasonMessage;
-            this.faceMaskMode = MaskMode.FAILURE;
+            if (this.previewPicture && this.showMask) {
+                this.faceMaskMode = MaskMode.FAILURE;
+            } else {
+                this.showCamera = false;
+                this.showMask = false;
+            }
             this.stopAnomalyDetection();
             this.stopFaceDetection();
             this.playFailureAnimation(() => {
