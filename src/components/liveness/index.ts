@@ -47,7 +47,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _sessionRunning = false;
     private _picture: Blob = null;
     private _zoomedPicture: Blob = null;
-    private _previewPicture: Blob = null;
+    private _previewPicture: string = null;
 
     private _api: BiometricsApi;
     private _detector: Detector;
@@ -386,22 +386,20 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private get previewPicture(): Blob {
+    private get previewPicture(): string {
         return this._previewPicture;
     }
 
-    private set previewPicture(previewPicture: Blob) {
+    private set previewPicture(previewPicture: string) {
         if (previewPicture != this._previewPicture) {
             this._previewPicture = previewPicture;
             if (this._previewPicture) {
-                convertBlobToImageUrl(this._previewPicture).then((pictureUrl) => {
-                    if (this._previewPictureElement) {
-                        this._previewPictureElement.setAttribute('src', pictureUrl);
-                    } else {
-                        this._previewPictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: pictureUrl}});
-                        this.appendElement(this._previewPictureElement);
-                    }
-                });
+                if (this._previewPictureElement) {
+                    this._previewPictureElement.setAttribute('src', previewPicture);
+                } else {
+                    this._previewPictureElement = this.createElement('img', {classes: 'preview-picture', attributes: {src: previewPicture}});
+                    this.appendElement(this._previewPictureElement);
+                }
             } else {
                 this._previewPictureElement.remove();
                 this._previewPictureElement = null;
@@ -628,7 +626,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     private async onPicturesCaptured() {
         this.stopFaceDetection();
-        this.previewPicture = this.zoomedPicture;
+        this.previewPicture = await convertBlobToImageUrl(this.zoomedPicture);
         this.showCamera = false;
         this.caption = 'Analizando ...';
         this.faceMaskMode = MaskMode.NORMAL;
