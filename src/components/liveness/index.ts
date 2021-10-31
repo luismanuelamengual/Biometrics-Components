@@ -357,6 +357,26 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private get picture(): Blob {
+        return this._picture;
+    }
+
+    private set picture(picture: Blob) {
+        if (picture != this._picture) {
+            this._picture = picture;
+        }
+    }
+
+    private get zoomedPicture(): Blob {
+        return this._zoomedPicture;
+    }
+
+    private set zoomedPicture(zoomedPicture: Blob) {
+        if (zoomedPicture != this._zoomedPicture) {
+            this._zoomedPicture = zoomedPicture;
+        }
+    }
+
     private get previewPicture(): Blob {
         return this._previewPicture;
     }
@@ -585,18 +605,18 @@ export class BiometricsLivenessElement extends BiometricsElement {
     }
 
     private async onPictureCaptured(picture: Blob) {
-        if (!this._picture) {
-            this._picture = picture;
+        if (!this.picture) {
+            this.picture = picture;
             this.faceZoomMode = true;
-        } else if (!this._zoomedPicture) {
-            this._zoomedPicture = picture;
+        } else if (!this.zoomedPicture) {
+            this.zoomedPicture = picture;
             await this.onPicturesCaptured();
         }
     }
 
     private async onPicturesCaptured() {
         this.stopFaceDetection();
-        this.previewPicture = this._zoomedPicture;
+        this.previewPicture = this.zoomedPicture;
         this.showCamera = false;
         this.caption = 'Analizando ...';
         this.faceMaskMode = MaskMode.NORMAL;
@@ -604,7 +624,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         try {
             let response;
             try {
-                response = await this._api.checkLiveness3d(this._picture, this._zoomedPicture);
+                response = await this._api.checkLiveness3d(this.picture, this.zoomedPicture);
             } catch (e) {
                 throw new CodeError(BiometricsLivenessElement.CONNECTION_FAILED_STATUS_CODE, 'Error de comunicación con el servidor');
             }
@@ -625,7 +645,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.endSession(BiometricsLivenessElement.TIMEOUT_STATUS_CODE, 'Se ha agotado el tiempo de sesión');
     }
 
-    private endSession(code: number = 0, message: string = '') {
+    private endSession(code: number = BiometricsLivenessElement.SUCCESS_STATUS_CODE, message: string = '') {
         if (this.sessionRunning) {
             this.sessionRunning = false;
             this.caption = message;
@@ -654,8 +674,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private async startSession() {
         if (!this.sessionRunning) {
             this.sessionRunning = true;
-            this._picture = null;
-            this._zoomedPicture = null;
+            this.picture = null;
+            this.zoomedPicture = null;
             this.showStartButton = false;
             this.showRetryButton = false;
             this.previewPicture = null;
