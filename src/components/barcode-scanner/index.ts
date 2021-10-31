@@ -3,17 +3,11 @@ import styles from './index.scss';
 import {BrowserMultiFormatReader} from '@zxing/library';
 import {BiometricsCameraElement} from "../camera";
 
-/**
- * @ignore
- */
 export declare enum Gender {
     MALE = "M",
     FEMALE = "F"
 }
 
-/**
- * @ignore
- */
 export interface DocumentData {
     firstName?: string;
     lastName?: string;
@@ -23,10 +17,7 @@ export interface DocumentData {
     nationalIdentificationNumber?: number;
 }
 
-/**
- * @ignore
- */
-export class BiometricsDocumentScannerElement extends BiometricsElement {
+export class BiometricsBarcodeScannerElement extends BiometricsElement {
 
     public static readonly DOCUMENT_SCAN_EVENT = 'documentScan';
     public static readonly DOCUMENT_SCAN_ERROR_EVENT = 'documentScanError';
@@ -79,9 +70,9 @@ export class BiometricsDocumentScannerElement extends BiometricsElement {
             if (code) {
                 try {
                     const documentData = this.parseCode(code);
-                    this.triggerEvent(BiometricsDocumentScannerElement.DOCUMENT_SCAN_EVENT, documentData);
+                    this.triggerEvent(BiometricsBarcodeScannerElement.DOCUMENT_SCAN_EVENT, documentData);
                 } catch (e) {
-                    this.triggerEvent(BiometricsDocumentScannerElement.DOCUMENT_SCAN_ERROR_EVENT, e);
+                    this.triggerEvent(BiometricsBarcodeScannerElement.DOCUMENT_SCAN_ERROR_EVENT, e);
                 }
             }
         } catch (e) {}
@@ -148,4 +139,4 @@ export class BiometricsDocumentScannerElement extends BiometricsElement {
     }
 }
 
-BiometricsDocumentScannerElement.register();
+BiometricsBarcodeScannerElement.register();
