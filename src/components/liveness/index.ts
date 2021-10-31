@@ -16,6 +16,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     public static readonly SESSION_SUCCESS_EVENT = 'sessionSuccess';
     public static readonly SESSION_FAIL_EVENT = 'sessionFail';
     public static readonly SESSION_TIMEOUT_EVENT = 'sessionTimeout';
+    public static readonly SESSION_ANOMALY_DETECTED_EVENT = 'sessionAnomalyDetected';
 
     private static readonly MIN_FACE_DISTANCE_TO_CENTER_PERCENTAGE = 6;
     private static readonly MIN_FACE_SCALE_PERCENTAGE = 40;
@@ -55,13 +56,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _faceDetectionTimeoutTask: any;
     private _faceCaptureTask: any;
 
-    /**
-     * @internal
-     */
     constructor() {
         super(true);
         this._api = new BiometricsApi();
         this._detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
+        this.onSessionTimeout = this.onSessionTimeout.bind(this);
+        this.onSessionAnomalyDetected = this.onSessionAnomalyDetected.bind(this);
     }
 
     protected onConnected() {
@@ -74,9 +74,6 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this.showStartButton = true;
     }
 
-    /**
-     * @internal
-     */
     public static getTagName(): string {
         return 'biometrics-liveness';
     }
@@ -461,7 +458,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         clearTimeout(this._faceDetectionTask);
                         this._faceDetectionTask = null;
                     }
-                    this._faceDetectionTask = setTimeout(async () => this._faceDetectionRunning && faceExecutionTask(), this.detectionInterval);
+                    this._faceDetectionTask = setTimeout(() => this._faceDetectionRunning && faceExecutionTask(), this.detectionInterval);
                 }
             }
             await faceExecutionTask();
@@ -479,7 +476,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private startFaceDetectionTimer() {
         this.stopFaceDetectionTimer();
         if (this.timeoutSeconds > 0) {
-            this._faceDetectionTimeoutTask = setTimeout(() => this.onSessionTimeout(), this.timeoutSeconds * 1000);
+            this._faceDetectionTimeoutTask = setTimeout(this.onSessionTimeout, this.timeoutSeconds * 1000);
         }
     }
 
@@ -550,6 +547,18 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private startAnomalyDetection() {
+        window.addEventListener('focusin', this.onSessionAnomalyDetected);
+        window.addEventListener('focusout', this.onSessionAnomalyDetected);
+        window.addEventListener('blur', this.onSessionAnomalyDetected);
+    }
+
+    private stopAnomalyDetection() {
+        window.removeEventListener('focusin', this.onSessionAnomalyDetected);
+        window.removeEventListener('focusout', this.onSessionAnomalyDetected);
+        window.removeEventListener('blur', this.onSessionAnomalyDetected);
+    }
+
     private async onPictureCaptured(picture: Blob) {
         if (!this._picture) {
             this._picture = picture;
@@ -584,6 +593,15 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
+    private onSessionAnomalyDetected() {
+        this.stopFaceDetection();
+        this.showFaceIndicator = false;
+        this.showCamera = false;
+        this.showMask = false;
+        this.triggerEvent(BiometricsLivenessElement.SESSION_ANOMALY_DETECTED_EVENT);
+        this.onSessionFail('La sesión ha sido cerrada por seguridad');
+    }
+
     private onSessionTimeout() {
         this.stopFaceDetection();
         this.showFaceIndicator = false;
@@ -596,26 +614,30 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private onSessionSuccess() {
         this.caption = 'Prueba de vida superada exitosamente';
         this.faceMaskMode = MaskMode.SUCCESS;
+        this.endSession();
         this.playSuccessAnimation(() => {
             this.triggerEvent(BiometricsLivenessElement.SESSION_SUCCESS_EVENT);
-            this.endSession();
+            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+            this.showRetryButton = true;
         });
     }
 
     private onSessionFail(reasonMessage = '') {
         this.caption = reasonMessage;
         this.faceMaskMode = MaskMode.FAILURE;
+        this.endSession();
         this.playFailureAnimation(() => {
             this.triggerEvent(BiometricsLivenessElement.SESSION_FAIL_EVENT);
-            this.endSession();
+            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+            this.showRetryButton = true;
         });
     }
 
     private endSession() {
         if (this._sessionRunning) {
             this._sessionRunning = false;
-            this.showRetryButton = true;
-            this.triggerEvent(BiometricsLivenessElement.SESSION_ENDED_EVENT);
+            this.stopAnomalyDetection();
+            this.stopFaceDetection();
         }
     }
 
@@ -632,7 +654,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
             this.showMask = true;
             this.faceZoomMode = false;
             this.faceMaskMode = MaskMode.NORMAL;
-            await this.startFaceDetection();
+            this.startAnomalyDetection();
+            this.startFaceDetection();
             this.triggerEvent(BiometricsLivenessElement.SESSION_STARTED_EVENT);
         }
     }
