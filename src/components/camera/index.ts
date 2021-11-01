@@ -7,8 +7,7 @@ export class BiometricsCameraElement extends BiometricsElement {
     public static readonly CAMERA_STARTED_EVENT = 'cameraStarted';
     public static readonly CAMERA_ENDED_EVENT = 'cameraEnded';
     public static readonly CAMERA_DISCONNECTED_EVENT = 'cameraDisconnected';
-    public static readonly CAMERA_NOT_FOUND_EVENT = 'cameraNotFound';
-    public static readonly CAMERA_INITIALIZATION_FAILED_EVENT = 'cameraInitializationFailed';
+    public static readonly CAMERA_NOT_DETECTED_EVENT = 'cameraNotDetected';
 
     private static readonly MAX_PICTURE_WIDTH = 4096;
     private static readonly MAX_PICTURE_HEIGHT = 4096;
@@ -30,7 +29,7 @@ export class BiometricsCameraElement extends BiometricsElement {
         if (this.showDeviceSelector) {
             const devices = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === 'videoinput');
             if (!devices.length) {
-                this.triggerEvent(BiometricsCameraElement.CAMERA_NOT_FOUND_EVENT);
+                this.triggerEvent(BiometricsCameraElement.CAMERA_NOT_DETECTED_EVENT);
             } else {
                 const deviceSelector = this.createDeviceSelector(devices);
                 this.getContainer().appendChild(deviceSelector);
@@ -209,7 +208,7 @@ export class BiometricsCameraElement extends BiometricsElement {
             this._videoElement.onloadedmetadata = () => this.triggerEvent(BiometricsCameraElement.CAMERA_STARTED_EVENT);
             this._videoElement.srcObject = videoSource;
         } else {
-            this.triggerEvent(BiometricsCameraElement.CAMERA_INITIALIZATION_FAILED_EVENT);
+            this.triggerEvent(BiometricsCameraElement.CAMERA_NOT_DETECTED_EVENT);
         }
     }
 

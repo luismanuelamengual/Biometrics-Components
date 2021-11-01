@@ -70,9 +70,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
         this._detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
         this.onSessionTimeout = this.onSessionTimeout.bind(this);
         this.onSessionAnomalyDetected = this.onSessionAnomalyDetected.bind(this);
-        this.onCameraNotFound = this.onCameraNotFound.bind(this);
+        this.onCameraNotDetected = this.onCameraNotDetected.bind(this);
         this.onCameraDisconnected = this.onCameraDisconnected.bind(this);
-        this.onCameraInitializationFailed = this.onCameraInitializationFailed.bind(this);
     }
 
     protected onConnected() {
@@ -249,8 +248,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         'video-height': 2048
                     },
                     listeners: {
-                        [BiometricsCameraElement.CAMERA_INITIALIZATION_FAILED_EVENT]: this.onCameraInitializationFailed,
-                        [BiometricsCameraElement.CAMERA_NOT_FOUND_EVENT]: this.onCameraNotFound,
+                        [BiometricsCameraElement.CAMERA_NOT_DETECTED_EVENT]: this.onCameraNotDetected,
                         [BiometricsCameraElement.CAMERA_DISCONNECTED_EVENT]: this.onCameraDisconnected
                     }
                 });
@@ -661,16 +659,12 @@ export class BiometricsLivenessElement extends BiometricsElement {
         }
     }
 
-    private onCameraNotFound() {
-        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'No se encontró cámara web');
+    private onCameraNotDetected() {
+        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'No se detectó cámara web');
     }
 
     private onCameraDisconnected() {
         this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'Se desconectó la cámara web');
-    }
-
-    private onCameraInitializationFailed() {
-        this.endSession(BiometricsLivenessElement.CAMERA_FAILURE_STATUS_CODE, 'Error en la inicialización de la cámara web');
     }
 
     private onSessionAnomalyDetected() {
