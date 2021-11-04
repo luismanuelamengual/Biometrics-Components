@@ -7,7 +7,7 @@ import loadingAnimationData from './animations/loading-animation-data';
 import successAnimationData from './animations/success-animation-data';
 import failureAnimationData from './animations/failure-animation-data';
 import {MaskMode} from "./mask-mode";
-import {CodeError, BiometricsApi, convertBlobToImageUrl} from "biometrics-core";
+import {CodeError, LivenessApi, convertBlobToImageUrl} from "biometrics-core";
 
 export class BiometricsLivenessElement extends BiometricsElement {
 
@@ -51,7 +51,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private _zoomedPicture: Blob = null;
     private _previewPicture: string = null;
 
-    private _api: BiometricsApi;
+    private _api: LivenessApi;
     private _detector: Detector;
     private _cameraElement: BiometricsCameraElement;
     private _maskElement: HTMLElement;
@@ -66,7 +66,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
 
     constructor() {
         super(true);
-        this._api = new BiometricsApi();
+        this._api = new LivenessApi();
         this._detector = new Detector(FrontalFaceClassifier, {memoryBufferEnabled: true});
         this.onSessionTimeout = this.onSessionTimeout.bind(this);
         this.onSessionAnomalyDetected = this.onSessionAnomalyDetected.bind(this);
@@ -642,9 +642,9 @@ export class BiometricsLivenessElement extends BiometricsElement {
         try {
             let response;
             try {
-                response = await this._api.checkLiveness3d(this.picture, this.zoomedPicture);
+                response = await this._api.verifyLiveness(this.picture, this.zoomedPicture);
             } catch (e) {
-                if (e.code && (e.code === BiometricsApi.AUTHORIZATION_KEY_MISSING_ERROR_CODE || e.code === BiometricsApi.AUTHORIZATION_FAILED_ERROR_CODE)) {
+                if (e.code && (e.code === LivenessApi.AUTHORIZATION_KEY_MISSING_ERROR_CODE || e.code === LivenessApi.AUTHORIZATION_FAILED_ERROR_CODE)) {
                     throw new CodeError(BiometricsLivenessElement.AUTHORIZATION_FAILED_STATUS_CODE, 'Error de autenticación con el servidor');
                 } else {
                     throw new CodeError(BiometricsLivenessElement.CONNECTION_FAILED_STATUS_CODE, 'Error de comunicación con el servidor');

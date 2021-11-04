@@ -3,8 +3,5 @@ export default {
     watch: true,
     nodeResolve: true,
     appIndex: 'index.html',
-    rootDir: 'www',
-    http2: true,
-    sslKey: './key.pem',
-    sslCert: './cert.pem'
+    rootDir: 'www'
 }
