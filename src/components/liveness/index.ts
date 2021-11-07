@@ -33,7 +33,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
-    private static readonly DEFAULT_VIDEO_SIZE = 1024;
+    private static readonly DEFAULT_VIDEO_SIZE = 720;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
     private _caption = '';
@@ -429,10 +429,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 const imageXFactor = cameraSize / imageWidth;
                 const imageYFactor = cameraSize / imageHeight;
                 let detectedItems = this._detector.detect(imageData);
-                if (detectedItems && detectedItems.length > 0) {
-                    if (detectedItems.length > 1) {
-                        detectedItems = detectedItems.sort((detection1, detection2) => detection2.radius - detection1.radius);
-                    }
+                if (detectedItems && detectedItems.length == 1) {
                     const detectedItem = detectedItems[0];
                     const radius = detectedItem.radius * imageXFactor;
                     const diameter = radius * 2;
