@@ -171,21 +171,31 @@ export class BiometricsCameraElement extends BiometricsElement {
         if (this.deviceId) {
             desiredConstraints.video.deviceId = {exact: this.deviceId};
         }
-        if (this.videoWidth) {
-            desiredConstraints.video.width = this.videoWidth;
-        }
-        if (this.videoHeight) {
-            desiredConstraints.video.height = this.videoHeight;
-        }
         if (this.facingMode) {
             desiredConstraints.video.facingMode = this.facingMode;
         }
         if (this.aspectRatio) {
             desiredConstraints.video.aspectRatio = {exact: this.aspectRatio};
         }
+        if (this.videoWidth) {
+            desiredConstraints.video.width = this.videoWidth;
+        }
+        if (this.videoHeight) {
+            desiredConstraints.video.height = this.videoHeight;
+        }
         mediaFallbackConstraints.push(desiredConstraints);
-        if (this.deviceId) {
-            mediaFallbackConstraints.push({video: {deviceId: {exact: this.deviceId}}});
+        if (this.videoWidth || this.videoHeight) {
+            const desiredConstraintsWithoutResolution: any = {video: {}};
+            if (this.deviceId) {
+                desiredConstraintsWithoutResolution.video.deviceId = {exact: this.deviceId};
+            }
+            if (this.facingMode) {
+                desiredConstraintsWithoutResolution.video.facingMode = this.facingMode;
+            }
+            if (this.aspectRatio) {
+                desiredConstraintsWithoutResolution.video.aspectRatio = {exact: this.aspectRatio};
+            }
+            mediaFallbackConstraints.push(desiredConstraintsWithoutResolution);
         }
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
