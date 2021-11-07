@@ -33,6 +33,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
     private static readonly DEFAULT_DETECTION_INTERVAL = 100;
     private static readonly DEFAULT_CAPTURE_DELAY_SECONDS = 2;
     private static readonly DEFAULT_TIMEOUT_SECONDS = 30;
+    private static readonly DEFAULT_VIDEO_SIZE = 1024;
     private static readonly FACE_ASPECT_RATIO = 0.73333;
 
     private _caption = '';
@@ -244,8 +245,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
                         fullscreen: 'false',
                         'aspect-ratio': '1',
                         'facing-mode': 'user',
-                        'video-width': 2048,
-                        'video-height': 2048
+                        'video-width': BiometricsLivenessElement.DEFAULT_VIDEO_SIZE,
+                        'video-height': BiometricsLivenessElement.DEFAULT_VIDEO_SIZE
                     },
                     listeners: {
                         [BiometricsCameraElement.CAMERA_NOT_DETECTED_EVENT]: this.onCameraNotDetected,
@@ -596,7 +597,8 @@ export class BiometricsLivenessElement extends BiometricsElement {
                     this._timerElement.innerText = '';
                     if (remainingSeconds === 0) {
                         await this.onPictureCaptured(await this._cameraElement.getSnapshotBlob());
-                    } if (remainingSeconds < 0) {
+                    } 
+                    if (remainingSeconds < 0) {
                         this.stopFaceCaptureTimer();
                     }
                 }
