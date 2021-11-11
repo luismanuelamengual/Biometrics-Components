@@ -1,6 +1,6 @@
 {
     "name": "biometrics-components",
-    "version": "2.2.4",
+    "version": "2.2.5",
     "description": "Biometrics Web Components",
     "author": "Luis Manuel Amengual",
     "license": "MIT",
@@ -26,11 +26,12 @@
         "build:sources": "tsc",
         "build:bundle": " rollup -c",
         "build": "npm run clean && npm run build:styles && npm run build:sources && npm run build:bundle",
+        "tag": "bash ./scripts/tag",
         "start": "concurrently --kill-others --names tsc,wds,styles-builder \"npm run start:watch-sources\" \"npm run start:watch-styles\" \"npm run start:serve\"",
         "start:watch-styles": "styles-builder -w --src src --dist www/build",
         "start:watch-sources": "tsc --watch --outDir www/build",
         "start:serve": "wds --config web-dev-server.config.js",
-        "prepublishOnly": "npm run build",
+        "prepublishOnly": "npm run build && npm run tag",
         "docs": "typedoc --out docs --excludeExternals --excludeProtected --excludePrivate --excludeInternal src/index.ts"
     },
     "devDependencies": {
