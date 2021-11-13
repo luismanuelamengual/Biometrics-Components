@@ -429,7 +429,10 @@ export class BiometricsLivenessElement extends BiometricsElement {
                 const imageXFactor = cameraSize / imageWidth;
                 const imageYFactor = cameraSize / imageHeight;
                 let detectedItems = this._detector.detect(imageData);
-                if (detectedItems && detectedItems.length == 1) {
+                if (detectedItems && detectedItems.length > 0) {
+                    if (detectedItems.length > 1) {
+                        detectedItems = detectedItems.sort((detection1, detection2) => detection2.radius - detection1.radius);
+                    }
                     const detectedItem = detectedItems[0];
                     const radius = detectedItem.radius * imageXFactor;
                     const diameter = radius * 2;
@@ -450,6 +453,7 @@ export class BiometricsLivenessElement extends BiometricsElement {
             if (!faceRect) {
                 faceMatching = false;
                 caption = 'Rostro no encontrado';
+                this.resetFaceDetection();
             } else {
                 const elementWidth = this.offsetWidth;
                 const elementHeight = this.offsetHeight;
@@ -619,6 +623,13 @@ export class BiometricsLivenessElement extends BiometricsElement {
             window.removeEventListener('blur', this.onSessionAnomalyDetected);
             this._anomalyDetectionRunning = false;
         }
+    }
+
+    private resetFaceDetection() {
+        this.picture = null;
+        this.zoomedPicture = null;
+        this.faceZoomMode = false;
+        this.faceMaskMode = MaskMode.NORMAL;
     }
 
     private async onPictureCaptured(picture: Blob) {
