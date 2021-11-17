@@ -167,40 +167,39 @@ export class BiometricsCameraElement extends BiometricsElement {
     private async startVideoStreaming() {
         this.stopVideoStreaming();
         const mediaFallbackConstraints: Array<MediaStreamConstraints> = [];
-        const desiredConstraints: any = {video: {}};
+        const videoConstraints: MediaTrackConstraints = {};
         if (this.deviceId) {
-            desiredConstraints.video.deviceId = {exact: this.deviceId};
+            videoConstraints.deviceId = {exact: this.deviceId};
+            mediaFallbackConstraints.unshift({video: {...videoConstraints}});
         }
         if (this.facingMode) {
-            desiredConstraints.video.facingMode = this.facingMode;
+            videoConstraints.facingMode = this.facingMode;
+            mediaFallbackConstraints.unshift({video: {...videoConstraints}});
         }
         if (this.aspectRatio) {
-            desiredConstraints.video.aspectRatio = {exact: this.aspectRatio};
+            videoConstraints.aspectRatio = {exact: this.aspectRatio};
+            mediaFallbackConstraints.unshift({video: {...videoConstraints}});
         }
-        if (this.videoWidth) {
-            desiredConstraints.video.width = this.videoWidth;
-        }
-        if (this.videoHeight) {
-            desiredConstraints.video.height = this.videoHeight;
-        }
-        mediaFallbackConstraints.push(desiredConstraints);
         if (this.videoWidth || this.videoHeight) {
-            const desiredConstraintsWithoutResolution: any = {video: {}};
-            if (this.deviceId) {
-                desiredConstraintsWithoutResolution.video.deviceId = {exact: this.deviceId};
+            if (this.videoWidth) {
+                videoConstraints.width = this.videoWidth;
             }
-            if (this.facingMode) {
-                desiredConstraintsWithoutResolution.video.facingMode = this.facingMode;
+            if (this.videoHeight) {
+                videoConstraints.height = this.videoHeight;
             }
-            if (this.aspectRatio) {
-                desiredConstraintsWithoutResolution.video.aspectRatio = {exact: this.aspectRatio};
-            }
-            mediaFallbackConstraints.push(desiredConstraintsWithoutResolution);
+            mediaFallbackConstraints.unshift({video: {...videoConstraints}});
         }
+        if (mediaFallbackConstraints.length == 0) {
+            mediaFallbackConstraints.unshift({video: true});
+        }
+
+        console.log(mediaFallbackConstraints);
+
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
             try {
                 videoSource = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+                console.log(mediaConstraints);
                 if (videoSource != null) {
                     break;
                 }
