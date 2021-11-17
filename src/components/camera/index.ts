@@ -192,9 +192,6 @@ export class BiometricsCameraElement extends BiometricsElement {
         if (mediaFallbackConstraints.length == 0) {
             mediaFallbackConstraints.unshift({video: true});
         }
-
-        console.log(mediaFallbackConstraints);
-
         let videoSource = null;
         for (const mediaConstraints of mediaFallbackConstraints) {
             try {
